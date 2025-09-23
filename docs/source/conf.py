@@ -25,6 +25,11 @@ exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+# -- Options for HTML output -------------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
+
+# Add this line to set the logo
+html_logo = '_static/PowerBiMIP_logo.svg'
+
 html_static_path = ['_static']
