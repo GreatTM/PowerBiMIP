@@ -1,4 +1,4 @@
-[//]: # (# Welcome to PowerBiMIP's Documentation!)
+# Welcome to PowerBiMIP's Documentation!
 
 [//]: # ()
 [//]: # (PowerBiMIP is an open-source toolkit for solving bi-level mixed-integer programming problems.)
