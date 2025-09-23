@@ -30,6 +30,6 @@ exclude_patterns = []
 html_theme = 'sphinx_rtd_theme'
 
 # Add this line to set the logo
-html_logo = '_static/PowerBiMIP_logo.svg'
-
+# html_logo = '_static/PowerBiMIP_logo.svg'
 html_static_path = ['_static']
+html_css_files = ['custom.css']
