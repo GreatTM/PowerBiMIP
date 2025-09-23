@@ -1,0 +1,30 @@
+/* custom.css */
+
+/* 1. 整体页面内容居中 */
+/* 我们选择主内容区域，并给它一个最大宽度，然后让它水平居中 */
+div[role="main"] {
+    max-width: 1000px; /* 您可以根据喜好调整这个宽度值 */
+    margin: 2rem auto 0; /* 顶部留白，左右自动，实现水平居中 */
+    float: none !important; /* 覆盖主题默认的 float 样式 */
+}
+
+/* 2. 居中顶部的 Logo 和标语 */
+.custom-header {
+    text-align: center; /* 让容器内部的所有东西（图片、文字）都居中 */
+    margin-bottom: 3rem; /* 在 Logo 区域和下面的正文之间增加一些间距 */
+}
+
+/* 3. 调整 Logo 图片的大小 */
+.custom-header img {
+    max-width: 450px; /* 设置 Logo 的最大宽度，请根据您的 Logo 调整 */
+    width: 100%;      /* 确保在小屏幕上能自适应缩小 */
+    height: auto;
+}
+
+/* 4. 设置标语的样式 */
+.custom-header .tagline {
+    font-size: 1.1rem;      /* 字体稍大一点 */
+    color: #404040;         /* 字体颜色（深灰色） */
+    margin-top: 1rem;       /* Logo 和标语之间的间距 */
+    line-height: 1.5;       /* 增加行高，避免文字太挤 */
+}

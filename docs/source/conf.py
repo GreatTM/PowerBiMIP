@@ -16,7 +16,6 @@ author = 'Yemin Wu'
 extensions = [
     'myst_parser',
     'sphinx_rtd_theme',
-    'furo',
 ]
 
 templates_path = ['_templates']
