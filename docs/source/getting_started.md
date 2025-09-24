@@ -118,7 +118,7 @@ model.var_zl = [reshape(model.var.z, [], 1)]; % Lower-level integer variables
 Finally, we configure the solver settings using `BiMIPsettings` and then call the main solver function `solve_BiMIP`.
 
   * `perspective`: Set to `'optimistic'` for this problem.
-  * `method`: We use the `'exact_KKT'` method, which is an exact algorithm.
+  * `method`: We use the `'exact_KKT'` method, which is an exact algorithm. （You can also try `'exact_strong_duality'` or `'quick'`）
   * `solver`: We specify `'gurobi'` as our underlying MILP solver.
   * `verbose`: A setting of `2` provides detailed solver output.
 
@@ -144,7 +144,7 @@ ops = BiMIPsettings( ...
 
 After running the script, PowerBiMIP will return two main outputs:
 
-  * **`Solution`**: A structure containing the optimal values of the variables and the objective functions. For this example, the optimal solution is **$x = 2$**, **$z = 2$**, resulting in an upper-level objective value of **-22**.
+  * **`Solution`**: A structure containing the optimal values of the variables and the objective functions. For this example, the optimal solution is **x = 2**, **z = 2**, resulting in an upper-level objective value of **-22**.
   * **`BiMIP_record`**: A structure that records detailed information about the solution process, such as solving time and algorithm iterations, which is useful for analysis and debugging.
 
 -----
