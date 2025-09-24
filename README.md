@@ -1,6 +1,5 @@
-# PowerBiMIP: Bilevel Mixed-Integer Programming for Power Systems
+# PowerBiMIP: Bilevel Mixed-Integer Programming for Power and Energy Systems
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/GreatTM/PowerBiMIP)](https://github.com/GreatTM/PowerBiMIP/releases)
 [![View on GitHub](https://img.shields.io/badge/View%20on-GitHub-blue?logo=GitHub)](https://github.com/GreatTM/PowerBiMIP)
 [![Official Website](https://img.shields.io/badge/Website-docs.powerbimip.com-green)](https://docs.powerbimip.com)
 
