@@ -158,7 +158,7 @@ We also thank **Dr. Ruizhi Yu** ([@rzyu45](https://github.com/rzyu45)) for his t
 
 ### License
 
-**Copyright © 2024 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
+**Copyright © 2025 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
 
 This software is provided for academic and non-commercial research purposes only.
 
