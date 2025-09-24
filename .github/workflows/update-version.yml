@@ -14,10 +14,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: 'main'
-          # We need to fetch all history for all branches and tags
           fetch-depth: 0
-          # Use a token with write permissions to push changes
-          token: ${{ secrets.PAT_TOKEN }} # Use a Personal Access Token
+          # 注意：这里不需要 token 这一行
 
       - name: Get version from tag
         id: get_version
