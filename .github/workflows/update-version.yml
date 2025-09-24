@@ -7,14 +7,14 @@ on:
 jobs:
   update-version:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-        fetch-depth: 0
-        ref: ${{ github.ref }}
+          # We need to fetch all history for all branches and tags
+          fetch-depth: 0
+          # Use a token with write permissions to push changes
+          token: ${{ secrets.PAT_TOKEN }} # Use a Personal Access Token
 
       - name: Get version from tag
         id: get_version
