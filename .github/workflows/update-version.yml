@@ -13,6 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: 'main'
           # We need to fetch all history for all branches and tags
           fetch-depth: 0
           # Use a token with write permissions to push changes
