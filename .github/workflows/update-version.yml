@@ -11,11 +11,10 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
-          ref: 'main'
-          fetch-depth: 0
-          # 注意：这里不需要 token 这一行
+        fetch-depth: 0
+        ref: ${{ github.ref }}
 
       - name: Get version from tag
         id: get_version
