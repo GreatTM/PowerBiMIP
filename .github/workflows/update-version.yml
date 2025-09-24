@@ -11,7 +11,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # We need to fetch all history for all branches and tags
+          ref: 'main'
           fetch-depth: 0
           # Use a token with write permissions to push changes
           token: ${{ secrets.PAT_TOKEN }} # Use a Personal Access Token

@@ -1,109 +1,173 @@
-# An_Open_Source_BiMIP_Toolbox_trial
-This is the trial version. It will be gradually open-sourced in the future.
-# BiMIP Toolbox - 用户指南
-**An open source MATLAB toolbox for BiMIP (trial version)**  
-[![AGPL-3.0 License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE.txt)
-[![View on GitHub](https://img.shields.io/badge/GitHub-Repository-brightgreen)](https://github.com/GreatTM/An_Open_Source_BiMIP_Toolbox_trial)
+# PowerBiMIP: Bilevel Mixed-Integer Programming for Power Systems
 
-👤 **作者**:  
-Yemin Wu (`yemin.wu@seu.edu.cn`)  
-Shuai Lu (`shuai.lu.seu@outlook.com`)  
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/GreatTM/PowerBiMIP)](https://github.com/GreatTM/PowerBiMIP/releases)
+[![View on GitHub](https://img.shields.io/badge/View%20on-GitHub-blue?logo=GitHub)](https://github.com/GreatTM/PowerBiMIP)
+[![Official Website](https://img.shields.io/badge/Website-docs.powerbimip.com-green)](https://docs.powerbimip.com)
 
-📜 **版权**: Copyright © 2025 Yemin Wu  
-🌐 **官网**: https://github.com/GreatTM/An_Open_Source_BiMIP_Toolbox_trial  
+**PowerBiMIP** is an open-source, efficient MATLAB toolbox for modeling and solving bilevel mixed-integer programming (BiMIP) problems, with a special focus on applications in power and energy systems.
 
----
+## Overview
 
-## 🔧 安装与配置
-### 前置依赖
-1. 安装 [YALMIP](https://yalmip.github.io/)（建议最新版本）：
-2. 安装 **Gurobi/Cplex** 求解器（任选其一）
+PowerBiMIP provides a user-friendly framework to formulate complex bilevel optimization problems involving both continuous and integer variables at both the upper and lower levels.
 
-### 工具箱安装
-先将本工具箱克隆至本地，然后在MATLAB中添加工具箱文件夹的路径（添加并包含子文件夹）
+The toolbox currently supports:
+* Bilevel Mixed-Integer Programs (BiMIP).
+* Automatically converts user-input models into standard-form BiMIP, allowing users to focus on model construction.
+* Automatically transforms BiMIP with coupling constraints into BiMIP without coupling constraints.
+* Optimistic solution perspectives. (The pessimistic perspective is comming soon)
+* Multiple solution methods, including exact mode and quick mode.
 
-## 🚀 快速开始
-### 求解示例问题
-BiMIP_toy_example1.m
+### Quick Start Example
 
-## 📐 模型规范
-### 标准形式
-$$\begin{align*}
-&\min_{x_u,z_u \in \mathbb Z^{N_z},x_l,z_l} c_1^T x_u + c_2^T z_u + c_3^T x_l + c_4^T z_l \\
-&\text{s.t.} \\
-&\quad A_u x_u + B_u z_u + C_u x_l + D_u z_l \leq b_u \\
-&\quad E_u x_u + F_u z_u + G_u x_l + H_u z_l = h_u \\
-\\
-&\quad \min_{x_l,z_l \in \mathbb Z^{N_z}} c_5^T x_l + c_6^T z_l \\
-&\quad \text{s.t.} \\
-&\quad\quad A_l x_u + B_l z_u + C_l x_l + D_l z_l \leq b_l : \mu \\
-&\quad\quad E_l x_u + F_l z_u + G_l x_l + H_l z_l = h_l : \lambda 
-\end{align*}$$
+Let's walk through a simple example to illustrate how to use PowerBiMIP. The following problem is defined in `examples/toy_examples/BiMIP_toy_example1.m`.
 
-### 变量命名规则
-| 变量类型         | 代码标识      | 维度要求 |
-|------------------|--------------|----------|
-| 上层连续变量     | `model.var_xu` | N×1 向量 |
-| 上层离散变量     | `model.var_zu` | N×1 向量 |
-| 下层连续变量     | `model.var_xl` | N×1 向量 |
-| 下层离散变量     | `model.var_zl` | N×1 向量 |
+**Mathematical Formulation:**
 
-> 💡 使用 `reshape()` 确保变量为列向量
+* **Upper-Level Problem:**
+    ```
+    min_{x}  -x - 10*z
+    s.t.
+        x >= 0
+        -25*x + 20*z <= 30
+        x   + 2*z  <= 10
+        2*x - z    <= 15
+        2*x + 10*z >= 15
+    ```
 
----
+* **Lower-Level Problem:**
+    Where `z` is determined by the solution of:
+    ```
+    min_{y,z}  z + 1000 * sum(y)
+    s.t.
+        -25*x + 20*z <= 30 + y(1)
+        x   + 2*z  <= 10 + y(2)
+        2*x - z    <= 15 + y(3)
+        2*x + 10*z >= 15 - y(4)
+        z >= 0
+        y >= 0
+    ```
 
-## ⚙️ BiMIPsettings 配置
-| 参数 | 默认值 | 说明 |
-|------|---------|------|
-| `method` | `'KKT'` | 求解方法 [`KKT`/`strong_duality`] |
-| `solver` | `'gurobi'` | 底层求解器 [`gurobi`/`cplex`] |
-| `verbose` | `2` | 输出详细度 [0:静默, 1:基础, 2:+图形, 3:+求解器日志] |
-| `RD_max_iterations` | `10` | 最大迭代次数 |
-| `RD_optimal_gap` | `1e-4` | 收敛精度阈值 |
+**MATLAB Implementation:**
 
----
+To ensure compatibility with the toolbox's internal matrix operations, please adhere to the following input specifications:
+* **Variables**: All variable sets (`var_xu`, `var_zu`, `var_xl`, `var_zl`) passed to the solver must be formatted as N x 1 column vectors. You can use `reshape(var, [], 1)` to achieve this.
+* **Constraints & Objectives**: The constraint sets and objective functions must be standard YALMIP objects.
+* **Problem Type**: Currently, PowerBiMIP officially supports **Bilevel Mixed-Integer Linear Programs**. Support for quadratic terms is under development.
 
-## 📊 输出结果解析
-| 输出变量 | 说明 |
-|----------|------|
-| `Solution` | 包含所有变量最优解的结构体 |
-| `BiMILP_record` | 求解过程记录（迭代次数、间隙等） |
-| `coefficients` | 模型系数提取结果 |
-| results文件夹 | 保存每次的计算结果，以运行时间命名（包括命令行输出，图片，工作区变量等）|
----
+Here is the code to model and solve this problem using PowerBiMIP.
 
-## ⚠️ 重要限制（将持续更新）
-1. **模型类型**：仅支持双层混合整数**线性**规划（BiMILP）
-2. **非线性项**：不支持任何非线性项
-3. **上层约束**：不得包含下层变量（如：`x_u + x_l ≤ 10` 非法）
-4. **目标函数**：下层目标必须仅含下层变量
+```matlab
+% 1. Initialization
+clear; close all; clc; yalmip('clear');
 
-> 📌 违反上述限制将导致求解错误！
+% 2. Variable Definition using YALMIP
+model.var.x = intvar(1,1,'full'); % Upper-level integer variable
+model.var.z = intvar(1,1,'full'); % Lower-level integer variable
+model.var.y = sdpvar(4,1,'full'); % Lower-level continuous variables
 
----
+% 3. Model Formulation
+% --- Upper-Level Constraints ---
+model.constraints_upper = [];
+model.constraints_upper = model.constraints_upper + (model.var.x >= 0);
+model.constraints_upper = model.constraints_upper + (-25 * model.var.x + 20 * model.var.z <= 30);
+model.constraints_upper = model.constraints_upper + (model.var.x + 2 * model.var.z <= 10);
+model.constraints_upper = model.constraints_upper + (2 * model.var.x - model.var.z <= 15);
+model.constraints_upper = model.constraints_upper + (2 * model.var.x + 10 * model.var.z >= 15);
 
-## 📜 许可与引用
-本工具箱采用 **AGPL-3.0 许可证**，使用时需遵守：
-Copyright © 2025 Yemin Wu.
+% --- Lower-Level Constraints ---
+model.constraints_lower = [];
+model.constraints_lower = model.constraints_lower + (-25 * model.var.x + 20 * model.var.z <= 30 + model.var.y(1,1) );
+model.constraints_lower = model.constraints_lower + (model.var.x + 2 * model.var.z <= 10 + model.var.y(2,1) );
+model.constraints_lower = model.constraints_lower + (2 * model.var.x - model.var.z <= 15 + model.var.y(3,1) );
+model.constraints_lower = model.constraints_lower + (2 * model.var.x + 10 * model.var.z >= 15 - model.var.y(4,1) );
+model.constraints_lower = model.constraints_lower + (model.var.z >= 0);
+model.constraints_lower = model.constraints_lower + (model.var.y >= 0);
 
-详见 LICENSE.txt 文件
-若在研究中使用了本工具箱，请引用：
+% --- Objective Functions ---
+model.objective_upper = -model.var.x - 10 * model.var.z;
+model.objective_lower = model.var.z + 1e3 * sum(model.var.y,'all');
 
-bibtex
+% 4. Define Variable Sets for the Solver
+model.var_xu = []; % Upper-level continuous variables
+model.var_zu = [reshape(model.var.x, [], 1)]; % Upper-level integer variables
+model.var_xl = [reshape(model.var.y, [], 1)]; % Lower-level continuous variables
+model.var_zl = [reshape(model.var.z, [], 1)]; % Lower-level integer variables
 
-@software{BiMIPToolbox,
+% 5. Configure and Run the Solver
+ops = BiMIPsettings( ...
+    'perspective', 'optimistic', ...
+    'method', 'exact_KKT', ...
+    'solver', 'gurobi', ...
+    'verbose', 2 ...
+    );
+[Solution, BiMIP_record] = solve_BiMIP(model.var, ...
+    model.var_xu, model.var_zu, model.var_xl, model.var_zl, ...
+    model.constraints_upper, model.constraints_lower, ...
+    model.objective_upper, model.objective_lower, ops);
+```
+Running this script will solve the problem and return the optimal solution, which is $x = 2$, $z = 2$, with an upper-level objective of $-22$.
 
-author = {Wu, Yemin and Lu, Shuai},
+## Installation
 
-title = {An Open Source MATLAB Toolbox for BiMIP},
+### Prerequisites
+Before installing PowerBiMIP, ensure you have the following dependencies installed:
 
-year = {2025},
+1.  **MATLAB**: R2018a or newer.
+2.  **YALMIP**: The latest version is highly recommended. You can download it from the [YALMIP GitHub repository](https://github.com/yalmip/YALMIP).
+3.  **A MILP Solver**: At least one MILP solver is required. We strongly recommend **Gurobi** for its performance and robustness. Other supported solvers include CPLEX\COPT\MOSEK.
 
-url = {https://github.com/GreatTM/An_Open_Source_BiMIP_Toolbox_trial}
+### Installation Steps
 
-}
----
+1.  **Download PowerBiMIP**: Clone or download the repository from [https://github.com/GreatTM/PowerBiMIP](https://github.com/GreatTM/PowerBiMIP).
+2.  **Add to MATLAB Path**: Add the PowerBiMIP root folder and its subfolders to your MATLAB path. You can do this by running the following command in the MATLAB console from the PowerBiMIP root directory:
+    ```matlab
+    addpath(genpath(pwd));
+    ```
+    Alternatively, you can use the "Set Path" dialog in the MATLAB environment.
+3.  **Verify Installation**: Run one of the toy examples to ensure that PowerBiMIP and all its dependencies are correctly configured.
+    ```matlab
+    run('examples/toy_examples/BiMIP_toy_example1.m');
+    ```
 
-**遇到问题？**  
-联系作者：`yemin.wu@seu.edu.cn`  
-提交 Issue：[GitHub Issues](https://github.com/GreatTM/An_Open_Source_BiMIP_Toolbox_trial/issues)
+## Documentation
+
+For detailed documentation, including tutorials, advanced examples, and API references, please visit our official website:
+
+**[https://docs.powerbimip.com](https://docs.powerbimip.com)**
+
+## Development Status & Contribution
+
+PowerBiMIP is under active development. As an early-stage project, it may have known or potential bugs, and some features are still being improved. We are committed to long-term maintenance and plan to release a major update annually and minor updates monthly.
+
+We highly welcome feedback and contributions from the community! If you have any feature requests or encounter a bug, please feel free to:
+* Contact Yemin Wu directly via email: [yemin.wu@seu.edu.cn](mailto:yemin.wu@seu.edu.cn)
+* Open an issue on our [GitHub Issues page](https://github.com/GreatTM/PowerBiMIP/issues).
+
+## Acknowledgements
+
+This work is performed under the supervision of **Prof. Shuai Lu** at Southeast University.
+
+We extend our sincere gratitude to **Prof. Bo Zeng** from the University of Pittsburgh for his significant support. The algorithms implemented in our `exact_mode` are based on his pioneering research:
+* [1] Zeng, Bo, and Yu An. "Solving bilevel mixed integer program by reformulations and decomposition." *Optimization online* (2014): 1-34.
+* [2] Zeng, Bo. "A practical scheme to compute the pessimistic bilevel optimization problem." *INFORMS Journal on Computing* 32.4 (2020): 1128-1142.
+
+Furthermore, the development of the `quick_mode` algorithm was carefully guided by Prof. Zeng.
+
+We also thank **Dr. Ruizhi Yu** ([@rzyu45](https://github.com/rzyu45)) for his technical support and guidance on the development of the PowerBiMIP documentation website.
+
+## License and Citation
+
+### License
+
+**Copyright © 2024 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
+
+This software is provided for academic and non-commercial research purposes only.
+
+* **Permitted Use**: You are granted a non-exclusive, non-transferable license to use, copy, and modify PowerBiMIP for your own academic and non-commercial research.
+* **Restrictions**: PowerBiMIP, or any of its forks or derivative versions, may not be redistributed or used as part of a commercial product or service without a separate written agreement with the copyright owner.
+* **Disclaimer of Warranty**: PowerBiMIP is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. The user assumes all risks associated with the use of this software. The authors and copyright holders are not liable for any direct or indirect damages that may arise from its use.
+* **Distribution**: Any authorized distribution of forks or derivative versions of PowerBiMIP must include this license and adhere to its terms.
+
+### Citation
+
+If you use PowerBiMIP in your research and public presentations, please cite it. This helps us to secure funding and continue developing the toolbox. We will provide a specific citation format once our work is published in a peer-reviewed journal.
