@@ -1,0 +1,37 @@
+name: Update Version on Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # We need to fetch all history for all branches and tags
+          fetch-depth: 0
+          # Use a token with write permissions to push changes
+          token: ${{ secrets.PAT_TOKEN }} # Use a Personal Access Token
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Update VERSION file
+        run: echo "${{ env.VERSION }}" > VERSION
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add VERSION
+          # Check if there are changes to commit
+          if ! git diff --staged --quiet; then
+            git commit -m "Chore: Update VERSION to ${{ env.VERSION }}"
+            git push
+          else
+            echo "No changes to commit."
+          fi
