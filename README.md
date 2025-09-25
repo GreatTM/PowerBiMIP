@@ -3,7 +3,7 @@
 [![View on GitHub](https://img.shields.io/badge/View%20on-GitHub-blue?logo=GitHub)](https://github.com/GreatTM/PowerBiMIP)
 [![Official Website](https://img.shields.io/badge/Website-docs.powerbimip.com-green)](https://docs.powerbimip.com)
 
-**PowerBiMIP** is an open-source, efficient MATLAB toolbox for modeling and solving bilevel mixed-integer programming (BiMIP) problems, with a special focus on applications in power and energy systems.
+**PowerBiMIP** is an open-source, efficient bilevel mixed-integer programming (BiMIP) solver, with a special focus on applications in power and energy systems.
 
 ## Overview
 
