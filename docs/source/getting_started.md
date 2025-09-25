@@ -4,7 +4,7 @@ This tutorial provides a step-by-step guide to modeling and solving a bilevel mi
 
 ## Installation
 
-Before we begin, please make sure you have successfully installed PowerBiMIP and its dependencies (MATLAB, YALMIP, and a MILP solver like Gurobi). If you haven't, please follow the instructions on the **[Installation](installation.html)** page.
+Before we begin, please make sure you have successfully installed PowerBiMIP and its dependencies (MATLAB, YALMIP, and a MILP solver like Gurobi). If you haven't, please follow the instructions on the **[Installation](installation.md)** page.
 
 ---
 

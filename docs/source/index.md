@@ -19,7 +19,7 @@ Whether you are modeling strategic interactions between market participants, pla
 
 ## Getting Started
 
-New to PowerBiMIP? The **[Getting Started](getting_started.html)** guide will walk you through solving your first bilevel optimization problem in just a few minutes.
+New to PowerBiMIP? The **[Getting Started](getting_started.md)** guide will walk you through solving your first bilevel optimization problem in just a few minutes.
 
 ## How to Cite
 
