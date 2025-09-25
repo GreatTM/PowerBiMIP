@@ -169,4 +169,4 @@ This software is provided for academic and non-commercial research purposes only
 
 ### Citation
 
-If you use PowerBiMIP in your research and public presentations, please cite it. This helps us to secure funding and continue developing the toolbox. We will provide a specific citation format once our work is published in a peer-reviewed journal.
+If you use PowerBiMIP in your research and public presentations, please **cite** it. This helps us to secure funding and continue developing the toolbox. **We will provide a specific citation format once our work is published in a peer-reviewed journal.**
