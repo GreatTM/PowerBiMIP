@@ -75,7 +75,8 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
 
         %% Solving
         model.solution = optimize(model.constraints,model.objective,ops.ops_MP);
-
+        % ops = sdpsettings('solver','gurobi', 'verbose',2);
+        % model.solution = optimize(model.constraints,0,ops);
         %% Output
         Solution.var = myFun_GetValue(model.var);
         Solution.solution = model.solution;

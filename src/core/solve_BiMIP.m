@@ -32,36 +32,39 @@ function [Solution, BiMIP_record] = solve_BiMIP(original_var, var_x_u, ...
 %   See also EXTRACT_COEFFICIENTS_AND_VARIABLES, PREPROCESS_BILEVEL_MODEL, RD_ALGORITHM.
 
     % --- Welcome Message and Version Info ---
-    fprintf('Welcome to PowerBiMIP V%s | © 2025 Yemin Wu, Southeast University\n', powerbimip_version());
-    fprintf('Open-source, efficient tools for power and energy system bilevel mixed-integer programming.\n');
-    fprintf('GitHub: https://github.com/GreatTM/PowerBiMIP\n');
-    fprintf('Docs:   https://docs.powerbimip.com\n');
-    fprintf('--------------------------------------------------------------------------\n');
-
-    % --- Display Non-Default User-Specified Options ---
-    if isfield(ops, 'custom_params') && ~isempty(fieldnames(ops.custom_params))
-        fprintf('User-specified options:\n');
-        params = fieldnames(ops.custom_params);
-        max_len = max(cellfun(@length, params));
-
-        for i = 1:length(params)
-            pname = params{i};
-            pvalue = ops.custom_params.(pname);
-
-            % Format the parameter value for display
-            if ischar(pvalue)
-                pstr = sprintf('''%s''', pvalue);
-            elseif isnumeric(pvalue) && isscalar(pvalue)
-                pstr = num2str(pvalue);
-            else
-                pstr = mat2str(pvalue); % Fallback for matrices/other types
-            end
-            fprintf('  %-*s = %s\n', max_len + 2, pname, pstr);
-        end
+    % Only print welcome message if verbose >= 1 (to avoid clutter when called from subproblems)
+    if ops.verbose >= 1
+        fprintf('Welcome to PowerBiMIP V%s | © 2025 Yemin Wu, Southeast University\n', powerbimip_version());
+        fprintf('Open-source, efficient tools for power and energy system bilevel mixed-integer programming.\n');
+        fprintf('GitHub: https://github.com/GreatTM/PowerBiMIP\n');
+        fprintf('Docs:   https://docs.powerbimip.com\n');
         fprintf('--------------------------------------------------------------------------\n');
-    end
 
-    fprintf('Starting disciplined bilevel programming process...\n');
+        % --- Display Non-Default User-Specified Options ---
+        if isfield(ops, 'custom_params') && ~isempty(fieldnames(ops.custom_params))
+            fprintf('User-specified options:\n');
+            params = fieldnames(ops.custom_params);
+            max_len = max(cellfun(@length, params));
+
+            for i = 1:length(params)
+                pname = params{i};
+                pvalue = ops.custom_params.(pname);
+
+                % Format the parameter value for display
+                if ischar(pvalue)
+                    pstr = sprintf('''%s''', pvalue);
+                elseif isnumeric(pvalue) && isscalar(pvalue)
+                    pstr = num2str(pvalue);
+                else
+                    pstr = mat2str(pvalue); % Fallback for matrices/other types
+                end
+                fprintf('  %-*s = %s\n', max_len + 2, pname, pstr);
+            end
+            fprintf('--------------------------------------------------------------------------\n');
+        end
+
+        fprintf('Starting disciplined bilevel programming process...\n');
+    end
     % --- Step 0: Input Check: (Mixed-Integer) Linear/Quadric?
     % Comming soon...
     
@@ -75,20 +78,23 @@ function [Solution, BiMIP_record] = solve_BiMIP(original_var, var_x_u, ...
     % --- Step 2: Classify and preprocess the Model ---
     [model_processed, ops_processed] = preprocess_bilevel_model(model, ops);
 
-    fprintf('Disciplined bilevel programming process completed.\n');
-    % Coefficients Statistics
-    fprintf('Problem Statistics:\n');
-    fprintf('  Upper-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
-        model_processed.upper_total_rows, model_processed.upper_ineq_rows, model_processed.upper_eq_rows, model_processed.upper_nonzeros);
-    fprintf('  Lower-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
-        model_processed.lower_total_rows, model_processed.lower_ineq_rows, model_processed.lower_eq_rows, model_processed.lower_nonzeros);
-    fprintf('  Variables (Total): %d continuous, %d integer (%d binary)\n', ...
-        model_processed.cont_vars, model_processed.int_vars + model_processed.bin_vars, model_processed.bin_vars);
-    fprintf('Coefficient Ranges:\n');
-    fprintf('  Matrix Coefficients: [%.1e, %.1e]\n', model_processed.matrix_min, model_processed.matrix_max);
-    fprintf('  Objective Coefficients: [%.1e, %.1e]\n', model_processed.obj_min, model_processed.obj_max);
-    fprintf('  RHS Values:          [%.1e, %.1e]\n', model_processed.rhs_min, model_processed.rhs_max);
-    fprintf('--------------------------------------------------------------------------\n');
+    % Only print detailed statistics if verbose >= 2
+    if ops.verbose >= 2
+        fprintf('Disciplined bilevel programming process completed.\n');
+        % Coefficients Statistics
+        fprintf('Problem Statistics:\n');
+        fprintf('  Upper-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
+            model_processed.upper_total_rows, model_processed.upper_ineq_rows, model_processed.upper_eq_rows, model_processed.upper_nonzeros);
+        fprintf('  Lower-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
+            model_processed.lower_total_rows, model_processed.lower_ineq_rows, model_processed.lower_eq_rows, model_processed.lower_nonzeros);
+        fprintf('  Variables (Total): %d continuous, %d integer (%d binary)\n', ...
+            model_processed.cont_vars, model_processed.int_vars + model_processed.bin_vars, model_processed.bin_vars);
+        fprintf('Coefficient Ranges:\n');
+        fprintf('  Matrix Coefficients: [%.1e, %.1e]\n', model_processed.matrix_min, model_processed.matrix_max);
+        fprintf('  Objective Coefficients: [%.1e, %.1e]\n', model_processed.obj_min, model_processed.obj_max);
+        fprintf('  RHS Values:          [%.1e, %.1e]\n', model_processed.rhs_min, model_processed.rhs_max);
+        fprintf('--------------------------------------------------------------------------\n');
+    end
 
     % --- Step 3: Solve the Model ---
     % Invoke the solver dispatcher to select and run the appropriate algorithm.
