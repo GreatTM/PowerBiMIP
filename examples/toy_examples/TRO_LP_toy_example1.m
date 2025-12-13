@@ -89,74 +89,59 @@ capacity_limit = 800;
 
 %% 3. Variable Definition using YALMIP
 % First-stage variables
-y = binvar(n_facilities, 1, 'full');  % Binary: whether to open facility i
-z = sdpvar(n_facilities, 1, 'full');  % Continuous: capacity at facility i
+model.var.y = binvar(n_facilities, 1, 'full');  % Binary: whether to open facility i
+model.var.z = sdpvar(n_facilities, 1, 'full');  % Continuous: capacity at facility i
 
 % Uncertainty variables (auxiliary variables g for demand uncertainty)
-g = sdpvar(n_demands, 1, 'full');     % Uncertainty variables g_j
+model.var.g = sdpvar(n_demands, 1, 'full');     % Uncertainty variables g_j
 
 % Second-stage variables
-x = sdpvar(n_facilities, n_demands, 'full');  % Transportation from i to j
+model.var.x = sdpvar(n_facilities, n_demands, 'full');  % Transportation from i to j
 
 %% 4. Model Formulation
 % --- First-Stage Constraints ---
-cons_1st = [];
+model.cons.cons_1st = [];
 % Capacity constraint: z_i <= 800*y_i
 for i = 1:n_facilities
-    cons_1st = cons_1st + (z(i) <= capacity_limit * y(i));
+    model.cons.cons_1st = model.cons.cons_1st + (model.var.z(i) <= capacity_limit * model.var.y(i));
 end
 
-cons_1st = cons_1st + (z(:) >= 0);
+model.cons.cons_1st = model.cons.cons_1st + (model.var.z(:) >= 0);
 
 % --- Second-Stage Constraints ---
-cons_2nd = [];
+model.cons.cons_2nd = [];
 % Capacity constraint: sum_j x_{ij} <= z_i
 for i = 1:n_facilities
-    cons_2nd = cons_2nd + (sum(x(i, :)) <= z(i));
+    model.cons.cons_2nd = model.cons.cons_2nd + (sum(model.var.x(i, :)) <= model.var.z(i));
 end
 
 % Demand satisfaction: sum_i x_{ij} >= d_j, where d_j = d_nominal_j + 40*g_j
 for j = 1:n_demands
-    d_j = d_nominal(j) + 40 * g(j);  % Demand parameter as function of uncertainty
-    cons_2nd = cons_2nd + (sum(x(:, j)) >= d_j);
+    d_j = d_nominal(j) + 40 * model.var.g(j);  % Demand parameter as function of uncertainty
+    model.cons.cons_2nd = model.cons.cons_2nd + (sum(model.var.x(:, j)) >= d_j);
 end
 
 % Non-negativity: x_{ij} >= 0
-cons_2nd = cons_2nd + (x(:) >= 0);
+model.cons.cons_2nd = model.cons.cons_2nd + (model.var.x(:) >= 0);
 
 % --- Uncertainty Set Constraints ---
-cons_uncertainty = [];
+model.cons.cons_uncertainty = [];
 % Bounds on g: 0 <= g_j <= 1
-cons_uncertainty = cons_uncertainty + (g >= 0);
-cons_uncertainty = cons_uncertainty + (g <= 1);
+model.cons.cons_uncertainty = model.cons.cons_uncertainty + (model.var.g >= 0);
+model.cons.cons_uncertainty = model.cons.cons_uncertainty + (model.var.g <= 1);
 
 % Budget constraints: g_0 + g_1 + g_2 <= 1.8
-cons_uncertainty = cons_uncertainty + (sum(g) <= 1.8);
+model.cons.cons_uncertainty = model.cons.cons_uncertainty + (sum(model.var.g) <= 1.8);
 
 % Additional constraint: g_0 + g_1 <= 1.2
-cons_uncertainty = cons_uncertainty + (g(1) + g(2) <= 1.2);
+model.cons.cons_uncertainty = model.cons.cons_uncertainty + (model.var.g(1) + model.var.g(2) <= 1.2);
 
 % --- Objective Functions ---
 % First-stage objective: sum_i (f_i*y_i + c_i*z_i)
-obj_1st = f' * y + c' * z;
+model.obj.obj_1st = f' * model.var.y + c' * model.var.z;
 
 % Second-stage objective: sum_{i,j} t_{ij}*x_{ij}
-obj_2nd = sum(sum(T .* x));
-
-%% 5. Prepare Variables for solve_Robust
-% Group all variables for original_var
-original_var = [y(:); z(:); g(:); x(:)];
-
-% First-stage variables
-var_x_1st = z;        % First-stage continuous variables
-var_z_1st = y;        % First-stage integer (binary) variables
-
-% Second-stage variables
-var_x_2nd = x(:);     % Second-stage continuous variables (flatten to vector)
-var_z_2nd = [];       % Second-stage integer variables (empty for TRO-LP)
-
-% Uncertainty variables
-var_u = g;            % Uncertainty variables
+model.obj.obj_2nd = sum(sum(T .* model.var.x));
 
 %% 6. Configure and Run the Solver
 % Configure Robust C&CG settings
@@ -185,9 +170,10 @@ else
 end
 fprintf('==========================================================================\n\n');
 
-[Solution, Robust_record] = solve_Robust(original_var, ...
-    var_x_1st, var_z_1st, var_x_2nd, var_z_2nd, var_u, ...
-    cons_1st, cons_2nd, cons_uncertainty, obj_1st, obj_2nd, ops, u_init);
+[Solution, Robust_record] = solve_Robust(model.var, ...
+    model.var.z, model.var.y, model.var.x(:), [], model.var.g, ...
+    model.cons.cons_1st, model.cons.cons_2nd, model.cons.cons_uncertainty, ...
+    model.obj.obj_1st, model.obj.obj_2nd, ops, u_init);
 
 %% 7. Display Results
 fprintf('\n==========================================================================\n');
@@ -208,7 +194,7 @@ for i = 1:n_facilities
     elseif isfield(Solution.var, 'var_z_1st') && length(Solution.var.var_z_1st) >= i
         fprintf('    Facility %d: y_%d = %d\n', i-1, i-1, Solution.var.var_z_1st(i));
     else
-        y_val = value(y(i));
+        y_val = value(model.var.y(i));
         fprintf('    Facility %d: y_%d = %d\n', i-1, i-1, round(y_val));
     end
 end
@@ -220,7 +206,7 @@ for i = 1:n_facilities
     elseif isfield(Solution.var, 'var_x_1st') && length(Solution.var.var_x_1st) >= i
         fprintf('    Facility %d: z_%d = %.2f\n', i-1, i-1, Solution.var.var_x_1st(i));
     else
-        z_val = value(z(i));
+        z_val = value(model.var.z(i));
         fprintf('    Facility %d: z_%d = %.2f\n', i-1, i-1, z_val);
     end
 end
@@ -247,7 +233,7 @@ end
 
 % Display second-stage transportation solution (if available)
 fprintf('\nSecond-Stage Transportation Solution (x_{ij}):\n');
-x_val = value(x);
+x_val = value(model.var.x);
 for i = 1:n_facilities
     fprintf('  From Facility %d: ', i-1);
     for j = 1:n_demands
@@ -261,10 +247,10 @@ fprintf('\n=====================================================================
 %% 8. Verification
 % Verify that constraints are satisfied
 fprintf('\nConstraint Verification:\n');
-y_val = value(y);
-z_val = value(z);
-x_val = value(x);
-g_val = value(g);
+y_val = value(model.var.y);
+z_val = value(model.var.z);
+x_val = value(model.var.x);
+g_val = value(model.var.g);
 d_val = d_nominal + 40 * g_val;
 
 % Check first-stage constraints

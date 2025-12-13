@@ -13,7 +13,8 @@ function [Solution, Robust_record] = solve_Robust(original_var, var_x_1st, var_z
 %       quick).
 %
 %   Inputs:
-%       original_var      - All decision variables (YALMIP var objects).
+%       original_var      - Struct containing all decision variables (YALMIP var objects).
+%                           This struct preserves all user-defined fields
 %       var_x_1st         - First-stage continuous variables (sdpvar).
 %       var_z_1st         - First-stage integer variables (intvar/binvar).
 %       var_x_2nd         - Second-stage continuous recourse variables (sdpvar).
