@@ -185,7 +185,7 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
             end
             
             % Add the combined dual feasibility constraint.
-            model.constraints = model.constraints + (constraint_ineq + constraint_eq <= model.c5');
+            model.constraints = model.constraints + (constraint_ineq + constraint_eq == model.c5');
 
             % Dual variable sign constraints
             model.constraints = model.constraints + ...

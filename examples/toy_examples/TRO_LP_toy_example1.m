@@ -28,7 +28,7 @@
 %       z_i <= 800*y_i,           for all i = 0, 1, 2
 %       y_i in {0, 1},            for all i = 0, 1, 2
 %       z_i >= 0,                 for all i = 0, 1, 2
-%
+%       z_i >= 772,               for all i = 0, 1, 2
 % Second-Stage Problem (for given y, z, d):
 %   min_{x >= 0}  sum_{i,j} t_{ij}*x_{ij}
 %   s.t.
@@ -107,6 +107,7 @@ for i = 1:n_facilities
 end
 
 model.cons.cons_1st = model.cons.cons_1st + (model.var.z(:) >= 0);
+model.cons.cons_1st = model.cons.cons_1st + (sum(model.var.z) >= 772);
 
 % --- Second-Stage Constraints ---
 model.cons.cons_2nd = [];
@@ -146,9 +147,9 @@ model.obj.obj_2nd = sum(sum(T .* model.var.x));
 %% 6. Configure and Run the Solver
 % Configure Robust C&CG settings
 ops = RobustCCGsettings( ...
-    'mode', 'exact', ...              % Subproblem mode: 'exact' (strong_duality) or 'quick'
+    'mode', 'quick', ...              % Subproblem mode: 'exact' (strong_duality) or 'quick'
     'solver', 'gurobi', ...           % Underlying MIP solver
-    'verbose', 2, ...                 % Verbosity level [0:silent, 1:summary, 2:detailed, 3:very detailed]
+    'verbose',2, ...                 % Verbosity level [0:silent, 1:summary, 2:detailed, 3:very detailed]
     'gap_tol', 1e-4, ...             % Optimality gap tolerance
     'max_iterations', 50 ...         % Maximum iterations
     );
@@ -156,7 +157,7 @@ ops = RobustCCGsettings( ...
 % Optional: Provide initial uncertainty scenario
 % If u_init is provided, the first iteration will include this scenario
 % If u_init is empty or not provided, the first iteration will not include eta
-u_init = [0.5; 0.5; 0.5];  % Initial scenario: g = [0.5, 0.5, 0.5]
+u_init = [];  % Initial scenario: g = [0.5, 0.5, 0.5]
 % u_init = [];  % Uncomment to test without initial scenario
 
 % Call the main solver function

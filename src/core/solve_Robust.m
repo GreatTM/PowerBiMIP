@@ -68,18 +68,18 @@ function [Solution, Robust_record] = solve_Robust(original_var, var_x_1st, var_z
         fprintf('--------------------------------------------------------------------------\n');
     end
 
-    % --- Step 1: Extract Robust Coefficients ---
-    % This call is expected to follow the style of extract_coefficients_and_variables.
-    robust_model = extract_robust_coeffs(var_x_1st, var_z_1st, var_x_2nd, ...
-        var_z_2nd, var_u, cons_1st, cons_2nd, cons_uncertainty, obj_1st, obj_2nd);
-
-    % Store original YALMIP vars for mapping back solutions
-    robust_model.var = original_var;
-    
     % Handle optional u_init parameter
     if nargin < 13
         u_init = [];
     end
+    
+    % --- Step 1: Extract Robust Coefficients ---
+    % This call is expected to follow the style of extract_coefficients_and_variables.
+    robust_model = extract_robust_coeffs(var_x_1st, var_z_1st, var_x_2nd, ...
+        var_z_2nd, var_u, cons_1st, cons_2nd, cons_uncertainty, obj_1st, obj_2nd, u_init);
+
+    % Store original YALMIP vars for mapping back solutions
+    robust_model.var = original_var;
 
     % --- Step 2: Run CCG Algorithm Controller ---
     Robust_record = algorithm_CCG(robust_model, ops, u_init);

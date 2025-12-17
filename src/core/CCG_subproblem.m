@@ -180,14 +180,16 @@ function sp_result = CCG_subproblem(model, ops, y_star, ~)
     
     %% Step 5: Build BiMIP Options and Call solve_BiMIP
     % Map ops.mode to BiMIP method
-    if strcmpi(ops.mode, 'exact')
+    if strcmpi(ops.mode, 'exact_strong_duality')
         bimip_method = 'exact_strong_duality';
+    elseif strcmpi(ops.mode, 'exact_KKT')
+        bimip_method = 'exact_KKT';
     elseif strcmpi(ops.mode, 'quick')
         bimip_method = 'quick';
     else
         warning('PowerBiMIP:CCGSubproblem', ...
-            'Unknown mode "%s", using default "exact_strong_duality".', ops.mode);
-        bimip_method = 'exact_strong_duality';
+            'Unknown mode "%s", using default "quick".', ops.mode);
+        bimip_method = 'quick';
     end
     
     % Build BiMIP options
@@ -196,7 +198,7 @@ function sp_result = CCG_subproblem(model, ops, y_star, ~)
     bimip_ops = BiMIPsettings('perspective', 'optimistic', ...
                               'method', bimip_method, ...
                               'solver', ops.solver, ...
-                              'verbose', 0);  % Suppress output when called as subproblem
+                              'verbose', ops.ops_SP.verbose);  % Suppress output when called as subproblem
     
     % Call solve_BiMIP
     try

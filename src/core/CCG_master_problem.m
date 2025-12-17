@@ -66,26 +66,22 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
         if ~isempty(u_init)
             %% Case 1: u_init is provided - Add initial scenario with second-stage variables
             
-            % Ensure u_init is a column vector
-            if size(u_init, 2) > size(u_init, 1)
-                u_init = u_init';
-            end
-            
             %% Define New Variables for Initial Scenario
-            % Introduce auxiliary variable eta and second-stage variables x^0
+            % Introduce auxiliary variable eta
             model.eta = sdpvar(1, 1,'full');
-            model.new_var(1).x_cont = [];
-            model.new_var(1).x_int = [];
-            if ~isempty(model.var_x_cont)
-                model.new_var(1).x_cont = sdpvar(size(model.var_x_cont, 1), size(model.var_x_cont, 2), 'full');
-            end
-            if ~isempty(model.var_x_int)
-                model.new_var(1).x_int = binvar(size(model.var_x_int, 1), size(model.var_x_int, 2), 'full');
-            end
+            
+            model.new_var(1).var_x_cont = sdpvar(size(model.var_x_cont,1),size(model.var_x_cont,2),'full');
+            model.new_var(1).var_x_int = binvar(size(model.var_x_int,1),size(model.var_x_int,2),'full');
+            model.new_var(1).c2_xc_vars = model.new_var(1).var_x_cont(model.relative_pos.c2_xc_vars);
+            model.new_var(1).c2_xi_vars =  model.new_var(1).var_x_int(model.relative_pos.c2_xi_vars);
+            model.new_var(1).A2_xc_vars =  model.new_var(1).var_x_cont(model.relative_pos.A2_xc_vars);
+            model.new_var(1).A2_xi_vars =  model.new_var(1).var_x_int(model.relative_pos.A2_xi_vars);
+            model.new_var(1).E2_xc_vars =  model.new_var(1).var_x_cont(model.relative_pos.E2_xc_vars);
+            model.new_var(1).E2_xi_vars =  model.new_var(1).var_x_int(model.relative_pos.E2_xi_vars);
             
             %% Add Objective Constraint: eta >= d^T x^0
             obj_constraint = [model.c2_xc', model.c2_xi'] * ...
-                [model.new_var(1).x_cont(:); model.new_var(1).x_int(:)];
+                [model.new_var(1).c2_xc_vars; model.new_var(1).c2_xi_vars];
             constraints = constraints + (model.eta >= obj_constraint);
             
             %% Add Structural Constraints: G x^0 >= h - E y - M u_init
@@ -97,9 +93,9 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
             else
                 % Compute RHS: b2 - A2_u * u_init
                 rhs_ineq = model.b2;
-                if ~isempty(model.A2_u) && ~isempty(u_init)
-                    if length(u_init) == size(model.A2_u, 2)
-                        rhs_ineq = rhs_ineq - model.A2_u * u_init;
+                if ~isempty(model.A2_u) && ~isempty(model.A2_u_vars_init)
+                    if length(model.A2_u_vars_init) == size(model.A2_u, 2)
+                        rhs_ineq = rhs_ineq - model.A2_u * model.A2_u_vars_init;
                     else
                         error('PowerBiMIP:CCGMaster', ...
                             'Dimension mismatch in u_init for A2_u. Using direct multiplication.');
@@ -110,7 +106,7 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 %                   A2_yc * y_cont + A2_yi * y_int <= rhs_ineq
                 constraints = constraints + ...
                     ([model.A2_xc, model.A2_xi, model.A2_yc, model.A2_yi] * ...
-                    [model.new_var(1).x_cont(:); model.new_var(1).x_int(:); model.A2_yc_vars; model.A2_yi_vars] <= ...
+                    [model.new_var(1).A2_xc_vars; model.new_var(1).A2_xi_vars; model.A2_yc_vars; model.A2_yi_vars] <= ...
                     rhs_ineq);
             end
             
@@ -121,9 +117,9 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
             else
                 % Compute RHS: f2 - E2_u * u_init
                 rhs_eq = model.f2;
-                if ~isempty(model.E2_u) && ~isempty(u_init)
-                    if length(u_init) == size(model.E2_u, 2)
-                        rhs_eq = rhs_eq - model.E2_u * u_init;
+                if ~isempty(model.E2_u) && ~isempty(model.E2_u_vars_init)
+                    if length(model.E2_u_vars_init) == size(model.E2_u, 2)
+                        rhs_eq = rhs_eq - model.E2_u * model.E2_u_vars_init;
                     else
                         error('PowerBiMIP:CCGMaster', ...
                             'Dimension mismatch in u_init for E2_u. Using direct multiplication.');
@@ -134,7 +130,7 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 %                   E2_yc * y_cont + E2_yi * y_int == rhs_eq
                 constraints = constraints + ...
                     ([model.E2_xc, model.E2_xi, model.E2_yc, model.E2_yi] * ...
-                    [model.new_var(1).x_cont(:); model.new_var(1).x_int(:); model.E2_yc_vars; model.E2_yi_vars] == ...
+                    [model.new_var(1).E2_xc_vars; model.new_var(1).E2_xi_vars; model.E2_yc_vars; model.E2_yi_vars] == ...
                     rhs_eq);
             end
             
@@ -160,7 +156,8 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
         
         %% Solve
         solution = optimize(constraints, objective, ops.ops_MP);
-        
+        % solution = optimize(constraints, 0, ops.ops_MP);
+
         %% Extract Solution
         % Extract all variable values using myFun_GetValue
         Solution_MP = myFun_GetValue(model);
@@ -254,16 +251,16 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
             
             % Get worst-case scenario u^l (as numerical values)
             if isfield(iteration_record, 'worst_case_u_history') && ...
-                    length(iteration_record.worst_case_u_history) >= l && ...
-                    ~isempty(iteration_record.worst_case_u_history{l})
-                u_l = iteration_record.worst_case_u_history{l};
+                    length(iteration_record.worst_case_u_history) >= var_idx && ...
+                    ~isempty(iteration_record.worst_case_u_history{var_idx})
+                u_l = iteration_record.worst_case_u_history{var_idx};
             elseif isfield(iteration_record, 'scenario_set') && ...
                     length(iteration_record.scenario_set) >= l && ...
                     ~isempty(iteration_record.scenario_set{l})
                 u_l = iteration_record.scenario_set{l};
             else
                 warning('PowerBiMIP:CCGMaster', ...
-                    'Scenario u^%d not found in iteration_record. Skipping cut.', l);
+                    'Scenario u^%d not found in iteration_record (index %d). Skipping cut.', l, var_idx);
                 continue;
             end
             
@@ -271,21 +268,23 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
             if size(u_l, 2) > size(u_l, 1)
                 u_l = u_l';
             end
-            
+
             %% Copy Second-Stage Variables x^l
             % Create new variables x^l with the same dimensions as original x
-            model.new_var(var_idx).x_cont = [];
-            model.new_var(var_idx).x_int = [];
-            if ~isempty(model.var_x_cont)
-                model.new_var(var_idx).x_cont = sdpvar(size(model.var_x_cont, 1), size(model.var_x_cont, 2), 'full');
-            end
-            if ~isempty(model.var_x_int)
-                model.new_var(var_idx).x_int = binvar(size(model.var_x_int, 1), size(model.var_x_int, 2), 'full');
-            end
-            
+            model.new_var(var_idx).var_x_cont = sdpvar(size(model.var_x_cont,1),size(model.var_x_cont,2), 'full');
+            model.new_var(var_idx).var_x_int = binvar(size(model.var_x_int,1),size(model.var_x_int,2), 'full');
+
+            model.new_var(var_idx).A2_xc_vars =  model.new_var(var_idx).var_x_cont(model.relative_pos.A2_xc_vars);
+            model.new_var(var_idx).A2_xi_vars =  model.new_var(var_idx).var_x_int(model.relative_pos.A2_xi_vars);
+            model.new_var(var_idx).E2_xc_vars =  model.new_var(var_idx).var_x_cont(model.relative_pos.E2_xc_vars);
+            model.new_var(var_idx).E2_xi_vars =  model.new_var(var_idx).var_x_int(model.relative_pos.E2_xi_vars);
+            model.new_var(var_idx).c2_xc_vars =  model.new_var(var_idx).var_x_cont(model.relative_pos.c2_xc_vars);
+            model.new_var(var_idx).c2_xi_vars =  model.new_var(var_idx).var_x_int(model.relative_pos.c2_xi_vars);
+            % model.new_var(var_idx).c2_xi_vars = 
+
             %% Add Objective Constraint: eta >= d^T x^l
             obj_constraint = [model.c2_xc', model.c2_xi'] * ...
-                [model.new_var(var_idx).x_cont(:); model.new_var(var_idx).x_int(:)];
+                [model.new_var(var_idx).c2_xc_vars(:); model.new_var(var_idx).c2_xi_vars(:)];
             constraints = constraints + (model.eta >= obj_constraint);
             
             %% Add Structural Constraints: G x^l >= h - E y - M u^l
@@ -300,14 +299,21 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 rhs_ineq = model.b2;
                 if ~isempty(model.A2_u) && ~isempty(u_l)
                     % Map u_l to the correct indices for A2_u
-                    % A2_u corresponds to model.A2_u_vars, need to map u_l accordingly
-                    if length(u_l) == size(model.A2_u, 2)
-                        rhs_ineq = rhs_ineq - model.A2_u * u_l;
+                    % Need to map the full u_l to the specific variables used in A2_u
+                    % The indices are stored in model.relative_pos.A2_u_vars
+                    if isfield(model, 'relative_pos') && isfield(model.relative_pos, 'A2_u_vars') ...
+                            && ~isempty(model.relative_pos.A2_u_vars)
+                        % Extract the relevant part of u_l
+                        u_l_A2 = u_l(model.relative_pos.A2_u_vars);
+                        rhs_ineq = rhs_ineq - model.A2_u * u_l_A2;
                     else
-                        % Try to map u_l to A2_u_vars indices
-                        % This is a simplified mapping; may need refinement
-                        error('PowerBiMIP:CCGMaster', ...
-                            'Dimension mismatch in u^%d for A2_u. Using direct multiplication.', l);
+                        % Fallback if relative_pos is not available (should not happen if extract_robust_coeffs is correct)
+                        if length(u_l) == size(model.A2_u, 2)
+                            rhs_ineq = rhs_ineq - model.A2_u * u_l;
+                        else
+                            error('PowerBiMIP:CCGMaster', ...
+                                'Dimension mismatch in u^%d for A2_u. relative_pos missing or invalid.', l);
+                        end
                     end
                 end
                 
@@ -315,7 +321,7 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 %                   A2_yc * y_cont + A2_yi * y_int <= rhs_ineq
                 constraints = constraints + ...
                     ([model.A2_xc, model.A2_xi, model.A2_yc, model.A2_yi] * ...
-                    [model.new_var(var_idx).x_cont(:); model.new_var(var_idx).x_int(:); model.A2_yc_vars; model.A2_yi_vars] <= ...
+                    [model.new_var(var_idx).A2_xc_vars(:); model.new_var(var_idx).A2_xi_vars(:); model.A2_yc_vars; model.A2_yi_vars] <= ...
                     rhs_ineq);
             end
             
@@ -327,11 +333,19 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 % Compute RHS: f2 - E2_u * u_l
                 rhs_eq = model.f2;
                 if ~isempty(model.E2_u) && ~isempty(u_l)
-                    if length(u_l) == size(model.E2_u, 2)
-                        rhs_eq = rhs_eq - model.E2_u * u_l;
+                    % Map u_l to the correct indices for E2_u
+                    if isfield(model, 'relative_pos') && isfield(model.relative_pos, 'E2_u_vars') ...
+                            && ~isempty(model.relative_pos.E2_u_vars)
+                        % Extract the relevant part of u_l
+                        u_l_E2 = u_l(model.relative_pos.E2_u_vars);
+                        rhs_eq = rhs_eq - model.E2_u * u_l_E2;
                     else
-                        error('PowerBiMIP:CCGMaster', ...
-                            'Dimension mismatch in u^%d for E2_u. Using direct multiplication.', l);
+                        if length(u_l) == size(model.E2_u, 2)
+                            rhs_eq = rhs_eq - model.E2_u * u_l;
+                        else
+                            error('PowerBiMIP:CCGMaster', ...
+                                'Dimension mismatch in u^%d for E2_u. relative_pos missing or invalid.', l);
+                        end
                     end
                 end
                 
@@ -339,7 +353,7 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 %                   E2_yc * y_cont + E2_yi * y_int == rhs_eq
                 constraints = constraints + ...
                     ([model.E2_xc, model.E2_xi, model.E2_yc, model.E2_yi] * ...
-                    [model.new_var(var_idx).x_cont(:); model.new_var(var_idx).x_int(:); model.E2_yc_vars; model.E2_yi_vars] == ...
+                    [model.new_var(var_idx).E2_xc_vars(:); model.new_var(var_idx).E2_xi_vars(:); model.E2_yc_vars; model.E2_yi_vars] == ...
                     rhs_eq);
             end
         end
@@ -419,4 +433,3 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
         mp_result.mp_solution = mp_solution;
     end
 end
-

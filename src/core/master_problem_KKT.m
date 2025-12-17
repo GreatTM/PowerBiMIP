@@ -76,6 +76,7 @@ function Solution = master_problem_KKT(model,ops,iteration_record)
 
         %% Solving
         model.solution = optimize(model.constraints,model.objective,ops.ops_MP);
+        % model.solution = optimize(model.constraints,0,ops.ops_MP);
 
         %% Output
         Solution.var = myFun_GetValue(model.var);

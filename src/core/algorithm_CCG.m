@@ -41,6 +41,11 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
     % Store initial scenario if provided
     iteration_record.u_init = u_init;
     
+    % Initialize worst_case_u_history with u_init if provided
+    if ~isempty(u_init)
+        iteration_record.worst_case_u_history{1} = u_init;
+    end
+    
     % Pre-allocate trace arrays
     maxIter = ops.max_iterations;
     trace_lb = zeros(maxIter, 1);
@@ -71,18 +76,7 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
         
         %% Master Problem (MP)
         % Call CCG_master_problem to solve the master problem
-        if exist('CCG_master_problem', 'file') == 2
-            mp_result = CCG_master_problem(model, ops, iteration_record);
-        else
-            % Placeholder: Return dummy structure for testing
-            warning('PowerBiMIP:Placeholder', ...
-                'CCG_master_problem.m not found. Using placeholder.');
-            mp_result = struct();
-            mp_result.y_star = [];
-            mp_result.eta_star = [];
-            mp_result.mp_solution = struct();
-            mp_result.first_stage_obj = 0;
-        end
+        mp_result = CCG_master_problem(model, ops, iteration_record);
         
         iteration_record.master_problem_solution{curr_iter} = mp_result;
         
@@ -115,18 +109,7 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
         
         %% Subproblem (SP)
         % Call CCG_subproblem to solve the subproblem (find worst-case u)
-        if exist('CCG_subproblem', 'file') == 2
-            sp_result = CCG_subproblem(model, ops, y_star, iteration_record);
-        else
-            % Placeholder: Return dummy structure for testing
-            warning('PowerBiMIP:Placeholder', ...
-                'CCG_subproblem.m not found. Using placeholder.');
-            sp_result = struct();
-            sp_result.u_star = [];
-            sp_result.Q_value = [];
-            sp_result.sp_solution = struct();
-        end
-        
+        sp_result = CCG_subproblem(model, ops, y_star, iteration_record);        
         iteration_record.subproblem_solution{curr_iter} = sp_result;
         
         % Extract SP solution
@@ -146,7 +129,12 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
         % Store worst-case scenario
         if ~isempty(u_star)
             iteration_record.scenario_set{curr_iter} = u_star;
-            iteration_record.worst_case_u_history{curr_iter} = u_star;
+            % If u_init was provided, the history index shifts
+            if ~isempty(u_init)
+                iteration_record.worst_case_u_history{curr_iter + 1} = u_star;
+            else
+                iteration_record.worst_case_u_history{curr_iter} = u_star;
+            end
         end
         
         %% Calculate Current Gap
@@ -204,6 +192,7 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
     Robust_record.convergence_trace.ub = trace_ub(1:actual_iter);
     Robust_record.convergence_trace.gap = trace_gap(1:actual_iter);
     Robust_record.convergence_trace.time = trace_time(1:actual_iter);
+    Robust_record.convergence_trace.iterations = 1:actual_iter;
     
     % Final solution information
     Robust_record.obj_val = iteration_record.UB;
@@ -231,7 +220,12 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
     end
     
     % Worst-case scenario history
-    Robust_record.worst_case_u_history = iteration_record.worst_case_u_history(1:actual_iter);
+    % If u_init exists, worst_case_u_history has length actual_iter + 1
+    if ~isempty(u_init)
+        Robust_record.worst_case_u_history = iteration_record.worst_case_u_history(1:actual_iter + 1);
+    else
+        Robust_record.worst_case_u_history = iteration_record.worst_case_u_history(1:actual_iter);
+    end
     
     % Cuts count (equal to number of iterations, since each iteration adds one cut)
     Robust_record.cuts_count = actual_iter;
@@ -254,4 +248,3 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
         fprintf('%s\n', repmat('-', 1, 95));
     end
 end
-

@@ -156,7 +156,6 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         end
 
         
-        prev_gap_zero = false;
         padm_iter = 1;
 
         while padm_iter <= ops.padm_max_iter
@@ -235,7 +234,7 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
                     constraint_eq = model.new_var(i).dual_eq' * model.G_l;
                 end
                 
-                model.constraints_PADM1 = model.constraints_PADM1 + (constraint_ineq + constraint_eq <= model.c5');
+                model.constraints_PADM1 = model.constraints_PADM1 + (constraint_ineq + constraint_eq == model.c5');
     
                 model.constraints_PADM1 = model.constraints_PADM1 + ...
                     (model.new_var(i).dual_ineq <= 0);
@@ -365,18 +364,32 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
             padm2_obj = value(model.objective_PADM2); 
             padm2_objectives(end+1) = padm2_obj;      
 
-            %% Calculate L1-PADM Gap and Check Convergence
+            %% Calculate L1-PADM Gap (for display) and Check Convergence
             denominator = max(abs(padm1_obj), abs(padm2_obj));
-                if denominator == 0
-                    denominator = 1e-6; 
-                end
+            if denominator == 0
+                denominator = 1e-6; 
+            end
             obj_gap = abs(padm1_obj - padm2_obj)/denominator * 100;
             padm_gaps(end+1) = obj_gap;
-            current_gap_zero = obj_gap < ops.padm_tolerance;
+            
+            % Check Convergence (Primal Stability)
+            curr_primal_vec = [value(model.var_x_u(:)); value(model.var_z_u(:)); ...
+                               value(model.var_x_l(:)); value(model.var_z_l(:))];
+            curr_primal_vec(isnan(curr_primal_vec)) = 0;
+
+            if padm_iter == 1
+                 primal_diff = inf;
+            else
+                 % Relative Error
+                 primal_diff = norm(curr_primal_vec - prev_primal_vec, inf) / max(1, norm(prev_primal_vec, inf));
+            end
+            prev_primal_vec = curr_primal_vec;
+
+            is_stable = primal_diff <= ops.padm_tolerance;
 
             if ops.verbose >= 1
-                fprintf('L1-PADM Iter %d: L1-PADM1=%.4f | L1-PADM2=%.4f | Gap=%.2f%%\n',...
-                        padm_iter, padm1_obj, padm2_obj, obj_gap);
+                fprintf('L1-PADM Iter %d: L1-PADM1=%.4f | L1-PADM2=%.4f | Gap=%.2f%% | PrimalDiff=%.1e\n',...
+                        padm_iter, padm1_obj, padm2_obj, obj_gap, primal_diff);
             end
 
             if ops.verbose >= 2
@@ -393,8 +406,10 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
             end
             
             % check convergence
-            if current_gap_zero && prev_gap_zero
-                fprintf('L1-PADM achieved two consecutive zero gaps.\n');
+            if is_stable
+                if ops.verbose >= 1
+                    fprintf('L1-PADM achieved primal stability.\n');
+                end
                 % compute penalty_term
                 current_penalty = 0;
                 for i = 1:iteration_record.iteration_num-1
@@ -434,7 +449,6 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
                 end
             end
 
-            prev_gap_zero = current_gap_zero;
             padm_iter = padm_iter + 1;
         end
 

@@ -102,7 +102,7 @@ model.var_zl = [reshape(model.var.z, [], 1)]; % Lower-level integer variables
 % Configure PowerBiMIP settings
 ops = BiMIPsettings( ...
     'perspective', 'optimistic', ...    % Perspective: 'optimistic' or 'pessimistic'
-    'method', 'exact_KKT', ...                % Method: 'exact_KKT', 'exact_strong_duality', or 'quick'
+    'method', 'quick', ...                % Method: 'exact_KKT', 'exact_strong_duality', or 'quick'
     'solver', 'gurobi', ...             % Specify the underlying MIP solver
     'verbose', 2, ...                   % Verbosity level [0:silent, 1:summary, 2:summary+plots]
     'max_iterations', 10, ...           % Set the maximum number of iterations

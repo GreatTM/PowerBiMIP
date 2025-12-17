@@ -17,7 +17,7 @@ function options = RobustCCGsettings(varargin)
 
     % --- Default parameter settings ---
     default_options = struct();
-    default_options.mode = 'exact';          % 'exact' (strong_duality) | 'quick'
+    default_options.mode = 'exact_KKT';          % 'exact' (strong_duality) | 'quick'
     default_options.solver = 'gurobi';
     default_options.verbose = 1;             % 0 silent | 1 summary | 2 detailed | 3 very detailed
     default_options.gap_tol = 1e-4;
@@ -50,7 +50,7 @@ function options = RobustCCGsettings(varargin)
 
     % --- Build YALMIP solver settings ---
     % Reduce verbosity passed to solver to keep output concise
-    options.ops_MP = sdpsettings('solver', options.solver, 'verbose', max(0, options.verbose - 2));
+    options.ops_MP = sdpsettings('solver', options.solver, 'verbose', 0);
     options.ops_SP = sdpsettings('solver', options.solver, 'verbose', max(0, options.verbose - 2));
 end
 
