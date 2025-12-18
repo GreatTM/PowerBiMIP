@@ -147,7 +147,7 @@ model.obj.obj_2nd = sum(sum(T .* model.var.x));
 %% 6. Configure and Run the Solver
 % Configure Robust C&CG settings
 ops = RobustCCGsettings( ...
-    'mode', 'quick', ...              % Subproblem mode: 'exact' (strong_duality) or 'quick'
+    'mode', 'exact_KKT', ...              % Subproblem mode: 'exact_KKT' (exact_strong_duality) or 'quick'
     'solver', 'gurobi', ...           % Underlying MIP solver
     'verbose',2, ...                 % Verbosity level [0:silent, 1:summary, 2:detailed, 3:very detailed]
     'gap_tol', 1e-4, ...             % Optimality gap tolerance

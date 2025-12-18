@@ -226,11 +226,11 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
                 constraint_ineq = 0;
                 constraint_eq = 0;
                 
-                if ~isempty(model.new_var(i).dual_ineq)
+                if ~isempty(model.new_var(i).dual_ineq) && ~isempty(model.C_l)
                     constraint_ineq = model.new_var(i).dual_ineq' * model.C_l;
                 end
                 
-                if ~isempty(model.new_var(i).dual_eq)
+                if ~isempty(model.new_var(i).dual_eq) && ~isempty(model.G_l)
                     constraint_eq = model.new_var(i).dual_eq' * model.G_l;
                 end
                 

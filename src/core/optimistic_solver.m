@@ -141,9 +141,38 @@ function iteration_record = optimistic_solver(model, ops)
             iteration_record.optimal_solution_hat{curr_iter}.c6_vars = iteration_record.subproblem_1_solution{curr_iter}.c6_vars;
     
             %% Subproblem 2 (SP2)
-            iteration_record.subproblem_2_solution{curr_iter} = subproblem2(model,...
-                iteration_record.master_problem_solution{curr_iter},...
-                iteration_record.subproblem_1_solution{curr_iter}, ops);
+            % % Check for interdiction case: c3 = -c5 and c4 = -c6
+            % % Using a small tolerance for floating point comparisons
+            % tol = 1e-6;
+            % is_interdiction = false;
+            % 
+            % % Check dimensions first
+            % if length(model.c3) == length(model.c5) && length(model.c4) == length(model.c6)
+            %     % Check if c3 approx -c5 AND c4 approx -c6
+            %     if norm(model.c3 + model.c5) < tol && norm(model.c4 + model.c6) < tol
+            %          is_interdiction = true;
+            %     end
+            % end
+            % 
+            % if is_interdiction
+            %      if ops.verbose >= 1
+            %         fprintf('  (Interdiction detected: skipping SP2)\n');
+            %      end
+            %      % SP2 is not needed, reuse SP1 solution
+            %      iteration_record.subproblem_2_solution{curr_iter} = iteration_record.subproblem_1_solution{curr_iter};
+            % else
+                iteration_record.subproblem_2_solution{curr_iter} = subproblem2(model,...
+                    iteration_record.master_problem_solution{curr_iter},...
+                    iteration_record.subproblem_1_solution{curr_iter}, ops);
+            % end
+            
+            % Ensure objective is scalar (handle empty or vector cases)
+            if isempty(iteration_record.subproblem_2_solution{curr_iter}.objective)
+                iteration_record.subproblem_2_solution{curr_iter}.objective = 0;
+            elseif numel(iteration_record.subproblem_2_solution{curr_iter}.objective) > 1
+                iteration_record.subproblem_2_solution{curr_iter}.objective = sum(iteration_record.subproblem_2_solution{curr_iter}.objective, 'all');
+            end
+
             if iteration_record.subproblem_2_solution{curr_iter}.solution.problem == 0
                 new_UB = min(iteration_record.UB(end), iteration_record.subproblem_2_solution{curr_iter}.objective);
                 iteration_record.UB(end+1) = new_UB;

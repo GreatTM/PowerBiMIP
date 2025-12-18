@@ -93,6 +93,9 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
 
         Solution.c1_vars = value(model.c1_vars);
         Solution.c2_vars = value(model.c2_vars);
+        Solution.c3_vars = value(model.c3_vars);
+        Solution.c4_vars = value(model.c4_vars);
+
 
         Solution.objective = value(model.objective);
 
@@ -175,12 +178,12 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
             constraint_eq = 0;
             
             % If dual variables for inequality constraints exist, add their part.
-            if ~isempty(model.new_var(i).dual_ineq)
+            if ~isempty(model.new_var(i).dual_ineq) && ~isempty(model.C_l)
                 constraint_ineq = model.new_var(i).dual_ineq' * model.C_l;
             end
             
             % If dual variables for equality constraints exist, add their part.
-            if ~isempty(model.new_var(i).dual_eq)
+            if ~isempty(model.new_var(i).dual_eq) && ~isempty(model.G_l)
                 constraint_eq = model.new_var(i).dual_eq' * model.G_l;
             end
             
@@ -215,6 +218,10 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
 
         Solution.c1_vars = value(model.c1_vars);
         Solution.c2_vars = value(model.c2_vars);
+        Solution.c3_vars = value(model.c3_vars);
+        Solution.c4_vars = value(model.c4_vars);
+        Solution.c5_vars = value(model.c5_vars);
+        Solution.c6_vars = value(model.c6_vars);
 
         Solution.objective = value(model.objective);
     end
