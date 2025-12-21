@@ -105,7 +105,7 @@ function iteration_record = optimistic_solver(model, ops)
                 error('PowerBiMIP:SolverError', 'Master problem failed to solve in iter %d:\n%s', ...
                       curr_iter, yalmiperror(iteration_record.master_problem_solution{curr_iter}.solution.problem));
             end
-            new_LB = iteration_record.master_problem_solution{curr_iter}.objective;
+            new_LB = max(iteration_record.LB(end), iteration_record.master_problem_solution{curr_iter}.objective);
             iteration_record.LB(end+1) = new_LB;
             
             %% Subproblem 1 (SP1)

@@ -151,15 +151,16 @@ ops = TROsettings( ...
     'plot.verbose', 1 ...
     );
 
-u_init = []; 
+% u_init = [0, 0, 0];
+u_init = [];
 
 % --- SOLVE ---
 fprintf('Solving Robust Facility Location Problem...\n');
 [Solution, Robust_record] = solve_TRO(model, ops, u_init);
 
 %% 7. Analyze Results
-if ~isempty(Solution.obj)
-    fprintf('\nOptimal Objective: %.4f\n', Solution.obj);
+if ~isempty(Solution.obj_1st)
+    fprintf('\nOptimal Objective: %.4f\n', Solution.obj_1st);
     
     % Access results using value() on the variables stored in the struct
     % (The solver assigns values back to these original sdpvar objects)

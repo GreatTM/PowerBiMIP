@@ -195,15 +195,14 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
         mp_result.solution = solution;
         
         % Build mp_solution for variable mapping
-        mp_solution.var = struct();
-        mp_solution.var.y_cont = Solution_MP.var_y_cont;
-        mp_solution.var.y_int = Solution_MP.var_y_int;
+        mp_result.var = struct();
+        mp_result.var.y_cont = Solution_MP.var_y_cont;
+        mp_result.var.y_int = Solution_MP.var_y_int;
         if isfield(Solution_MP, 'eta')
-            mp_solution.var.eta = Solution_MP.eta;
+            mp_result.var.eta = Solution_MP.eta;
         end
-        mp_solution.objective = mp_objective;
-        mp_solution.solution = solution;
-        mp_result.mp_solution = mp_solution;
+        mp_result.objective = mp_objective;
+        mp_result.solution = solution;
     else
         %% Subsequent Iterations: Add Cuts for Each Identified Scenario
         
@@ -234,36 +233,10 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
         model.eta = sdpvar(1, 1,'full');
         
         %% Define New Variables for Each Identified Scenario
-        num_scenarios = iteration_record.iteration_num - 1;
-        
-        % Determine starting index: if u_init exists, start from 2 (since new_var(1) is for u_init)
-        if isfield(iteration_record, 'u_init') && ~isempty(iteration_record.u_init)
-            start_idx = 2;  % Skip index 1, which is reserved for u_init
-        else
-            start_idx = 1;  % No u_init, start from 1
-        end
-        
+        num_scenarios = sum(~cellfun(@isempty, iteration_record.worst_case_u_history));
         for l = 1:num_scenarios
-            % Map l to actual index in new_var
-            % If u_init exists: var_idx = l + 1 (l=1 -> var_idx=2, l=2 -> var_idx=3, ...)
-            % If u_init doesn't exist: var_idx = l (l=1 -> var_idx=1, l=2 -> var_idx=2, ...)
-            var_idx = start_idx + l - 1;
-            
             % Get worst-case scenario u^l (as numerical values)
-            if isfield(iteration_record, 'worst_case_u_history') && ...
-                    length(iteration_record.worst_case_u_history) >= var_idx && ...
-                    ~isempty(iteration_record.worst_case_u_history{var_idx})
-                u_l = iteration_record.worst_case_u_history{var_idx};
-            elseif isfield(iteration_record, 'scenario_set') && ...
-                    length(iteration_record.scenario_set) >= l && ...
-                    ~isempty(iteration_record.scenario_set{l})
-                u_l = iteration_record.scenario_set{l};
-            else
-                warning('PowerBiMIP:CCGMaster', ...
-                    'Scenario u^%d not found in iteration_record (index %d). Skipping cut.', l, var_idx);
-                continue;
-            end
-            
+            u_l = iteration_record.worst_case_u_history{l};
             % Ensure u_l is a column vector
             if size(u_l, 2) > size(u_l, 1)
                 u_l = u_l';
@@ -271,20 +244,19 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
 
             %% Copy Second-Stage Variables x^l
             % Create new variables x^l with the same dimensions as original x
-            model.new_var(var_idx).var_x_cont = sdpvar(size(model.var_x_cont,1),size(model.var_x_cont,2), 'full');
-            model.new_var(var_idx).var_x_int = binvar(size(model.var_x_int,1),size(model.var_x_int,2), 'full');
+            model.new_var(l).var_x_cont = sdpvar(size(model.var_x_cont,1),size(model.var_x_cont,2), 'full');
+            model.new_var(l).var_x_int = binvar(size(model.var_x_int,1),size(model.var_x_int,2), 'full');
 
-            model.new_var(var_idx).A2_xc_vars =  model.new_var(var_idx).var_x_cont(model.relative_pos.A2_xc_vars);
-            model.new_var(var_idx).A2_xi_vars =  model.new_var(var_idx).var_x_int(model.relative_pos.A2_xi_vars);
-            model.new_var(var_idx).E2_xc_vars =  model.new_var(var_idx).var_x_cont(model.relative_pos.E2_xc_vars);
-            model.new_var(var_idx).E2_xi_vars =  model.new_var(var_idx).var_x_int(model.relative_pos.E2_xi_vars);
-            model.new_var(var_idx).c2_xc_vars =  model.new_var(var_idx).var_x_cont(model.relative_pos.c2_xc_vars);
-            model.new_var(var_idx).c2_xi_vars =  model.new_var(var_idx).var_x_int(model.relative_pos.c2_xi_vars);
-            % model.new_var(var_idx).c2_xi_vars = 
+            model.new_var(l).A2_xc_vars =  model.new_var(l).var_x_cont(model.relative_pos.A2_xc_vars);
+            model.new_var(l).A2_xi_vars =  model.new_var(l).var_x_int(model.relative_pos.A2_xi_vars);
+            model.new_var(l).E2_xc_vars =  model.new_var(l).var_x_cont(model.relative_pos.E2_xc_vars);
+            model.new_var(l).E2_xi_vars =  model.new_var(l).var_x_int(model.relative_pos.E2_xi_vars);
+            model.new_var(l).c2_xc_vars =  model.new_var(l).var_x_cont(model.relative_pos.c2_xc_vars);
+            model.new_var(l).c2_xi_vars =  model.new_var(l).var_x_int(model.relative_pos.c2_xi_vars);
 
             %% Add Objective Constraint: eta >= d^T x^l
             obj_constraint = [model.c2_xc', model.c2_xi'] * ...
-                [model.new_var(var_idx).c2_xc_vars(:); model.new_var(var_idx).c2_xi_vars(:)];
+                [model.new_var(l).c2_xc_vars(:); model.new_var(l).c2_xi_vars(:)];
             constraints = constraints + (model.eta >= obj_constraint);
             
             %% Add Structural Constraints: G x^l >= h - E y - M u^l
@@ -321,7 +293,7 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 %                   A2_yc * y_cont + A2_yi * y_int <= rhs_ineq
                 constraints = constraints + ...
                     ([model.A2_xc, model.A2_xi, model.A2_yc, model.A2_yi] * ...
-                    [model.new_var(var_idx).A2_xc_vars(:); model.new_var(var_idx).A2_xi_vars(:); model.A2_yc_vars; model.A2_yi_vars] <= ...
+                    [model.new_var(l).A2_xc_vars(:); model.new_var(l).A2_xi_vars(:); model.A2_yc_vars; model.A2_yi_vars] <= ...
                     rhs_ineq);
             end
             
@@ -353,7 +325,7 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
                 %                   E2_yc * y_cont + E2_yi * y_int == rhs_eq
                 constraints = constraints + ...
                     ([model.E2_xc, model.E2_xi, model.E2_yc, model.E2_yi] * ...
-                    [model.new_var(var_idx).E2_xc_vars(:); model.new_var(var_idx).E2_xi_vars(:); model.E2_yc_vars; model.E2_yi_vars] == ...
+                    [model.new_var(l).E2_xc_vars(:); model.new_var(l).E2_xi_vars(:); model.E2_yc_vars; model.E2_yi_vars] == ...
                     rhs_eq);
             end
         end
@@ -391,30 +363,6 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
         mp_objective = value(objective);
         first_stage_obj = value(objective_first_stage);
         
-        % Extract x^l values (optional, for debugging)
-        % Use the same index mapping as when creating variables
-        x_l_values = cell(num_scenarios, 1);
-        if isfield(Solution_MP, 'new_var')
-            % Determine starting index (same logic as when creating variables)
-            if isfield(iteration_record, 'u_init') && ~isempty(iteration_record.u_init)
-                start_idx = 2;  % Skip index 1, which is reserved for u_init
-            else
-                start_idx = 1;  % No u_init, start from 1
-            end
-            
-            for l = 1:num_scenarios
-                var_idx = start_idx + l - 1;
-                if length(Solution_MP.new_var) >= var_idx
-                    if isfield(Solution_MP.new_var(var_idx), 'x_cont')
-                        x_l_values{l}.cont = Solution_MP.new_var(var_idx).x_cont;
-                    end
-                    if isfield(Solution_MP.new_var(var_idx), 'x_int')
-                        x_l_values{l}.int = Solution_MP.new_var(var_idx).x_int;
-                    end
-                end
-            end
-        end
-        
         %% Build Output Structure
         mp_result.y_star = y_star;
         mp_result.eta_star = eta_star;
@@ -423,13 +371,11 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
         mp_result.solution = solution;
         
         % Build mp_solution for variable mapping
-        mp_solution.var = struct();
-        mp_solution.var.y_cont = Solution_MP.var_y_cont;
-        mp_solution.var.y_int = Solution_MP.var_y_int;
-        mp_solution.var.eta = Solution_MP.eta;
-        mp_solution.x_l_values = x_l_values; % Store x^l values
-        mp_solution.objective = mp_objective;
-        mp_solution.solution = solution;
-        mp_result.mp_solution = mp_solution;
+        mp_result.var = struct();
+        mp_result.var.y_cont = Solution_MP.var_y_cont;
+        mp_result.var.y_int = Solution_MP.var_y_int;
+        mp_result.var.eta = Solution_MP.eta;
+        mp_result.objective = mp_objective;
+        mp_result.solution = solution;
     end
 end

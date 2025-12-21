@@ -91,6 +91,11 @@ function CCG_record = algorithm_CCG(model, ops, u_init)
         % Call CCG_master_problem to solve the master problem
         mp_result = CCG_master_problem(model, ops, iteration_record);
         
+        if mp_result.solution.problem ~= 0
+            error('PowerBiMIP:SolverError', 'Master problem failed to solve in iter %d:\n%s', ...
+                curr_iter, yalmiperror(mp_result.solution.problem));
+        end
+
         iteration_record.master_problem_solution{curr_iter} = mp_result;
         
         % Extract MP solution
@@ -112,31 +117,28 @@ function CCG_record = algorithm_CCG(model, ops, u_init)
         end
         
         % Update lower bound: LB = c^T y* + eta* (or just c^T y* if no eta)
-        if ~isempty(mp_objective)
-            new_LB = mp_objective;
-        else
-            new_LB = iteration_record.LB;
-        end
-        iteration_record.LB = new_LB;
+        new_LB = max(mp_objective, iteration_record.LB(end));
+        
+        iteration_record.LB(end+1) = new_LB;
         trace_lb(curr_iter) = new_LB;
         
         %% Subproblem (SP)
         % Call CCG_subproblem to solve the subproblem (find worst-case u)
-        sp_result = CCG_subproblem(model, ops, y_star, iteration_record);        
+        sp_result = CCG_subproblem(model, ops, y_star, iteration_record);
+        if sp_result.solution.problem ~= 0
+            error('PowerBiMIP:SolverError', 'Subproblem failed to solve in iter %d:\n%s', ...
+                curr_iter, yalmiperror(sp_result.solution.problem));
+        end
         iteration_record.subproblem_solution{curr_iter} = sp_result;
         
         % Extract SP solution
         u_star = sp_result.u_star;
         Q_value = sp_result.Q_value; % Q(y*)
         
-        % Update upper bound: UB = min(UB, c^T y* + Q(y*))
-        if ~isempty(Q_value)
-            candidate_UB = first_stage_obj + Q_value;
-            new_UB = min(iteration_record.UB, candidate_UB);
-        else
-            new_UB = iteration_record.UB;
-        end
-        iteration_record.UB = new_UB;
+        candidate_UB = first_stage_obj + Q_value;
+        new_UB = min(iteration_record.UB(end), candidate_UB);
+
+        iteration_record.UB(end+1) = new_UB;
         trace_ub(curr_iter) = new_UB;
         
         % Store worst-case scenario
@@ -269,8 +271,8 @@ function CCG_record = algorithm_CCG(model, ops, u_init)
     if ops.verbose >= 1
         fprintf('\n%s\n', repmat('-', 1, 95));
         fprintf('Final Results:\n');
-        fprintf('  Lower Bound (LB): %.6f\n', CCG_record.LB);
-        fprintf('  Upper Bound (UB): %.6f\n', CCG_record.UB);
+        fprintf('  Lower Bound (LB): %.6f\n', CCG_record.LB(end));
+        fprintf('  Upper Bound (UB): %.6f\n', CCG_record.UB(end));
         if actual_iter > 0
             final_gap = CCG_record.convergence_trace.gap(end);
             fprintf('  Final Gap:       %.4f%%\n', final_gap * 100);
