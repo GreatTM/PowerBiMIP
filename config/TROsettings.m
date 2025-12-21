@@ -25,7 +25,7 @@ function options = TROsettings(varargin)
     default_options.perspective = 'TRO';     % Placeholder for future robust types
     
     % Parameters for the 'quick' method (L1-PADM based)
-    default_options.penalty_rho = 50;        % Initial penalty factor for the PADM algorithm
+    default_options.penalty_rho = 100;        % Initial penalty factor for the PADM algorithm
     default_options.penalty_term_gap = 1e-4; % Tolerance for the penalty term to be considered zero
     default_options.rho_tolerance = 1;       % Relative tolerance for penalty rho search (currently unused)
     default_options.padm_tolerance = 1e-3;   % Convergence tolerance for the PADM algorithm

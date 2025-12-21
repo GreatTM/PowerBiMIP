@@ -231,8 +231,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     BiMIP_record = solver_algorithm(model_processed, ops_processed);
 
     % --- Step 4: Extract and Format the Final Solution ---
-    Solution.var = BiMIP_record.optimal_solution.var;
-    Solution.obj = BiMIP_record.UB(end);
+    Solution = myFun_GetValue(bimip_model);
 end
 
 

@@ -623,14 +623,14 @@ for j = 1:num_extrmpoint
         'Buildings: temperature limit');
 
 end
-big_M_Tau_in = 1e6;
+big_M_Tau_in = 1e4;
 for i1 = 1:num_period_heat
     for i2= 1:num_building
         for i3 = 1:num_extrmpoint
             cons_2nd = cons_2nd + ( ...
                 (big_M_Tau_in*var_2st.building.Tau_in_upperdelta_pos(i1,i2,i3) + ...
                 big_M_Tau_in*var_2st.building.Tau_in_lowerdelta_pos(i1,i2,i3) <= ...
-                var_2st.cost.Tau_in_comp <= 1e8) : ...
+                var_2st.cost.Tau_in_comp <= 1e6) : ...
                 '');
         end
     end

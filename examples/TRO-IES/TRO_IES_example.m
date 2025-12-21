@@ -23,11 +23,9 @@ yalmip('clear');
 global data
 
 %% ==================== Data Reading and Initialization ====================
-fprintf('%-40s\t\t', '- Reading data');
 data = readData();
 
 % Initialize parameters
-fprintf('%-40s\t\t','- Initialize parameters');
 num_initialtime = 10;
 interval_heat = 1;
 data = initializeParameters(data, num_initialtime, interval_heat);
@@ -35,7 +33,6 @@ data.grid.p_pcc = 10e3;
 data.grid.q_pcc = 10e3;
 
 % Define uncertainty parameters
-fprintf('%-40s\t\t','- Define uncertainty parameters');
 data.uncertainty.Deviation.p_res = 0.2;
 data.uncertainty.Deviation.p_load = 0.2;
 data.uncertainty.Deviation.Tau_out = 0.2;
@@ -46,7 +43,6 @@ data.uncertainty.Gamma.Tau_out = 12;
 data.uncertainty.Gamma.Tau_act = 12;
 
 % Calculate building parameters
-fprintf('%-40s\t\t','- Calculate building parameters');
 delta_alpha = 0;
 delta_beta = 0;
 set_type = 0;
@@ -54,8 +50,6 @@ num_points = 0;
 data = calculateBuildingParameters(delta_alpha, delta_beta, set_type, num_points);
 
 %% ==================== Define Variables (Into tro_model directly) ====================
-fprintf('%-40s\t\t','- Define variables');
-
 % 1. Define First-Stage Variables
 % (Assuming defineBaseVars returns a struct of sdpvars/binvars)
 tro_model.var_1st = defineBaseVars();
@@ -70,8 +64,6 @@ var_stage2 = tro_model.var_2nd;
 var_u = tro_model.var_uncertain;
 
 %% ==================== Define Constraints ====================
-fprintf('%-40s\t\t','- Define constraints');
-
 % 1. First-Stage Constraints
 % (Assuming defineFirstStageConstraints accepts the struct and returns constraint object)
 tro_model.cons_1st = defineFirstStageConstraints(var_stage1);
@@ -86,8 +78,6 @@ tro_model.cons_uncertainty = defineUncertaintyConstraints(var_u, var_stage2);
 % tro_model.cons_uncertainty = []; % Uncomment if no uncertainty constraints
 
 %% ==================== Define Objectives ====================
-fprintf('%-40s\t\t','- Define objectives');
-
 % Extract cost parameter indices
 [loc_devicetype, loc_om, loc_c1, loc_c0] = deal(2, 9, 6, 7); % device cost indices
 [loc_gridprice_buy, loc_gridprice_sell] = deal(1, 2); % grid price indices

@@ -207,19 +207,7 @@ function [Solution, CCG_record] = solve_TRO(tro_model, ops, u_init)
     CCG_record = algorithm_CCG(robust_model, ops, u_init);
 
     % --- Step 3: Extract and Format Final Solution ---
-    Solution = struct();
-    if isfield(CCG_record, 'optimal_solution') && isstruct(CCG_record.optimal_solution)
-        Solution.var = CCG_record.optimal_solution.var;
-    else
-        Solution.var = struct();
-    end
-    if isfield(CCG_record, 'UB')
-        Solution.obj = CCG_record.UB(end);
-    elseif isfield(CCG_record, 'obj_val')
-        Solution.obj = CCG_record.obj_val;
-    else
-        Solution.obj = [];
-    end
+    Solution = myFun_GetValue(tro_model);
 end
 
 % -------------------------------------------------------------------------
