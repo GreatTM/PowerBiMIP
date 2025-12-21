@@ -29,12 +29,16 @@ function BiMIP_record = solver_algorithm(model_processed, ops_processed)
     switch lower(ops_processed.perspective)
         case 'optimistic'
             % For the optimistic case, call the main optimistic solver.
-            fprintf('Solving with optimistic perspective...\n');
+            if ops_processed.verbose >= 1
+                fprintf('Solving with optimistic perspective...\n');
+            end
             BiMIP_record = optimistic_solver(model_processed, ops_processed);
 
         case 'pessimistic'
             % For the pessimistic case, call the pessimistic solver.
-            fprintf('Solving with pessimistic perspective...\n');
+            if ops_processed.verbose >= 1
+                fprintf('Solving with pessimistic perspective...\n');
+            end
             BiMIP_record = pessimistic_solver(model_processed, ops_processed);
 
         otherwise

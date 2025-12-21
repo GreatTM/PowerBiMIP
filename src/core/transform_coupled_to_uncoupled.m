@@ -1,4 +1,4 @@
-function model_final = transform_coupled_to_uncoupled(model, kappa)
+function model_final = transform_coupled_to_uncoupled(model, kappa, ops)
 %TRANSFORM_COUPLED_TO_UNCOUPLED Transforms a coupled model to an uncoupled one.
 %
 %   Description:
@@ -28,8 +28,10 @@ function model_final = transform_coupled_to_uncoupled(model, kappa)
         fprintf('Warning: No coupled constraints found to transform.\n');
         return;
     end
-    fprintf('Identified %d coupled inequalities and %d coupled equalities to transform.\n', m_ineq_c, m_eq_c);
 
+    if ops.verbose >= 1
+        fprintf('Identified %d coupled inequalities and %d coupled equalities to transform.\n', m_ineq_c, m_eq_c);
+    end
     idx_ineq_c = coupled_info.ineq_idx; idx_ineq_nc = ~idx_ineq_c;
     idx_eq_c = coupled_info.eq_idx;   idx_eq_nc = ~idx_eq_c;
     
@@ -150,6 +152,6 @@ function model_final = transform_coupled_to_uncoupled(model, kappa)
         [model.c5_vars; model.c6_vars];
 
     model_final = extract_coefficients_and_variables(var_x_u, ...
-        var_z_u, var_x_l, var_z_l, cons_upper, cons_lower, obj_upper, obj_lower);
+        var_z_u, var_x_l, var_z_l, cons_upper, cons_lower, obj_upper, obj_lower, ops);
     model_final.var = model.var;
 end

@@ -12,8 +12,10 @@ function model_final = transform_pessimistic_to_optimistic(model)
         fprintf('Warning: No coupled constraints found to transform.\n');
         return;
     end
-    fprintf('Identified %d coupled inequalities and %d coupled equalities to transform.\n', m_ineq_c, m_eq_c);
 
+    if ops.verbose >= 1
+        fprintf('Identified %d coupled inequalities and %d coupled equalities to transform.\n', m_ineq_c, m_eq_c);
+    end
     idx_ineq_c = coupled_info.ineq_idx; idx_ineq_nc = ~idx_ineq_c;
     idx_eq_c = coupled_info.eq_idx;   idx_eq_nc = ~idx_eq_c;
     

@@ -42,8 +42,10 @@ function [model_processed, current_ops] = preprocess_bilevel_model(model, ops)
         model_processed = current_model;
         return;
     end
-
-    fprintf('Initial model has coupled constraints. Starting reformulation...\n');
+    
+    if ops.verbose >= 1
+        fprintf('Initial model has coupled constraints. Starting reformulation...\n');
+    end
     % Iteratively apply transformations until the model is uncoupled.
     iteration = 1;
     while is_coupled
@@ -65,6 +67,8 @@ function [model_processed, current_ops] = preprocess_bilevel_model(model, ops)
         end
     end
     
-    fprintf('Preprocessing complete. Model is now uncoupled.\n');
+    if ops.verbose >= 1
+        fprintf('Preprocessing complete. Model is now uncoupled.\n');
+    end
     model_processed = current_model;
 end

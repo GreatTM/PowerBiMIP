@@ -103,15 +103,19 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
         % --- Subsequent Iterations: Add strong duality optimality cuts ---
 
         %% Define Dual Variables for Strong Duality Cuts
+        bigM = 1e6;  % Big-M constant for dual variable bounds
         for i = 1 : iteration_record.iteration_num - 1
             % Create dual variables for the lower-level primal constraints.
-                model.new_var(i).dual_ineq = sdpvar(model.length_b_l, 1, 'full');
-                model.new_var(i).dual_eq = sdpvar(model.length_f_l, 1, 'full');
+            % Inequality dual variables: [-bigM, 0]
+            model.new_var(i).dual_ineq = sdpvar(model.length_b_l, 1, 'full');
+            
+            % Equality dual variables: [-bigM, bigM]
+            model.new_var(i).dual_eq = sdpvar(model.length_f_l, 1, 'full');
 
             % Use the fixed integer variables from the i-th subproblem solution.
-                model.new_var(i).c6_vars = iteration_record.optimal_solution_hat{i}.c6_vars;  % fixing lower level integer variables
-                model.new_var(i).D_l_vars = iteration_record.optimal_solution_hat{i}.D_l_vars;  % fixing lower level integer variables
-                model.new_var(i).H_l_vars = iteration_record.optimal_solution_hat{i}.H_l_vars;  % fixing lower level integer variables
+            model.new_var(i).c6_vars = iteration_record.optimal_solution_hat{i}.c6_vars;  % fixing lower level integer variables
+            model.new_var(i).D_l_vars = iteration_record.optimal_solution_hat{i}.D_l_vars;  % fixing lower level integer variables
+            model.new_var(i).H_l_vars = iteration_record.optimal_solution_hat{i}.H_l_vars;  % fixing lower level integer variables
         end
 
         %% Constraints building
@@ -193,6 +197,12 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
             % Dual variable sign constraints
             model.constraints = model.constraints + ...
                 (model.new_var(i).dual_ineq <= 0);
+            model.constraints = model.constraints + ...
+                (model.new_var(i).dual_ineq >= -bigM);
+            model.constraints = model.constraints + ...
+                (model.new_var(i).dual_eq <= bigM);
+            model.constraints = model.constraints + ...
+                (model.new_var(i).dual_eq >= -bigM);
         end
         
         %% Objective building

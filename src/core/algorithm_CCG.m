@@ -1,4 +1,4 @@
-function Robust_record = algorithm_CCG(model, ops, u_init)
+function CCG_record = algorithm_CCG(model, ops, u_init)
 %ALGORITHM_CCG Implements the main loop controller for C&CG algorithm (TRO-LP with RCR).
 %
 %   Description:
@@ -14,7 +14,7 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
 %                       extract_robust_coeffs (containing first-stage/second-stage
 %                       coefficients, uncertainty set, variables, statistics).
 %       ops   - struct: A struct containing all solver options (from
-%                       RobustCCGsettings), including gap_tol, max_iterations,
+%                       TROsettings), including gap_tol, max_iterations,
 %                       verbose, mode, solver, etc.
 %       u_init - (Optional) Initial value for uncertainty variable u (numeric vector).
 %                If provided, the first iteration will include this scenario.
@@ -24,7 +24,7 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
 %                       including bounds, worst-case scenarios, convergence trace,
 %                       cuts count, runtime, and the final optimal solution.
 %
-%   See also CCG_master_problem, CCG_subproblem, RobustCCGsettings
+%   See also CCG_master_problem, CCG_subproblem, TROsettings
 
     tic;
     
@@ -53,6 +53,18 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
     trace_gap = zeros(maxIter, 1);
     trace_time = zeros(maxIter, 1);
     
+    % --- Initialize convergence plot using unified plotting tool ---
+    plotData = struct();
+    plotData.algorithm = 'C&CG';
+    plotData.iteration = [];
+    plotData.UB = [];
+    plotData.LB = [];
+    plotData.gap = [];
+    
+    if ops.verbose >= 2 && ops.plot.verbose > 0
+        plotHandles = plotConvergenceCurves(plotData, ops.plot, 'init'); %#ok<NASGU> % Handle stored internally via setappdata
+    end
+    
     % --- Print iteration log header ---
     if ops.verbose >= 1
         fprintf('\n%s\n', repmat('-', 1, 95));
@@ -60,7 +72,9 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
             'Iter', 'MP Obj', 'SP Obj', 'LB', 'UB', 'Gap(%)', 'Time(s)');
         fprintf('%s\n', repmat('-', 1, 95));
     end
-    
+
+    iter_tic = tic;
+
     %% Main Algorithm Loop
     while true
         %% Termination Condition: Max iterations
@@ -72,7 +86,6 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
         end
         iteration_record.iteration_num = iteration_record.iteration_num + 1;
         curr_iter = iteration_record.iteration_num;
-        iter_tic = tic;
         
         %% Master Problem (MP)
         % Call CCG_master_problem to solve the master problem
@@ -170,6 +183,15 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
                 curr_iter, mp_obj_str, sp_obj_str, new_LB, new_UB, gap_pct, iter_time);
         end
         
+        %% Update Convergence Plot
+        if ops.verbose >= 2 && ops.plot.verbose > 0
+            plotData.iteration = 1:curr_iter;
+            plotData.UB = trace_ub(1:curr_iter);
+            plotData.LB = trace_lb(1:curr_iter);
+            plotData.gap = trace_gap(1:curr_iter) * 100; % Convert to percentage
+            plotConvergenceCurves(plotData, ops.plot, 'update');
+        end
+        
         %% Convergence Check
         if current_gap <= ops.gap_tol
             if ops.verbose >= 1
@@ -188,59 +210,69 @@ function Robust_record = algorithm_CCG(model, ops, u_init)
     
     % Trim trace arrays to actual iteration count
     actual_iter = iteration_record.iteration_num;
-    Robust_record.convergence_trace.lb = trace_lb(1:actual_iter);
-    Robust_record.convergence_trace.ub = trace_ub(1:actual_iter);
-    Robust_record.convergence_trace.gap = trace_gap(1:actual_iter);
-    Robust_record.convergence_trace.time = trace_time(1:actual_iter);
-    Robust_record.convergence_trace.iterations = 1:actual_iter;
+    
+    % --- Final plot save (only if verbose >= 2) ---
+    if ops.verbose >= 2 && ops.plot.verbose > 0
+        plotData.iteration = 1:actual_iter;
+        plotData.UB = trace_ub(1:actual_iter);
+        plotData.LB = trace_lb(1:actual_iter);
+        plotData.gap = trace_gap(1:actual_iter) * 100;
+        plotConvergenceCurves(plotData, ops.plot, 'final');
+    end
+    
+    CCG_record.convergence_trace.lb = trace_lb(1:actual_iter);
+    CCG_record.convergence_trace.ub = trace_ub(1:actual_iter);
+    CCG_record.convergence_trace.gap = trace_gap(1:actual_iter);
+    CCG_record.convergence_trace.time = trace_time(1:actual_iter);
+    CCG_record.convergence_trace.iterations = 1:actual_iter;
     
     % Final solution information
-    Robust_record.obj_val = iteration_record.UB;
-    Robust_record.UB = iteration_record.UB;
-    Robust_record.LB = iteration_record.LB;
+    CCG_record.obj_val = iteration_record.UB;
+    CCG_record.UB = iteration_record.UB;
+    CCG_record.LB = iteration_record.LB;
     
     % Extract optimal y* from last MP solution
     if actual_iter > 0 && ~isempty(iteration_record.master_problem_solution{actual_iter})
         last_mp = iteration_record.master_problem_solution{actual_iter};
         if isfield(last_mp, 'y_star') && ~isempty(last_mp.y_star)
-            Robust_record.y_opt = last_mp.y_star;
+            CCG_record.y_opt = last_mp.y_star;
         else
-            Robust_record.y_opt = [];
+            CCG_record.y_opt = [];
         end
         
         % Extract optimal solution structure for variable mapping
         if isfield(last_mp, 'mp_solution') && isstruct(last_mp.mp_solution)
-            Robust_record.optimal_solution = last_mp.mp_solution;
+            CCG_record.optimal_solution = last_mp.mp_solution;
         else
-            Robust_record.optimal_solution = struct();
+            CCG_record.optimal_solution = struct();
         end
     else
-        Robust_record.y_opt = [];
-        Robust_record.optimal_solution = struct();
+        CCG_record.y_opt = [];
+        CCG_record.optimal_solution = struct();
     end
     
     % Worst-case scenario history
     % If u_init exists, worst_case_u_history has length actual_iter + 1
     if ~isempty(u_init)
-        Robust_record.worst_case_u_history = iteration_record.worst_case_u_history(1:actual_iter + 1);
+        CCG_record.worst_case_u_history = iteration_record.worst_case_u_history(1:actual_iter + 1);
     else
-        Robust_record.worst_case_u_history = iteration_record.worst_case_u_history(1:actual_iter);
+        CCG_record.worst_case_u_history = iteration_record.worst_case_u_history(1:actual_iter);
     end
     
     % Cuts count (equal to number of iterations, since each iteration adds one cut)
-    Robust_record.cuts_count = actual_iter;
+    CCG_record.cuts_count = actual_iter;
     
     % Runtime
-    Robust_record.runtime = total_runtime;
+    CCG_record.runtime = total_runtime;
     
     % Final convergence message
     if ops.verbose >= 1
         fprintf('\n%s\n', repmat('-', 1, 95));
         fprintf('Final Results:\n');
-        fprintf('  Lower Bound (LB): %.6f\n', Robust_record.LB);
-        fprintf('  Upper Bound (UB): %.6f\n', Robust_record.UB);
+        fprintf('  Lower Bound (LB): %.6f\n', CCG_record.LB);
+        fprintf('  Upper Bound (UB): %.6f\n', CCG_record.UB);
         if actual_iter > 0
-            final_gap = Robust_record.convergence_trace.gap(end);
+            final_gap = CCG_record.convergence_trace.gap(end);
             fprintf('  Final Gap:       %.4f%%\n', final_gap * 100);
         end
         fprintf('  Total Iterations: %d\n', actual_iter);

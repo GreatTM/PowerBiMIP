@@ -79,24 +79,7 @@ function Solution = master_problem_KKT(model,ops,iteration_record)
         % model.solution = optimize(model.constraints,0,ops.ops_MP);
 
         %% Output
-        Solution.var = myFun_GetValue(model.var);
-        Solution.solution = model.solution;
-
-        Solution.A_u_vars = value(model.A_u_vars);
-        Solution.B_u_vars = value(model.B_u_vars);
-        Solution.E_u_vars = value(model.E_u_vars);
-        Solution.F_u_vars = value(model.F_u_vars);
-
-        Solution.A_l_vars = value(model.A_l_vars);
-        Solution.B_l_vars = value(model.B_l_vars);
-        Solution.E_l_vars = value(model.E_l_vars);
-        Solution.F_l_vars = value(model.F_l_vars);
-
-        Solution.c1_vars = value(model.c1_vars);
-        Solution.c2_vars = value(model.c2_vars);
-
-        Solution.objective = value(model.objective);
-
+        Solution = myFun_GetValue(model);
     else
         % --- Subsequent Iterations: Add KKT optimality cuts ---
         
@@ -264,23 +247,6 @@ function Solution = master_problem_KKT(model,ops,iteration_record)
         %% Solving
         model.solution = optimize(model.constraints,model.objective,ops.ops_MP);
         %% Output
-        Solution.var = myFun_GetValue(model.var);
-        Solution.new_var = myFun_GetValue(model.new_var);
-        Solution.solution = model.solution;
-
-        Solution.A_u_vars = value(model.A_u_vars);
-        Solution.B_u_vars = value(model.B_u_vars);
-        Solution.E_u_vars = value(model.E_u_vars);
-        Solution.F_u_vars = value(model.F_u_vars);
-
-        Solution.A_l_vars = value(model.A_l_vars);
-        Solution.B_l_vars = value(model.B_l_vars);
-        Solution.E_l_vars = value(model.E_l_vars);
-        Solution.F_l_vars = value(model.F_l_vars);
-
-        Solution.c1_vars = value(model.c1_vars);
-        Solution.c2_vars = value(model.c2_vars);
-
-        Solution.objective = value(model.objective);
+        Solution = myFun_GetValue(model);
     end
 end

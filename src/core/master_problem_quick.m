@@ -99,15 +99,21 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         Solution.c5_vars = value(model.c5_vars);
         Solution.c6_vars = value(model.c6_vars);
         Solution.objective = value(model.objective);
+        Solution.padm_log_chars = 0;
 
     else
         %% --- Subsequent Iterations: Solve with L1-PADM ---
 
         %% Define New Variables for Cuts
+        bigM = 1e6;  % Big-M constant for dual variable bounds
         for i = 1 : iteration_record.iteration_num - 1
             % Create dual variables and penalty helper variable (Phi) for each cut.
+            % Inequality dual variables: [-bigM, 0]
             model.new_var(i).dual_ineq = sdpvar(size(model.b_l,1), 1, 'full');
+            
+            % Equality dual variables: [-bigM, bigM]
             model.new_var(i).dual_eq = sdpvar(size(model.f_l,1), 1, 'full');
+            
             model.new_var(i).Phi = sdpvar(1,1); % Penalty helper variable
             
             % Fix lower-level integer variables based on the i-th subproblem solution.
@@ -129,34 +135,9 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         high_rho = ops.penalty_rho;
         low_rho = 0;
         mid_rho = ops.penalty_rho;
-        % Create convergence plot for L1-PADM (only if verbose >= 2).
-        if ops.verbose >= 2
-            padm_fig = figure('Name', sprintf('R&D Iter %d L1-PADM Convergence', iteration_record.iteration_num));
-            ax = gca(padm_fig);
-            yyaxis(ax, 'left');
-            
-            padm1_curve = plot(ax, nan, 'r-s', 'LineWidth', 1.5, 'MarkerSize', 8, 'DisplayName', 'L1-PADM1 Obj');
-            hold(ax, 'on');
-            padm2_curve = plot(ax, nan, 'b-o', 'LineWidth', 1.5, 'MarkerSize', 8, 'DisplayName', 'L1-PADM2 Obj');
-            ylabel(ax, 'Objective Value');
-            
-            yyaxis(ax, 'right');
-            gap_curve = plot(ax, nan, 'k--^', 'LineWidth', 1, 'MarkerSize', 8, 'DisplayName', 'Gap');
-            ylabel(ax, 'Obj Diff (%)');
-            xlabel(ax, 'L1-PADM Iteration');
-            title(ax, sprintf('L1-PADM Convergence for R&D Iteration %d', iteration_record.iteration_num));
-            legend(ax, 'Location', 'best');
-            grid(ax, 'on');
-            hold(ax, 'off');
-            
-            padm_fig_handles.padm1_curve = padm1_curve;
-            padm_fig_handles.padm2_curve = padm2_curve;
-            padm_fig_handles.gap_curve = gap_curve;
-            padm_fig_handles.ax = ax;
-        end
-
         
         padm_iter = 1;
+        padm_log_chars = 0;
 
         while padm_iter <= ops.padm_max_iter
             current_rho = ops.penalty_rho;
@@ -238,6 +219,12 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
     
                 model.constraints_PADM1 = model.constraints_PADM1 + ...
                     (model.new_var(i).dual_ineq <= 0);
+                model.constraints_PADM1 = model.constraints_PADM1 + ...
+                    (model.new_var(i).dual_ineq >= -bigM);
+                model.constraints_PADM1 = model.constraints_PADM1 + ...
+                    (model.new_var(i).dual_eq >= -bigM);
+                model.constraints_PADM1 = model.constraints_PADM1 + ...
+                    (model.new_var(i).dual_eq <= bigM);
             end
     
             %% objectives
@@ -388,27 +375,24 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
             is_stable = primal_diff <= ops.padm_tolerance;
 
             if ops.verbose >= 1
-                fprintf('L1-PADM Iter %d: L1-PADM1=%.4f | L1-PADM2=%.4f | Gap=%.2f%% | PrimalDiff=%.1e\n',...
+                msgFmt = 'L1-PADM Iter %d: L1-PADM1=%.4f | L1-PADM2=%.4f | Gap=%.2f%% | PrimalDiff=%.1e\n';
+                if ops.verbose <= 2
+                    padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, ...
                         padm_iter, padm1_obj, padm2_obj, obj_gap, primal_diff);
+                else
+                    fprintf(msgFmt, padm_iter, padm1_obj, padm2_obj, obj_gap, primal_diff);
+                end
             end
 
-            if ops.verbose >= 2
-                set(padm_fig_handles.padm1_curve,...
-                    'XData', 1:length(padm1_objectives),...
-                    'YData', padm1_objectives);
-                set(padm_fig_handles.padm2_curve,...
-                    'XData', 1:length(padm2_objectives),...
-                    'YData', padm2_objectives);
-                set(padm_fig_handles.gap_curve,...
-                    'XData', 1:length(padm_gaps),...
-                    'YData', padm_gaps);
-                drawnow;
-            end
-            
             % check convergence
             if is_stable
                 if ops.verbose >= 1
-                    fprintf('L1-PADM achieved primal stability.\n');
+                    msgFmt = 'L1-PADM achieved primal stability.\n';
+                    if ops.verbose <= 2
+                        padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt);
+                    else
+                        fprintf('%s', msgFmt);
+                    end
                 end
                 % compute penalty_term
                 current_penalty = 0;
@@ -436,15 +420,25 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
                     ops.penalty_rho = ops.penalty_rho * 10;
                     padm_iter = 0; % Reset L1-PADM counter
                     
-                    fprintf('Penalty term is too high (%.4f > %.4f). Increasing rho.\n', current_penalty, ops.penalty_term_gap);
-                    fprintf('New rho = %.2e. Restarting L1-PADM.\n', ops.penalty_rho);
+                    msg1 = sprintf('Penalty term is too high (%.4f > %.4f). Increasing rho.\n', current_penalty, ops.penalty_term_gap);
+                    msg2 = sprintf('New rho = %.2e. Restarting L1-PADM.\n', ops.penalty_rho);
+                    if ops.verbose <= 2
+                        padm_log_chars = padm_log_chars + log_utils('printf_count', '%s%s', msg1, msg2);
+                    else
+                        fprintf('%s%s', msg1, msg2);
+                    end
                     
                     if ops.penalty_rho > 1e9 
                         error('PowerBiMIP:ConvergenceError', 'Failed to find a suitable rho. Value exceeds threshold.');
                     end
                 else
                     % Penalty term is acceptable, L1-PADM has converged.
-                    fprintf('Penalty term is acceptable (%.4f <= %.4f). L1-PADM converged.\n', current_penalty, ops.penalty_term_gap);
+                    msgFmt = 'Penalty term is acceptable (%.4f <= %.4f). L1-PADM converged.\n';
+                    if ops.verbose <= 2
+                        padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, current_penalty, ops.penalty_term_gap);
+                    else
+                        fprintf(msgFmt, current_penalty, ops.penalty_term_gap);
+                    end
                     break; % Success, exit the L1-PADM loop.
                 end
             end
@@ -453,6 +447,7 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         end
 
         model.solution.problem = 0; % Indicate successful solve.
+        
         %% Output
         Solution.padm_iter = padm_iter;
         Solution.var = myFun_GetValue(model.var);
@@ -485,5 +480,6 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         Solution.c6_vars = value(model.c6_vars);
 
         Solution.objective = value(original_objective);
+        Solution.padm_log_chars = padm_log_chars;
     end
 end

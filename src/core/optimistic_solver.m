@@ -33,6 +33,10 @@ function iteration_record = optimistic_solver(model, ops)
         end
         iteration_record.optimal_solution.var = Solution.var;
         iteration_record.UB = Solution.obj;
+        iteration_record.padm_log_chars = 0;
+        if isfield(Solution,'padm_log_chars')
+            iteration_record.padm_log_chars = Solution.padm_log_chars;
+        end
     else
         %% Let's start the R&D process
         %% Initialization
@@ -52,37 +56,18 @@ function iteration_record = optimistic_solver(model, ops)
             gap_modifier = ' (estimated)';
         end
         
-        % --- Initialize convergence plot (dual-axis) ---
-        % Create figure only if verbose level is high enough.
-        if ops.verbose >= 2
-            figure;
-            ax = gca;
-            yyaxis(ax, 'left');
-            UB_curve = plot(ax, nan, 'r-s', 'LineWidth', 1.5, 'MarkerSize', 8);
-            hold(ax, 'on');
-            LB_curve = plot(ax, nan, 'b-^', 'LineWidth', 1.5, 'MarkerSize', 8);
-            ylabel(ax, 'Bounds Value');
-            yyaxis(ax, 'right');
-            GAP_curve = plot(ax, nan, 'k--o', 'LineWidth', 1, 'MarkerSize', 8);
-            ylabel(ax, ['Gap (%)' gap_modifier]);
-            xlabel(ax, 'Iteration');
-            title(ax, 'R&D Algorithm Convergence');
-            legend(ax, {'UB', 'LB', ['Gap' gap_modifier]}, 'Location', 'best');
-            grid(ax, 'on');
-            hold(ax, 'off');
-            
-            % --- Customize plot for 'quick' mode ---
-            if is_quick_mode
-                title(ax, 'R&D Algorithm Convergence (quick mode)');
-                set(LB_curve, 'LineStyle', '--'); % Change LB line to dashed
-                legend(ax, {'UB', 'LB'' (estimated)', ['Gap' gap_modifier]}, 'Location', 'best');
-            end
-            
-            % Store figure handles for updating.
-            iteration_record.figure_handles.UB_curve = UB_curve;
-            iteration_record.figure_handles.LB_curve = LB_curve;
-            iteration_record.figure_handles.GAP_curve = GAP_curve;
-            iteration_record.figure_handles.ax = ax;
+        % --- Initialize convergence plot using unified plotting tool ---
+        plotData = struct();
+        plotData.algorithm = 'R&D';
+        plotData.iteration = [];
+        plotData.UB = [];
+        plotData.LB = [];
+        plotData.gap = [];
+        
+        % Initialize plot if plotting is enabled (verbose >= 2)
+        if ops.verbose >= 2 && ops.plot.verbose > 0
+            plotHandles = plotConvergenceCurves(plotData, ops.plot, 'init'); % Handle stored internally
+            iteration_record.figure_handles = plotHandles;
         end
         
         % --- Print iteration log header ---
@@ -122,12 +107,6 @@ function iteration_record = optimistic_solver(model, ops)
             end
             new_LB = iteration_record.master_problem_solution{curr_iter}.objective;
             iteration_record.LB(end+1) = new_LB;
-            if ops.verbose >= 2 && isfield(iteration_record, 'figure_handles')
-                set(iteration_record.figure_handles.LB_curve,...
-                    'XData', 1:(length(iteration_record.LB)-1),...
-                    'YData', iteration_record.LB(2:end));
-                drawnow;
-            end
             
             %% Subproblem 1 (SP1)
             iteration_record.subproblem_1_solution{curr_iter} = subproblem1(model,...
@@ -196,6 +175,15 @@ function iteration_record = optimistic_solver(model, ops)
             end
             iteration_record.gap(end+1) = current_gap;
             
+            %% PADM block clearing (quick mode only)
+            padm_log_chars = 0;
+            if isfield(iteration_record.master_problem_solution{curr_iter}, 'padm_log_chars')
+                padm_log_chars = iteration_record.master_problem_solution{curr_iter}.padm_log_chars;
+            end
+            if ops.verbose >= 1 && ops.verbose <= 2 && padm_log_chars > 0
+                log_utils('clear_last_n_chars', padm_log_chars);
+            end
+
             %% Display Iteration Log
             if ops.verbose >= 1
                 % Pre-format the gap string for display, converting decimal to percentage.
@@ -213,15 +201,12 @@ function iteration_record = optimistic_solver(model, ops)
             end
             
             %% Update Convergence Plot
-            if ops.verbose >= 2 && isfield(iteration_record, 'figure_handles')
-                set(iteration_record.figure_handles.UB_curve,...
-                    'XData', 1:(length(iteration_record.UB)-1),...
-                    'YData', iteration_record.UB(2:end));
-                % Convert gap from decimal to percentage for plotting.
-                set(iteration_record.figure_handles.GAP_curve,...
-                    'XData', 1:length(iteration_record.gap),...
-                    'YData', iteration_record.gap * 100);
-                drawnow;
+            if ops.verbose >= 2 && ops.plot.verbose > 0
+                plotData.iteration = 1:(length(iteration_record.UB)-1);
+                plotData.UB = iteration_record.UB(2:end);
+                plotData.LB = iteration_record.LB(2:end);
+                plotData.gap = iteration_record.gap * 100; % Convert to percentage
+                plotConvergenceCurves(plotData, ops.plot, 'update');
             end
             
             %% Termination Condition: Convergence
@@ -252,6 +237,16 @@ function iteration_record = optimistic_solver(model, ops)
 
         %% Final Solution Summary
         total_time = toc;
+        
+        % --- Final plot save (only if verbose >= 2) ---
+        if ops.verbose >= 2 && ops.plot.verbose > 0
+            plotData.iteration = 1:(length(iteration_record.UB)-1);
+            plotData.UB = iteration_record.UB(2:end);
+            plotData.LB = iteration_record.LB(2:end);
+            plotData.gap = iteration_record.gap * 100;
+            plotConvergenceCurves(plotData, ops.plot, 'final');
+        end
+        
         if ops.verbose >= 1
             % Pre-format the final gap string for display, converting decimal to percentage.
             final_gap_str = sprintf('%.2f%%%s', iteration_record.gap(end) * 100, gap_modifier);

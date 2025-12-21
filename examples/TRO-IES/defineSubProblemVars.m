@@ -72,14 +72,6 @@ if ~isempty(set_tst)
     var_2st.tst.h_chr = sdpvar(num_period, length(set_tst), 'full');
     var_2st.tst.h_dis = sdpvar(num_period, length(set_tst), 'full');
 end
-% % cost
-var_2st.cost.grid_buy = sdpvar(num_period, 1, 'full');
-var_2st.cost.grid_sell = sdpvar(num_period, 1, 'full');
-var_2st.cost.res = sdpvar(num_period, 1, 'full');
-% var_struct.primal.cost.es = sdpvar(num_period, 1, 'full');
-var_2st.cost.gt = sdpvar(num_period, 1, 'full');
-var_2st.cost.eb = sdpvar(num_period, 1, 'full');
-% var_struct.primal.cost.tst = sdpvar(1,1, 'full');
 
 %% heating network
 var_2st.heatingnetwork.Tau_pipe_s_in = ...

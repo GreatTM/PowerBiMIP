@@ -20,7 +20,7 @@ function mp_result = CCG_master_problem(model, ops, iteration_record)
 %                          first-stage/second-stage coefficients, uncertainty set,
 %                          variables, statistics).
 %       ops              - struct: A struct containing solver options (from
-%                          RobustCCGsettings), including ops_MP, verbose, solver, etc.
+%                          TROsettings), including ops_MP, verbose, solver, etc.
 %       iteration_record - struct: A struct containing the history of the
 %                          C&CG algorithm's progress (iteration_num,
 %                          worst_case_u_history, scenario_set, etc.).

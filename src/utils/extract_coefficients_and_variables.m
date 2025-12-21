@@ -1,4 +1,4 @@
-function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, var_z_l, cons_upper, cons_lower, obj_upper, obj_lower)
+function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, var_z_l, cons_upper, cons_lower, obj_upper, obj_lower, ops)
 %EXTRACT_COEFFICIENTS_AND_VARIABLES Extracts coefficient matrices and variable vectors from a general BiMIP model.
 %
 %   Description:
@@ -160,8 +160,6 @@ function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, v
         model.rhs_min = 0;
         model.rhs_max = 0;
     end
-    
-    fprintf('Model components extracted successfully.\n');
 end
 
 %% Helper Function - Extract Coefficients with Variable Filtering

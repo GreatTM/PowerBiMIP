@@ -1,5 +1,5 @@
 function model = extract_robust_coeffs(var_y_cont, var_y_int, var_x_cont, var_x_int, var_u, ...
-    cons_1st, cons_2nd, cons_uncertainty, obj_1st, obj_2nd, u_init)
+    cons_1st, cons_2nd, cons_uncertainty, obj_1st, obj_2nd, u_init, ops)
 %EXTRACT_ROBUST_COEFFS Extracts coefficient matrices for TRO-LP (RCR assumed).
 %
 %   Description:
@@ -20,6 +20,7 @@ function model = extract_robust_coeffs(var_y_cont, var_y_int, var_x_cont, var_x_
 %       obj_1st          - First-stage objective (YALMIP expression)
 %       obj_2nd          - Second-stage objective (YALMIP expression)
 %       u_init           - (Optional) Initial values for uncertainty variables (numeric vector)
+%       ops              - Options structure (for verbose control)
 %                          If provided, extracts initial values for A2_u_vars, E2_u_vars,
 %                          H_u_vars, F_u_vars based on their positions in var_u.
 %
@@ -161,7 +162,9 @@ function model = extract_robust_coeffs(var_y_cont, var_y_int, var_x_cont, var_x_
     model.H_u_vars_init = extract_u_init(model.H_u_vars, var_u, u_init);
     model.F_u_vars_init = extract_u_init(model.F_u_vars, var_u, u_init);
 
-    fprintf('Robust model components extracted successfully.\n');
+    if ops.verbose >= 1
+        fprintf('Robust model components extracted successfully.\n');
+    end
 
     %% Extract the relative positions of each variable
     model.relative_pos.A1_yc_vars = extract_relative_pos(model.A1_yc_vars, model.var_y_cont);

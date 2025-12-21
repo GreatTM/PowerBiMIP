@@ -1,6 +1,6 @@
 %TRO_IES_EXAMPLE Two-stage robust optimization for Integrated Energy System
 %
-%   This example demonstrates how to use solve_Robust to solve a complex
+%   This example demonstrates how to use solve_TRO to solve a complex
 %   two-stage robust optimization problem for an Integrated Energy System (IES).
 %
 %   Description:
@@ -13,16 +13,17 @@
 %       - Uncertainty in renewable generation, load, and temperatures
 %
 %   Usage:
-%       Run this script to solve the TRO-IES problem using solve_Robust.
+%       Run this script to solve the TRO-IES problem using solve_TRO.
 %
-%   See also: solve_Robust, RobustCCGsettings
+%   See also: solve_TRO, TROsettings
 
-clc; clear all; close all;
 dbstop if error
+clc; clear all; close all;
+yalmip('clear');
 global data
+
 %% ==================== Data Reading and Initialization ====================
 fprintf('%-40s\t\t', '- Reading data');
-% Read data
 data = readData();
 
 % Initialize parameters
@@ -52,27 +53,37 @@ set_type = 0;
 num_points = 0;
 data = calculateBuildingParameters(delta_alpha, delta_beta, set_type, num_points);
 
-%% ==================== Define Variables ====================
+%% ==================== Define Variables (Into tro_model directly) ====================
 fprintf('%-40s\t\t','- Define variables');
-var = struct();
-% Define first-stage variables (from define_baseVars.m)
-model.var.var_stage1 = defineBaseVars();
 
-% Define second-stage and uncertainty variables (from define_subProblemVars.m)
-[model.var.var_stage2, model.var.var_u] = defineSubProblemVars();
+% 1. Define First-Stage Variables
+% (Assuming defineBaseVars returns a struct of sdpvars/binvars)
+tro_model.var_1st = defineBaseVars();
+
+% 2. Define Second-Stage and Uncertainty Variables
+% (Assuming defineSubProblemVars returns two structs)
+[tro_model.var_2nd, tro_model.var_uncertain] = defineSubProblemVars();
+
+% Create local aliases for cleaner objective definition below
+var_stage1 = tro_model.var_1st;
+var_stage2 = tro_model.var_2nd;
+var_u = tro_model.var_uncertain;
 
 %% ==================== Define Constraints ====================
 fprintf('%-40s\t\t','- Define constraints');
 
-% First-stage constraints (from model_grid_1st.m, model_heatingnetwork_1st.m, model_building_1st.m)
-model.cons_1st = defineFirstStageConstraints(model.var.var_stage1);
+% 1. First-Stage Constraints
+% (Assuming defineFirstStageConstraints accepts the struct and returns constraint object)
+tro_model.cons_1st = defineFirstStageConstraints(var_stage1);
 
-% Second-stage constraints (from model_grid_2st.m, model_heatingwork_2st.m, model_building_2st.m, model_coupling_1st.m)
-model.cons_2nd = defineSecondStageConstraints(model.var.var_stage2, model.var.var_u, model.var.var_stage1);
+% 2. Second-Stage Constraints
+% (Assuming defineSecondStageConstraints accepts the structs and returns constraint object)
+tro_model.cons_2nd = defineSecondStageConstraints(var_stage2, var_u, var_stage1);
 
-% Uncertainty set constraints (from define_uncertaintyParam.m)
-model.cons_uncertainty = defineUncertaintyConstraints(model.var.var_u, model.var.var_stage2);
-% model.cons_uncertainty = [];
+% 3. Uncertainty Set Constraints
+% (Assuming defineUncertaintyConstraints accepts the structs and returns constraint object)
+tro_model.cons_uncertainty = defineUncertaintyConstraints(var_u, var_stage2);
+% tro_model.cons_uncertainty = []; % Uncomment if no uncertainty constraints
 
 %% ==================== Define Objectives ====================
 fprintf('%-40s\t\t','- Define objectives');
@@ -85,164 +96,70 @@ fprintf('%-40s\t\t','- Define objectives');
 set_es = find(data.device.param(:,loc_devicetype) == 2);
 set_tst = find(data.device.param(:,loc_devicetype) == 5);
 
-% First-stage objective: ES and TST operation and maintenance costs
-model.obj_1st = 0;
+% --- First-Stage Objective: Investment / O&M of storage ---
+obj_1st = 0;
 if ~isempty(set_es)
-    model.obj_1st = model.obj_1st + ...
-        sum(sum(model.var.var_stage1.es.p_chr(:,:) * data.device.cost(set_es, loc_om))) + ...
-        sum(sum(model.var.var_stage1.es.p_dis(:,:) * data.device.cost(set_es, loc_om)));
+    obj_1st = obj_1st + ...
+        sum(sum(var_stage1.es.p_chr(:,:) * data.device.cost(set_es, loc_om))) + ...
+        sum(sum(var_stage1.es.p_dis(:,:) * data.device.cost(set_es, loc_om)));
 end
-
 if ~isempty(set_tst)
-    model.obj_1st = model.obj_1st + ...
-        sum(sum(model.var.var_stage1.tst.h_chr(:,:) * data.device.cost(set_tst, loc_om))) + ...
-        sum(sum(model.var.var_stage1.tst.h_dis(:,:) * data.device.cost(set_tst, loc_om)));
+    obj_1st = obj_1st + ...
+        sum(sum(var_stage1.tst.h_chr(:,:) * data.device.cost(set_tst, loc_om))) + ...
+        sum(sum(var_stage1.tst.h_dis(:,:) * data.device.cost(set_tst, loc_om)));
 end
+tro_model.obj_1st = obj_1st;
 
-% Second-stage objective: grid, RES, GT, EB costs, and building temperature compensation
+% --- Second-Stage Objective: Operational Costs ---
 num_period = data.period;
 set_res = find(data.device.param(:,loc_devicetype) == 1);
 set_gt = find(data.device.param(:,loc_devicetype) == 3);
 set_eb = find(data.device.param(:,loc_devicetype) == 4);
 
 % Grid costs
-cost_grid_buy = data.grid.price(loc_gridprice_buy,:)' .* model.var.var_stage2.pcc.p(:,1);
-cost_grid_sell = data.grid.price(loc_gridprice_sell,:)' .* model.var.var_stage2.pcc.p(:,2);
+cost_grid_buy = data.grid.price(loc_gridprice_buy,:)' .* var_stage2.pcc.p(:,1);
+cost_grid_sell = data.grid.price(loc_gridprice_sell,:)' .* var_stage2.pcc.p(:,2);
 
 % RES costs
 cost_res = 0;
 if ~isempty(set_res)
-    cost_res = sum(model.var.var_stage2.res.p(:,:) * data.device.cost(set_res, loc_c1)) + ...
+    cost_res = sum(var_stage2.res.p(:,:) * data.device.cost(set_res, loc_c1)) + ...
         sum(ones(num_period, length(set_res)) * data.device.cost(set_res, loc_c0)) + ...
-        sum(model.var.var_stage2.res.p * data.device.cost(set_res, loc_om));
+        sum(var_stage2.res.p * data.device.cost(set_res, loc_om));
 end
 
 % GT costs
 cost_gt = 0;
 if ~isempty(set_gt)
-    cost_gt = sum(model.var.var_stage2.gt.gas * data.device.cost(set_gt, loc_c1)) + ...
-        sum(model.var.var_stage2.gt.p * data.device.cost(set_gt, loc_om));
+    cost_gt = sum(var_stage2.gt.gas * data.device.cost(set_gt, loc_c1)) + ...
+        sum(var_stage2.gt.p * data.device.cost(set_gt, loc_om));
 end
 
 % EB costs
 cost_eb = 0;
 if ~isempty(set_eb)
-    cost_eb = sum(model.var.var_stage2.eb.p * data.device.cost(set_eb, loc_om));
+    cost_eb = sum(var_stage2.eb.p * data.device.cost(set_eb, loc_om));
 end
 
 % Combine all second-stage costs
-model.obj_2nd = sum(cost_grid_buy) - sum(cost_grid_sell) + ...
-    cost_res + cost_gt + cost_eb + model.var.var_stage2.cost.Tau_in_comp;
-% model.obj_2nd = sum(cost_grid_buy) - sum(cost_grid_sell) + ...
-%     cost_res + cost_gt + cost_eb;
+tro_model.obj_2nd = sum(cost_grid_buy) - sum(cost_grid_sell) + ...
+    cost_res + cost_gt + cost_eb + var_stage2.cost.Tau_in_comp;
 
-%% ==================== Prepare Variables for solve_Robust ====================
-fprintf('%-40s\t\t','- Prepare variables for solve_Robust');
-
-% Combine first-stage variables into vectors
-var_x_1st = [];
-var_z_1st = [];
-
-% Extract binary variables (z)
-if isfield(model.var.var_stage1, 'pcc')
-    var_z_1st = [var_z_1st; model.var.var_stage1.pcc.p_state(:); model.var.var_stage1.pcc.q_state(:)];
-end
-if isfield(model.var.var_stage1, 'es')
-    var_z_1st = [var_z_1st; model.var.var_stage1.es.p_chr_state(:); model.var.var_stage1.es.p_dis_state(:)];
-end
-if isfield(model.var.var_stage1, 'gt')
-    var_z_1st = [var_z_1st; model.var.var_stage1.gt.state(:)];
-end
-if isfield(model.var.var_stage1, 'tst')
-    var_z_1st = [var_z_1st; model.var.var_stage1.tst.h_chr_state(:); model.var.var_stage1.tst.h_dis_state(:)];
-end
-
-% Extract continuous variables (x) - excluding cost variables
-if isfield(model.var.var_stage1, 'es')
-    var_x_1st = [var_x_1st; model.var.var_stage1.es.p_chr(:); model.var.var_stage1.es.p_dis(:); model.var.var_stage1.es.soc(:)];
-end
-if isfield(model.var.var_stage1, 'tst')
-    var_x_1st = [var_x_1st; model.var.var_stage1.tst.h_chr(:); model.var.var_stage1.tst.h_dis(:); model.var.var_stage1.tst.soc(:)];
-end
-
-% Combine second-stage variables into vector
-var_x_2nd = [];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.pcc.p(:); model.var.var_stage2.pcc.q(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.branch.p(:); model.var.var_stage2.branch.q(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.bus.vol_bus(:); model.var.var_stage2.bus.p_bus(:); model.var.var_stage2.bus.q_bus(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.bus.p_res(:); model.var.var_stage2.bus.p_es(:); model.var.var_stage2.bus.p_gt(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.bus.p_eb(:); model.var.var_stage2.bus.p_load(:); model.var.var_stage2.bus.q_load(:)];
-
-if isfield(model.var.var_stage2, 'res')
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.res.p(:); model.var.var_stage2.res.p_fore(:)];
-end
-if isfield(model.var.var_stage2, 'es')
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.es.p_chr(:); model.var.var_stage2.es.p_dis(:)];
-end
-if isfield(model.var.var_stage2, 'gt')
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.gt.gas(:); model.var.var_stage2.gt.p(:); model.var.var_stage2.gt.h(:)];
-end
-if isfield(model.var.var_stage2, 'eb')
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.eb.p(:); model.var.var_stage2.eb.h(:)];
-end
-if isfield(model.var.var_stage2, 'tst')
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.tst.h_chr(:); model.var.var_stage2.tst.h_dis(:)];
-end
-
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.Tau_pipe_s_in(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.Tau_pipe_s_out(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.Tau_pipe_r_in(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.Tau_pipe_r_out(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.Tau_node_s(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.Tau_node_r(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.h_source(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.heatingnetwork.h_load(:)];
-
-var_x_2nd = [var_x_2nd; model.var.var_stage2.building.h_load(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_in(:)];
-var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_out(:)];
-if isfield(model.var.var_stage2.building, 'Tau_in_extrm')
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_in_extrm(:)];
-end
-var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_act(:)];
-if isfield(model.var.var_stage2.building, 'Tau_in_upperdelta_pos')
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_in_upperdelta_pos(:)];
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_in_upperdelta_neg(:)];
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_in_lowerdelta_pos(:)];
-    var_x_2nd = [var_x_2nd; model.var.var_stage2.building.Tau_in_lowerdelta_neg(:)];
-end
-var_x_2nd = [var_x_2nd; model.var.var_stage2.cost.Tau_in_comp(:)];
-
-% No second-stage integer variables for TRO-LP
-var_z_2nd = [];
-
-% Combine uncertainty variables into vector
-var_u = [model.var.var_u.p_res_pos(:); model.var.var_u.p_res_neg(:)];
-var_u = [var_u; model.var.var_u.p_load_pos(:); model.var.var_u.p_load_neg(:)];
-var_u = [var_u; model.var.var_u.Tau_out_pos(:); model.var.var_u.Tau_out_neg(:)];
-var_u = [var_u; model.var.var_u.Tau_act_pos(:); model.var.var_u.Tau_act_neg(:)];
-
-% Original variable struct (preserves all user-defined fields)
-original_var = model.var;
-
-%% ==================== Initial Scenario ====================
-% Uncertainty variables are deviations, initial scenario sets all deviations to 0
-u_init = zeros(size(var_u));
+%% ==================== Initial Scenario ==================== 
+u_init = zeros(3072, 1);
 
 %% ==================== Configure Solver ====================
-ops = RobustCCGsettings('solver', 'gurobi', 'verbose', 4, 'gap_tol', 1e-3, 'max_iterations', 200, 'mode', 'quick');
+ops = TROsettings('solver', 'gurobi', ...
+                        'verbose', 2, ...
+                        'gap_tol', 1e-3, ...
+                        'max_iterations', 200, ...
+                        'mode', 'quick', ...
+                        'plot.verbose', 1);
 
 %% ==================== Solve ====================
 fprintf('\n%s\n', '---------------------- Start C&CG -----------------------');
-[Solution, Robust_record] = solve_Robust(original_var, var_x_1st, var_z_1st, ...
-    var_x_2nd, var_z_2nd, var_u, model.cons_1st, model.cons_2nd, model.cons_uncertainty, ...
-    model.obj_1st, model.obj_2nd, ops, u_init);
 
-%% ==================== Display Results ====================
-fprintf('\n%s\n', '---------------------- Results -----------------------');
-fprintf('Optimal objective value: %.4f\n', Solution.obj);
-fprintf('Total iterations: %d\n', Robust_record.cuts_count);
-fprintf('Total runtime: %.2f seconds\n', Robust_record.runtime);
+% New simplified interface call
+[Solution, Robust_record] = solve_TRO(tro_model, ops, u_init);
 
-fprintf('\n%s\n', '---------------------- Finished -----------------------');
-
+fprintf('\n%s\n', '---------------------- C&CG Finished --------------------');

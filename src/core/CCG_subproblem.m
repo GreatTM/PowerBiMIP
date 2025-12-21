@@ -23,7 +23,7 @@ function sp_result = CCG_subproblem(model, ops, y_star, ~)
 %                          first-stage/second-stage coefficients, uncertainty set,
 %                          variables, statistics).
 %       ops              - struct: A struct containing solver options (from
-%                          RobustCCGsettings), including mode, verbose, solver, etc.
+%                          TROsettings), including mode, verbose, solver, etc.
 %       y_star           - double vector: First-stage optimal decision variables y*
 %                          (fixed as constants).
 %       iteration_record - struct: A struct containing the history of the
@@ -179,87 +179,56 @@ function sp_result = CCG_subproblem(model, ops, y_star, ~)
     end
     
     %% Step 5: Build BiMIP Options and Call solve_BiMIP
-    % Map ops.mode to BiMIP method
-    if strcmpi(ops.mode, 'exact_strong_duality')
-        bimip_method = 'exact_strong_duality';
-    elseif strcmpi(ops.mode, 'exact_KKT')
-        bimip_method = 'exact_KKT';
-    elseif strcmpi(ops.mode, 'quick')
-        bimip_method = 'quick';
-    else
-        warning('PowerBiMIP:CCGSubproblem', ...
-            'Unknown mode "%s", using default "quick".', ops.mode);
-        bimip_method = 'quick';
+    % Reformulate to BiLP model and solve directly (skip solve_BiMIP overhead)
+    model_bilip = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, var_z_l, ...
+        cons_upper, cons_lower, obj_upper, obj_lower, ops);
+    
+    % Store original variable mapping for result extraction
+    model_bilip.var = original_var;
+
+    % Direct solve (lower level has no integer vars)
+    switch lower(ops.mode)
+        case 'exact_kkt'
+            Solution = solveBiLPbyKKT(model_bilip, ops);
+        case 'exact_strong_duality'
+            Solution = solveBiLPbyStrongDuality(model_bilip, ops);
+        case 'quick'
+            Solution = solveBiLPbyPADM(model_bilip, ops);
+        otherwise
+            error('PowerBiMIP:UnknownMethod','Unknown method %s in CCG_subproblem', bimip_method);
     end
-    
-    % Build BiMIP options
-    % Set verbose to 0 to suppress welcome messages and detailed output when called from C&CG subproblem
-    % This prevents output clutter during C&CG iterations
-    bimip_ops = BiMIPsettings('perspective', 'optimistic', ...
-                              'method', bimip_method, ...
-                              'solver', ops.solver, ...
-                              'verbose', ops.ops_SP.verbose);  % Suppress output when called as subproblem
-    
-    % Call solve_BiMIP
-    try
-        [Solution, BiMIP_record] = solve_BiMIP(original_var, ...
-            var_x_u, var_z_u, var_x_l, var_z_l, ...
-            cons_upper, cons_lower, obj_upper, obj_lower, bimip_ops);
-    catch ME
-        warning('PowerBiMIP:CCGSubproblem', ...
-            'solve_BiMIP failed: %s', ME.message);
-        % Return empty structure
-        sp_result.u_star = [];
-        sp_result.Q_value = [];
-        sp_result.x_star = [];
-        sp_result.sp_solution = struct();
-        sp_result.solution = struct('problem', -1);
-        return;
+
+    % Handle PADM log clearing (when verbose 1/2 and quick mode)
+    padm_log_chars = 0;
+    if isfield(Solution,'padm_log_chars')
+        padm_log_chars = Solution.padm_log_chars;
     end
-    
+    if ops.verbose >= 1 && ops.verbose <= 2 && padm_log_chars > 0
+        log_utils('clear_last_n_chars', padm_log_chars);
+    end
+
     %% Step 6: Extract Solution
-    % Extract u* (upper-level variable) and x* (lower-level variable)
-    % Solution.var contains the values of original_var (which is a struct with var_u and var_x)
-    % We can extract directly from YALMIP variables or from Solution.var
-    
     u_star = [];
     x_star = [];
     
     if ~isempty(var_x_u)
         u_star = value(var_x_u);
-        u_star = u_star(:);  % Ensure column vector
+        u_star = u_star(:);
     end
     if ~isempty(var_x_l)
         x_star = value(var_x_l);
-        x_star = x_star(:);  % Ensure column vector
+        x_star = x_star(:);
     end
-    
-    % Extract Q(y*) (SP objective value)
-    % Note: Since we converted max-min to min-min by taking negative,
-    % solve_BiMIP returns min_u min_x {-d^T x}, which equals -max_u min_x {d^T x}
-    % So we need to take negative to get Q(y*) = max_u min_x {d^T x}
-    Q_value = [];
-    if isfield(Solution, 'obj') && ~isempty(Solution.obj)
-        Q_value = -Solution.obj;  % Take negative to convert back
-    elseif isfield(BiMIP_record, 'UB') && ~isempty(BiMIP_record.UB)
-        Q_value = -BiMIP_record.UB(end);  % Take negative to convert back
-    elseif isfield(BiMIP_record, 'obj_val')
-        Q_value = -BiMIP_record.obj_val;  % Take negative to convert back
-    end
-    
-    % Extract solution status
-    solution_status = struct('problem', 0);
-    if isfield(BiMIP_record, 'optimal_solution') && ...
-            isstruct(BiMIP_record.optimal_solution) && ...
-            isfield(BiMIP_record.optimal_solution, 'solution')
-        solution_status = BiMIP_record.optimal_solution.solution;
-    end
-    
+
+    % Q(y*) = max_u min_x {d^T x}
+    % Since we solved min_u min_x {-d^T x}, take negative to get Q(y*)
+    Q_value = -Solution.obj;
+
     %% Step 7: Build Output Structure
     sp_result.u_star = u_star;
     sp_result.Q_value = Q_value;
     sp_result.x_star = x_star;
-    sp_result.sp_solution = struct('Solution', Solution, 'BiMIP_record', BiMIP_record);
-    sp_result.solution = solution_status;
+    sp_result.sp_solution = struct('Solution',Solution);
+    sp_result.solution = struct('problem',0);
 end
 

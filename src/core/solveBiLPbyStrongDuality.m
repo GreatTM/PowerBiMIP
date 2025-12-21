@@ -40,9 +40,14 @@ function Solution = solveBiLPbyStrongDuality(model, ops)
 %         dual_ineq, dual_eq are the dual variables of the lower level inequality and equality constraints,
 
     %% Define Dual Variables
+    bigM = 1e6;  % Big-M constant for dual variable bounds
+    
     % Dual variables for lower-level inequality constraints (size of b_l)
+    % Bounded: [-bigM, 0]
     model.var.dual_ineq = sdpvar(length(model.b_l), 1, 'full');
+    
     % Dual variables for lower-level equality constraints (size of f_l)
+    % Bounded: [-bigM, bigM]
     model.var.dual_eq = sdpvar(length(model.f_l), 1, 'full');
 
     %% Constraints building
@@ -96,13 +101,14 @@ function Solution = solveBiLPbyStrongDuality(model, ops)
     
     if ~isempty(model.var.dual_ineq)
         constraint_ineq = model.var.dual_ineq' * model.C_l;
-        % Sign constraint: dual_ineq <= 0 (matching master_problem_strong_duality)
-        model.cons = model.cons + (model.var.dual_ineq <= 0);
+        % Sign constraint: dual_ineq in [-bigM, 0]
+        model.cons = model.cons + [model.var.dual_ineq >= -bigM, model.var.dual_ineq <= 0];
     end
     
     if ~isempty(model.var.dual_eq)
         constraint_eq = model.var.dual_eq' * model.G_l;
-        % dual_eq is free
+        % Bound constraint: dual_eq in [-bigM, bigM]
+        model.cons = model.cons + [model.var.dual_eq >= -bigM, model.var.dual_eq <= bigM];
     end
     
     model.cons = model.cons + (constraint_ineq + constraint_eq == model.c5');

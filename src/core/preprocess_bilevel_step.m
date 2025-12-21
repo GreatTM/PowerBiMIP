@@ -56,7 +56,7 @@ function [model_out, ops_out] = preprocess_bilevel_step(model_in, ops_in)
                 end
             end
             
-            model_out = transform_coupled_to_uncoupled(model_in, kappa);
+            model_out = transform_coupled_to_uncoupled(model_in, kappa, ops_in);
             
             % The model is now uncoupled; the perspective remains optimistic.
             

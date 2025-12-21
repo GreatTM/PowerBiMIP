@@ -102,7 +102,12 @@ function Solution = solveBiLPbyPADM(model, ops)
     val_F_l_vars = value(model.F_l_vars); val_F_l_vars(isnan(val_F_l_vars)) = 0;
     
     % Define Dual Variables
+    bigM = 1e6;  % Big-M constant for dual variable bounds
+    
+    % Inequality dual variables: [-bigM, 0]
     dual_ineq = sdpvar(length(model.b_l), 1, 'full');
+    
+    % Equality dual variables: [-bigM, bigM]
     dual_eq = sdpvar(length(model.f_l), 1, 'full');
     
     % Initialize Dual values (will be computed in first SP2)
@@ -118,6 +123,7 @@ function Solution = solveBiLPbyPADM(model, ops)
     
     %% Main L1-PADM Loop
     % Outer loop manages Rho updates
+    padm_log_chars = 0;
     while padm_outer_iter < max_total_iter
         padm_outer_iter = padm_outer_iter + 1;
         % Inner loop manages ADM iterations (Partial Minimum)
@@ -134,11 +140,20 @@ function Solution = solveBiLPbyPADM(model, ops)
             constraint_ineq = 0;
             if ~isempty(dual_ineq)
                 constraint_ineq = dual_ineq' * model.C_l;
-                model.constraints_sp2 = model.constraints_sp2 + (dual_ineq <= 0);
+                % Dual inequality bounds: [-bigM, 0]
+                model.constraints_sp2 = model.constraints_sp2 + ...
+                    (dual_ineq >= -bigM);
+                model.constraints_sp2 = model.constraints_sp2 + ...
+                    (dual_ineq <= 0);
             end
             constraint_eq = 0;
             if ~isempty(dual_eq)
                 constraint_eq = dual_eq' * model.G_l;
+                % Dual equality bounds: [-bigM, bigM]
+                model.constraints_sp2 = model.constraints_sp2 + ...
+                    (dual_eq >= -bigM);
+                model.constraints_sp2 = model.constraints_sp2 + ...
+                    (dual_eq <= bigM);
             end
             model.constraints_sp2 = model.constraints_sp2 + (constraint_ineq + constraint_eq == model.c5');
             
@@ -252,8 +267,13 @@ function Solution = solveBiLPbyPADM(model, ops)
                 inner_converged = true;
             end
             if ops.verbose >= 1
-                fprintf('PADM Inner Iter %d: Rho=%.1e | PrimalDiff=%.1e\n', ...
+                msgFmt = 'PADM Inner Iter %d: Rho=%.1e | PrimalDiff=%.1e\n';
+                if ops.verbose <= 2
+                    padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, ...
                         padm_inner_iter, rho, primal_diff);
+                else
+                    fprintf(msgFmt, padm_inner_iter, rho, primal_diff);
+                end
             end
         end % End Inner Loop
         
@@ -275,20 +295,35 @@ function Solution = solveBiLPbyPADM(model, ops)
         duality_gap = gap_numerator / gap_denominator;
         
         if ops.verbose >= 1
-            fprintf('PADM Outer Iter %d: Rho=%.1e | Gap=%.1e\n', ...
+            msgFmt = 'PADM Outer Iter %d: Rho=%.1e | Gap=%.1e\n';
+            if ops.verbose <= 2
+                padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, ...
                     padm_outer_iter, rho, duality_gap);
+            else
+                fprintf(msgFmt, padm_outer_iter, rho, duality_gap);
+            end
         end
         
         if duality_gap <= ops.penalty_term_gap
             % Success: Global Convergence
             if ops.verbose >= 1
-                fprintf('PADM Converged: Duality Gap satisfied.\n');
+                msgFmt = 'PADM Converged: Duality Gap satisfied.\n';
+                if ops.verbose <= 2
+                    padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt);
+                else
+                    fprintf('%s', msgFmt);
+                end
             end
             break; % Break inner loop, outer loop will also break
         else
             rho = min(rho * 2, rho_max);
             if ops.verbose >= 1
-                fprintf('Inner Loop Stabilized. Increasing Rho to %.1e.\n', rho);
+                msgFmt = 'Inner Loop Stabilized. Increasing Rho to %.1e.\n';
+                if ops.verbose <= 2
+                    padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, rho);
+                else
+                    fprintf(msgFmt, rho);
+                end
             end
         end
         
@@ -336,4 +371,5 @@ function Solution = solveBiLPbyPADM(model, ops)
     final_penalty = rho * (val_ll_primal - val_dual_obj);
     Solution.obj = final_ul_obj + final_penalty;
     Solution.new_var = [];
+    Solution.padm_log_chars = padm_log_chars;
 end
