@@ -104,8 +104,8 @@ ops = BiMIPsettings( ...
     'verbose', 2, ...                   % Verbosity level [0:silent, 1:summary, 2:summary+plots]
     'max_iterations', 10, ...           % Set the maximum number of iterations
     'optimal_gap', 1e-4, ...             % Set the desired optimality gap
-    'plot.verbose', 0, ...
-    'plot.saveFig', true ...
+    'plot.verbose', 1, ...
+    'plot.saveFig', false ...
     );
 
 % Call the main solver function
@@ -121,7 +121,7 @@ if ~isempty(Solution.obj_upper)
     y_opt = value(model.var_lower.y);
     z_opt = value(model.var_lower.z);
     
-    fprintf('Decisions:\n');
+    fprintf('Optimal Solutions:\n');
     fprintf('  x: %.2f\n', x_opt);
     fprintf('  y: %.2f\n', y_opt);
     fprintf('  z: %.2f\n', z_opt);

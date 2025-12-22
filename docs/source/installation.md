@@ -1,40 +1,57 @@
 # Installation
 
-Follow these steps to get PowerBiMIP up and running in your MATLAB environment.
+This guide will help you install PowerBiMIP and get it ready for use in MATLAB.
 
-## 1. Prerequisites
+## Prerequisites
 
-Before installing PowerBiMIP, please ensure you have the following dependencies correctly installed and configured.
+Before installing PowerBiMIP, ensure you have the following dependencies installed:
 
-* **MATLAB**: **R2018a** or a newer version is required.
-* **YALMIP**: The latest version is strongly recommended. YALMIP is a free MATLAB toolbox for modeling and optimization. You can download it from the [YALMIP GitHub repository](https://github.com/yalmip/YALMIP). Follow their instructions for installation.
-* **A MILP Solver**: PowerBiMIP requires at least one efficient Mixed-Integer Linear Programming (MILP) solver. We highly recommend **Gurobi** for its exceptional performance and robustness. Other supported solvers include **CPLEX**, **COPT**, and **MOSEK**. Ensure your chosen solver is installed and its MATLAB interface is correctly set up.
+1.  **MATLAB**: R2018a or newer.
+2.  **YALMIP**: The latest version is highly recommended. You can download it from the [YALMIP GitHub repository](https://github.com/yalmip/YALMIP).
+3.  **A MILP Solver**: At least one MILP solver is required. We strongly recommend **Gurobi** for its performance and robustness. Other supported solvers include CPLEX, COPT, and MOSEK.
 
-## 2. Install PowerBiMIP
+## Installation Steps
 
-Once the prerequisites are in place, you can install PowerBiMIP.
+We recommend using **GitHub Desktop** or `git` command line to install PowerBiMIP. This ensures you can easily receive the latest updates.
 
-* **Step 1: Download the Toolbox**
-    Clone or download the PowerBiMIP repository from GitHub:
-    [https://github.com/GreatTM/PowerBiMIP](https://github.com/GreatTM/PowerBiMIP)
+### 1. Clone the Repository
 
-* **Step 2: Add to MATLAB Path**
-    Add the PowerBiMIP root folder and all its subfolders to your MATLAB path. This ensures that MATLAB can find all the necessary functions.
+Choose one of the following methods to download the source code:
 
-    Navigate to the PowerBiMIP root directory in the MATLAB Command Window and run the following command:
-    ```matlab
-    addpath(genpath(pwd));
+*   **Option A: Using GitHub Desktop (Recommended)**
+    1.  Open GitHub Desktop.
+    2.  Go to `File` > `Clone repository`.
+    3.  Enter the repository URL: `https://github.com/GreatTM/PowerBiMIP`.
+    4.  Choose a local path and click **Clone**.
+
+*   **Option B: Using Git Command Line**
+    Run the following command in your terminal:
+    ```bash
+    git clone https://github.com/GreatTM/PowerBiMIP.git
     ```
-    Alternatively, you can use the "Set Path" dialog in the MATLAB "Home" tab and add the PowerBiMIP folder with its subfolders.
 
-## 3. Verify the Installation
+### 2. Run the Installer
 
-To confirm that PowerBiMIP and all its dependencies are working correctly, run one of the provided examples.
+1.  Open **MATLAB**.
+2.  Navigate to the **PowerBiMIP root directory** (the folder you just cloned).
+3.  In the MATLAB Command Window, type the following command and press Enter:
+    ```matlab
+    install
+    ```
+4.  The script will automatically add all necessary folders (`src`, `config`, `examples`) to your MATLAB path.
 
-In the MATLAB Command Window, run the following script:
+### 3. Verify Installation
+
+To confirm that PowerBiMIP is correctly installed and configured, run one of the included toy examples:
+
 ```matlab
-run('examples/toy_examples/BiMIP_toy_example1.m');
+run('examples/BiMIP_benchmarks/BiMIP_toy_example1.m');
 ```
-If the script runs without errors and outputs a solution, your installation is successful. Congratulations! You are now ready to use PowerBiMIP.
 
-If you encounter any issues, please double-check that all prerequisites are correctly installed and on the MATLAB path. If problems persist, feel free to open an issue on [Github](https://github.com/GreatTM/PowerBiMIP/issues)
+If the solver runs and produces an optimal solution, you are all set!
+
+## Keeping Up to Date
+
+To update PowerBiMIP to the latest version:
+1.  **Pull changes**: Click "Fetch origin" in GitHub Desktop or run `git pull` in your terminal.
+2.  **Restart MATLAB**: This ensures all changes are reloaded.

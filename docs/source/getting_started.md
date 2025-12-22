@@ -10,7 +10,7 @@ Before we begin, please make sure you have successfully installed PowerBiMIP and
 
 ## A Simple Bilevel Programming Example
 
-Let's start with a classic textbook example of a BiMIP problem. This will help us illustrate the core components of a PowerBiMIP model. The full script for this example can be found in `examples/toy_examples/BiMIP_toy_example1.m`.
+Let's start with a classic textbook example of a BiMIP problem. This will help us illustrate the core components of a PowerBiMIP model. The full script for this example can be found in `examples/BiMIP_benchmarks/BiMIP_toy_example1.m`.
 
 ### 1. Mathematical Formulation
 
@@ -53,76 +53,57 @@ clear; close all; clc; yalmip('clear');
 
 #### Step 2: Define Variables
 
-We use YALMIP's syntax to define the decision variables. `intvar` is used for integer variables and `sdpvar` for continuous variables.
+We use YALMIP's syntax to define the decision variables. We organize them into a `model` structure with specific fields: `var_upper` for upper-level variables and `var_lower` for lower-level variables.
 
 ```matlab
-model.var.x = intvar(1,1,'full'); % Upper-level integer variable
-model.var.z = intvar(1,1,'full'); % Lower-level integer variable
-model.var.y = sdpvar(4,1,'full'); % Lower-level continuous variables
-````
+model.var_upper.x = intvar(1,1,'full'); % Upper-level integer variable
+model.var_lower.z = intvar(1,1,'full'); % Lower-level integer variable
+model.var_lower.y = sdpvar(4,1,'full'); % Lower-level continuous variables
+```
 
 #### Step 3: Formulate the Model
 
-Next, we define the constraints and objective functions for both levels. The constraints are created as standard YALMIP objects.
+Next, we define the constraints and objective functions for both levels. The constraints are created as standard YALMIP objects. The model structure must strictly follow these field names: `cons_upper`, `cons_lower`, `obj_upper`, and `obj_lower`.
 
-  * **Upper-Level Constraints & Objective:**
-
-<!-- end list -->
+##### Upper-Level Constraints & Objective:
 
 ```matlab
 % --- Upper-Level Constraints ---
-model.constraints_upper = [];
-model.constraints_upper = model.constraints_upper + (model.var.x >= 0);
-model.constraints_upper = model.constraints_upper + (-25 * model.var.x + 20 * model.var.z <= 30);
-model.constraints_upper = model.constraints_upper + (model.var.x + 2 * model.var.z <= 10);
-model.constraints_upper = model.constraints_upper + (2 * model.var.x - model.var.z <= 15);
-model.constraints_upper = model.constraints_upper + (2 * model.var.x + 10 * model.var.z >= 15);
+model.cons_upper = [];
+model.cons_upper = model.cons_upper + (model.var_upper.x >= 0);
+model.cons_upper = model.cons_upper + (-25 * model.var_upper.x + 20 * model.var_lower.z <= 30);
+model.cons_upper = model.cons_upper + (model.var_upper.x + 2 * model.var_lower.z <= 10);
+model.cons_upper = model.cons_upper + (2 * model.var_upper.x - model.var_lower.z <= 15);
+model.cons_upper = model.cons_upper + (2 * model.var_upper.x + 10 * model.var_lower.z >= 15);
 
 % --- Upper-Level Objective ---
-model.objective_upper = -model.var.x - 10 * model.var.z;
+model.obj_upper = -model.var_upper.x - 10 * model.var_lower.z;
 ```
 
-  * **Lower-Level Constraints & Objective:**
-
-<!-- end list -->
+##### Lower-Level Constraints & Objective:
 
 ```matlab
 % --- Lower-Level Constraints ---
-model.constraints_lower = [];
-model.constraints_lower = model.constraints_lower + (-25 * model.var.x + 20 * model.var.z <= 30 + model.var.y(1,1) );
-model.constraints_lower = model.constraints_lower + (model.var.x + 2 * model.var.z <= 10 + model.var.y(2,1) );
-model.constraints_lower = model.constraints_lower + (2 * model.var.x - model.var.z <= 15 + model.var.y(3,1) );
-model.constraints_lower = model.constraints_lower + (2 * model.var.x + 10 * model.var.z >= 15 - model.var.y(4,1) );
-model.constraints_lower = model.constraints_lower + (model.var.z >= 0);
-model.constraints_lower = model.constraints_lower + (model.var.y >= 0);
+model.cons_lower = [];
+model.cons_lower = model.cons_lower + (-25 * model.var_upper.x + 20 * model.var_lower.z <= 30 + model.var_lower.y(1,1) );
+model.cons_lower = model.cons_lower + (model.var_upper.x + 2 * model.var_lower.z <= 10 + model.var_lower.y(2,1) );
+model.cons_lower = model.cons_lower + (2 * model.var_upper.x - model.var_lower.z <= 15 + model.var_lower.y(3,1) );
+model.cons_lower = model.cons_lower + (2 * model.var_upper.x + 10 * model.var_lower.z >= 15 - model.var_lower.y(4,1) );
+model.cons_lower = model.cons_lower + (model.var_lower.z >= 0);
+model.cons_lower = model.cons_lower + (model.var_lower.y >= 0);
 
 % --- Lower-Level Objective ---
-model.objective_lower = model.var.z + 1e3 * sum(model.var.y,'all');
+model.obj_lower = model.var_lower.z + 1e3 * sum(model.var_lower.y,'all');
 ```
 
-#### Step 4: Define Variable Sets
+#### Step 4: Configure and Run the Solver
 
-PowerBiMIP requires the user to explicitly categorize the variables into four sets: upper-level continuous (`var_xu`), upper-level integer (`var_zu`), lower-level continuous (`var_xl`), and lower-level integer (`var_zl`). This allows the solver to correctly understand the model's structure.
-
-**Important**: All variable sets must be formatted as N x 1 column vectors. You can use `reshape(var, [], 1)` to ensure this.
-
-```matlab
-model.var_xu = []; % Upper-level continuous variables (none in this model)
-model.var_zu = [reshape(model.var.x, [], 1)]; % Upper-level integer variables
-model.var_xl = [reshape(model.var.y, [], 1)]; % Lower-level continuous variables
-model.var_zl = [reshape(model.var.z, [], 1)]; % Lower-level integer variables
-```
-
-#### Step 5: Configure and Run the Solver
-
-Finally, we configure the solver settings using `BiMIPsettings` and then call the main solver function `solve_BiMIP`.
+Finally, we configure the solver settings using `BiMIPsettings` and then call the main solver function `solve_BiMIP`. Note that the input to `solve_BiMIP` is now just the `model` structure and the `ops` options.
 
   * `perspective`: Set to `'optimistic'` for this problem.
-  * `method`: We use the `'exact_KKT'` method, which is an exact algorithm. （You can also try `'exact_strong_duality'` or `'quick'`）
+  * `method`: We use the `'exact_KKT'` method, which is an exact algorithm.
   * `solver`: We specify `'gurobi'` as our underlying MILP solver.
   * `verbose`: A setting of `2` provides detailed solver output.
-
-<!-- end list -->
 
 ```matlab
 % Configure solver settings
@@ -134,18 +115,17 @@ ops = BiMIPsettings( ...
     );
 
 % Call the solver
-[Solution, BiMIP_record] = solve_BiMIP(model.var, ...
-    model.var_xu, model.var_zu, model.var_xl, model.var_zl, ...
-    model.constraints_upper, model.constraints_lower, ...
-    model.objective_upper, model.objective_lower, ops);
+[Solution, BiMIP_record] = solve_BiMIP(model, ops);
 ```
 
 ### 3\. Understanding the Results
 
 After running the script, PowerBiMIP will return two main outputs:
 
-  * **`Solution`**: A structure containing the optimal values of the variables and the objective functions. For this example, the optimal solution is **x = 2**, **z = 2**, resulting in an upper-level objective value of **-22**.
-  * **`BiMIP_record`**: A structure that records detailed information about the solution process, such as solving time and algorithm iterations, which is useful for analysis and debugging.
+  * **`Solution`**: A structure containing the optimal objective values.
+  * **`BiMIP_record`**: A structure that records detailed information about the solution process, such as solving time and algorithm iterations.
+
+For this example, the optimal solution is **x = 2**, **z = 2**, resulting in an upper-level objective value of **-22**.
 
 -----
 
@@ -155,6 +135,6 @@ Congratulations\! 🎉 You've successfully solved your first bilevel problem wit
 
 From here, you can:
 
-  * Explore other examples in the `/examples` folder.
-  * Learn about more advanced features from [Github](https://github.com/GreatTM/PowerBiMIP).
-  * Apply PowerBiMIP to your own research problems in power and energy systems.
+  * Explore other examples in the `examples/` folder.
+  * Learn about Two-Stage Robust Optimization (TRO) features.
+  * Apply PowerBiMIP to your own research problems.

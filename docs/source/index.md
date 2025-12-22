@@ -11,11 +11,16 @@ Whether you are modeling strategic interactions between market participants, pla
 
 ## Core Features
 
-* **User-Friendly Modeling**: Formulate complex bilevel problems with an intuitive syntax. The toolbox automatically handles the conversion to standard BiMIP forms, letting you focus on the model itself.
-* **Automatic Transformations**: Seamlessly converts BiMIP problems with coupling constraints into their uncoupled equivalents, simplifying the solution process.
-* **Multiple Solution Modes**: Offers both an `exact` mode for precise, guaranteed optimal solutions and a `quick` mode for faster, heuristic solutions suitable for large-scale problems.
-* **Optimistic Perspective**: Currently supports the optimistic perspective for bilevel problems, where the lower level is assumed to cooperate with the upper level. (Pessimistic perspective is coming soon).
-* **Broad Solver Support**: Compatible with leading MILP solvers like **Gurobi**, CPLEX, COPT, and MOSEK.
+*   **Bilevel Mixed-Integer Programs (BiMIP)**:
+    *   Support for continuous and **integer variables** **at both levels**.
+    *   Automatic conversion to standard forms.
+    *   Handling of coupling constraints.
+    *   Optimistic solution perspectives (Pessimistic perspective coming soon).
+*   **Two-Stage Robust Optimization (TRO)**:
+    * The subproblem of the C&CG procedure is a special BiMIP, thus can be solved by PowerBiMIP efficiently.
+    * PowerBiMIP now offers a solver interface specifically designed for two-stage robust optimization requirements (currently supporting only LP recourse scenarios; MIP recourse is coming soon).
+*   **Multiple Solution Methods**: Including exact modes (KKT, Strong Duality) and quick modes (Approximately 1-3 orders of magnitude faster than existing global optimal algorithms for BiMIP).
+*   **Power and Energy Systems Case Library**: We are actively building a library of benchmark cases for classic BiMIP and TRO problems in power and energy systems, which will be continuously updated and expanded.
 
 ## Getting Started
 
@@ -23,7 +28,11 @@ New to PowerBiMIP? The **[Getting Started](getting_started.md)** guide will walk
 
 ## How to Cite
 
-If you use PowerBiMIP in your academic work, please cite it. This support is crucial for the project's continued development and funding. A specific citation format will be provided once our accompanying paper is published.
+If you use PowerBiMIP in your academic work, please cite our GitHub repository:
+
+> Y. Wu, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2025. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
+
+**We will provide a specific citation format once our work is published in a peer-reviewed journal.**
 
 ## License & Contribution
 
