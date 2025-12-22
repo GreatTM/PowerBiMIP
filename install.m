@@ -42,7 +42,7 @@ function install()
         disp('   ------------------------------------------------------------------------------');
         fprintf('   GitHub: https://github.com/GreatTM/PowerBiMIP\n');
         fprintf('   Docs:   https://docs.powerbimip.com\n');
-        disp('   ================================================================================');
+        disp('   ==============================================================================');
         disp(' ');
 
         % The gentle push to read docs
