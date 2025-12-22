@@ -1,3 +1,4 @@
 /docs/requirements_doc
-/docs/operates_log
 /.cursor
+/docs/operates_log
+*.asv

@@ -1,4 +1,4 @@
-function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, var_z_l, cons_upper, cons_lower, obj_upper, obj_lower)
+function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, var_z_l, cons_upper, cons_lower, obj_upper, obj_lower, ops)
 %EXTRACT_COEFFICIENTS_AND_VARIABLES Extracts coefficient matrices and variable vectors from a general BiMIP model.
 %
 %   Description:
@@ -65,18 +65,18 @@ function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, v
     % --- Step 3: Extract Objective Function Vectors ---
     % Extract objective coefficients (c vectors), handling transpose for correct dimensions.
     [c1_temp, model.c1_vars] = extract_coefficients(var_x_u, model_details_upper.primal, model_details_upper.c');
-    model.c1 = c1_temp';
+    model.c1 = c1_temp(:);
     [c2_temp, model.c2_vars] = extract_coefficients(var_z_u, model_details_upper.primal, model_details_upper.c');
-    model.c2 = c2_temp';
+    model.c2 = c2_temp(:);
     [c3_temp, model.c3_vars] = extract_coefficients(var_x_l, model_details_upper.primal, model_details_upper.c');
-    model.c3 = c3_temp';
+    model.c3 = c3_temp(:);
     [c4_temp, model.c4_vars] = extract_coefficients(var_z_l, model_details_upper.primal, model_details_upper.c');
-    model.c4 = c4_temp';
+    model.c4 = c4_temp(:);
     
     [c5_temp, model.c5_vars] = extract_coefficients(var_x_l, model_details_lower.primal, model_details_lower.c');
-    model.c5 = c5_temp';
+    model.c5 = c5_temp(:);
     [c6_temp, model.c6_vars] = extract_coefficients(var_z_l, model_details_lower.primal, model_details_lower.c');
-    model.c6 = c6_temp';
+    model.c6 = c6_temp(:);
     
     % --- Step 4: Extract Right-Hand Side (RHS) Vectors ---
     model.b_u = model_details_upper.b;
@@ -160,8 +160,6 @@ function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, v
         model.rhs_min = 0;
         model.rhs_max = 0;
     end
-    
-    fprintf('Model components extracted successfully.\n');
 end
 
 %% Helper Function - Extract Coefficients with Variable Filtering

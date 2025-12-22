@@ -32,6 +32,13 @@ function options = BiMIPsettings(varargin)
     % Output and Logging
     default_options.verbose = 1;             % Verbosity level [0: silent | 1: summary | 2: detailed | 3: very detailed]
     
+    % Plot settings
+    default_options.plot.saveFig = false;     % Whether to save figure
+    default_options.plot.figFormat = {'png', 'eps', 'fig'}; % Save formats
+    default_options.plot.style = 'paper';    % 'paper' or 'screen'
+    default_options.plot.verbose = 0;        % 0=no plot, 1=final plot, 2=real-time plot
+    default_options.plot.saveDir = 'results/figures/'; % Directory to save figures
+    
     % Solver settings
     default_options.solver = 'gurobi';       % Choose MIP solver
     
@@ -47,24 +54,50 @@ function options = BiMIPsettings(varargin)
             param_name = varargin{i};
             param_value = varargin{i+1};
             
-            % Record non-default parameters for summary display
-            if isfield(default_options, param_name)
-                if ~isequaln(default_options.(param_name), param_value)
-                    options.custom_params.(param_name) = param_value;
+            % Handle nested parameters like 'plot.verbose'
+            if contains(param_name, '.')
+                parts = strsplit(param_name, '.');
+                if numel(parts) == 2
+                    parent = parts{1}; child = parts{2};
+                    % Ensure parent struct exists
+                    if ~isfield(options, parent)
+                        options.(parent) = struct();
+                    end
+                    options.(parent).(child) = param_value;
+
+                    % Determine if this overrides a default value
+                    changed = true;
+                    if isfield(default_options, parent) && isfield(default_options.(parent), child)
+                        changed = ~isequaln(default_options.(parent).(child), param_value);
+                    end
+                    if changed
+                        options.custom_params.(strrep(param_name,'.','__')) = param_value;
+                    end
+                    continue; % Skip generic handling below
+                else
+                    warning('PowerBiMIP:Settings','Unsupported nested parameter: %s',param_name);
                 end
             else
-                % A parameter not in the default list is being set
-                options.custom_params.(param_name) = param_value;
-                warning('PowerBiMIP:Settings', 'Non-standard parameter added: %s', param_name);
+                % Record non-default parameters for summary display
+                if isfield(default_options, param_name)
+                    if ~isequaln(default_options.(param_name), param_value)
+                        options.custom_params.(strrep(param_name,'.','__')) = param_value;
+                    end
+                else
+                    options.custom_params.(strrep(param_name,'.','__')) = param_value;
+                    warning('PowerBiMIP:Settings', 'Non-standard parameter added: %s', param_name);
+                end
+                options.(param_name) = param_value;
             end
-            
-            % Set the parameter
-            options.(param_name) = param_value;
         end
     end
     
     % Automatically generate solver settings for YALMIP based on user choices
-    options.ops_MP = sdpsettings('solver', options.solver, 'verbose', max(0, options.verbose - 2));
-    options.ops_SP1 = sdpsettings('solver', options.solver, 'verbose', max(0, options.verbose - 2));
-    options.ops_SP2 = sdpsettings('solver', options.solver, 'verbose', max(0, options.verbose - 2));
+    solverVerbose = 0;
+    if options.verbose >= 3
+        solverVerbose = 1; % Expose solver logs only in debug mode
+    end
+    options.ops_MP  = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
+    options.ops_SP1 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
+    options.ops_SP2 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
 end
