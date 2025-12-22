@@ -96,7 +96,7 @@ Before installing PowerBiMIP, ensure you have the following dependencies install
 We recommend using **GitHub Desktop** or `git` to install PowerBiMIP. This allows you to easily receive updates.
 
 1.  **Clone the Repository**:
-    *   **Using GitHub Desktop**: Clone `https://github.com/GreatTM/PowerBiMIP`.
+    *   **Using GitHub Desktop (Recommended)**: Clone `https://github.com/GreatTM/PowerBiMIP`.
     *   **Using Git**:
         ```bash
         git clone https://github.com/GreatTM/PowerBiMIP.git
