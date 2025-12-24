@@ -177,25 +177,22 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     end
     
     % Check Objectives
-    if ~is(obj_upper, 'linear')
-        deg_u = degree(obj_upper);
-        if deg_u == 2
+    deg_u = degree(obj_upper);
+    if deg_u == 2
             error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in Upper Level: Feature coming soon!');
-        elseif deg_u > 2
+    elseif deg_u > 2
             error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Upper Level detected (Degree: %d). Not supported.', deg_u);
-        else
+    else
             warning('The upper-level objective function is a constant. Please verify if this is as expected.');
-        end
     end
-    if ~is(obj_lower, 'linear')
-        deg_l = degree(obj_lower);
-        if deg_l == 2
-            error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in Lower Level: Feature coming soon!');
-        elseif deg_l > 2
-            error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Lower Level detected (Degree: %d). Not supported.', deg_l);
-        else
-            warning('The lower-level objective function is a constant. Please verify if this is as expected.');
-        end
+
+    deg_l = degree(obj_lower);
+    if deg_l == 2
+        error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in Lower Level: Feature coming soon!');
+    elseif deg_l > 2
+        error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Lower Level detected (Degree: %d). Not supported.', deg_l);
+    else
+        warning('The lower-level objective function is a constant. Please verify if this is as expected.');
     end
 
     % =========================================================================
