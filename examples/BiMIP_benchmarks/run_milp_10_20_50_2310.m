@@ -11,7 +11,7 @@ yalmip('clear');
 base_dir = fileparts(mfilename('fullpath'));
 
 % Construct paths to the data files (Assumed to be in the same directory)
-instance_name = 'milp_4_20_10_0110';
+instance_name = 'milp_10_20_50_2310';
 mps_file = fullfile(base_dir, [instance_name, '.mps']);
 txt_file = fullfile(base_dir, [instance_name, '.txt']);
 
@@ -37,8 +37,8 @@ end
 %% 3. Configure Solver
 % Initialize solver settings
 ops = BiMIPsettings(...
-    'method', 'quick', ...      % Use Exact KKT method
-    'solver', 'cbc', ...            % Use CBC (ensure YALMIP recognizes it)
+    'method', 'exact_strong_duality', ...      % Use Exact KKT method
+    'solver', 'gurobi', ...            % Use CBC (ensure YALMIP recognizes it)
     'verbose', 2, ...               % Show detailed output
     'max_iterations', 50, ...       % Set iteration limit
     'optimal_gap', 1e-4 ...         % Convergence tolerance
