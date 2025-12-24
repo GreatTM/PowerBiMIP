@@ -102,19 +102,19 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     idx_model_all = union(idx_upper_all, idx_lower_all);
     
     % --- [New Feature] Environment Cleanliness Check ---
-    % Check if YALMIP has more variables defined than what is passed in the model.
-    % This usually happens if the user forgot yalmip('clear').
-    num_vars_in_yalmip = yalmip('nvars');
-    num_vars_in_model  = length(idx_model_all);
-    
-    if num_vars_in_yalmip > num_vars_in_model
-        error('PowerBiMIP:DirtyEnvironment', ...
-            ['YALMIP internal state contains %d variables, but the input model only uses %d.\n' ...
-             'You might have "ghost variables" from a previous run.\n' ...
-             'Recommendation: Run "yalmip(''clear'')" before defining your model variables.'], ...
-             num_vars_in_yalmip, num_vars_in_model);
-    end
-    % ---------------------------------------------------
+    % % Check if YALMIP has more variables defined than what is passed in the model.
+    % % This usually happens if the user forgot yalmip('clear').
+    % num_vars_in_yalmip = yalmip('nvars');
+    % num_vars_in_model  = length(idx_model_all);
+    % 
+    % if num_vars_in_yalmip > num_vars_in_model
+    %     error('PowerBiMIP:DirtyEnvironment', ...
+    %         ['YALMIP internal state contains %d variables, but the input model only uses %d.\n' ...
+    %          'You might have "ghost variables" from a previous run.\n' ...
+    %          'Recommendation: Run "yalmip(''clear'')" before defining your model variables.'], ...
+    %          num_vars_in_yalmip, num_vars_in_model);
+    % end
+    % % ---------------------------------------------------
 
     % 3. Get global indices of ALL integer and binary variables in YALMIP
     all_int_idx = yalmip('intvariables');
@@ -148,15 +148,6 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     % Consistency check: plot requires verbose>=2
     if ops.verbose < 2 && isfield(ops,'plot') && ops.plot.verbose > 0
         warning('PowerBiMIP:Settings','plot.verbose>0 is ignored unless verbose>=2.');
-    end
-    
-    % --- Welcome Message ---
-    if ops.verbose >= 1
-        log_utils('print_banner', ops.verbose, 'Bilevel optimization interface');
-        if isfield(ops, 'custom_params') && ~isempty(fieldnames(ops.custom_params))
-            % ... (Optional: Print custom params logic) ...
-        end
-        fprintf('Starting disciplined bilevel programming process...\n');
     end
     
     % --- Step 0.3: Linearity and Quadratic Check ---
