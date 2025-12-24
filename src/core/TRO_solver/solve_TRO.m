@@ -173,21 +173,25 @@ function [Solution, CCG_record] = solve_TRO(tro_model, ops, u_init)
     
     % Check Objectives
     deg_1 = degree(obj_1st);
-    if deg_1 == 2
-        error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in First Stage: Feature coming soon!');
-    elseif deg_1 > 2
-        error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in First Stage detected (Degree: %d). Not supported.', deg_1);
-    else
-        warning('The 1st-stage objective function is a constant. Please verify if this is as expected.');
+    if deg_1 ~= 1
+        if deg_1 == 2
+            error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in First Stage: Feature coming soon!');
+        elseif deg_1 > 2
+            error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in First Stage detected (Degree: %d). Not supported.', deg_1);
+        else
+            warning('The 1st-stage objective function is a constant. Please verify if this is as expected.');
+        end
     end
 
     deg_2 = degree(obj_2nd);
-    if deg_2 == 2
-        error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in Second Stage: Feature coming soon!');
-    elseif deg_2 > 2
-        error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Second Stage detected (Degree: %d). Not supported.', deg_2);
-    else
-        warning('The 2nd-stage objective function is a constant. Please verify if this is as expected.');
+    if deg_2 ~= 1
+        if deg_2 == 2
+            error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in Second Stage: Feature coming soon!');
+        elseif deg_2 > 2
+            error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Second Stage detected (Degree: %d). Not supported.', deg_2);
+        else
+            warning('The 2nd-stage objective function is a constant. Please verify if this is as expected.');
+        end
     end
     
     % =========================================================================
