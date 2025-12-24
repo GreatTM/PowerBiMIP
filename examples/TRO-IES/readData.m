@@ -41,7 +41,7 @@ else
     
     data.profiles.data = data.profiles.basevalue*ones(1,data.period).* ...
         data.profiles.data;
-    save('mydata.mat','data');
+    % save('mydata.mat','data');
 end
 end
 
