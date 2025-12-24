@@ -179,7 +179,7 @@ function [Solution, CCG_record] = solve_TRO(tro_model, ops, u_init)
         elseif deg_1 > 2
             error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in First Stage detected (Degree: %d). Not supported.', deg_1);
         else
-            warning('The 1st-stage objective function is a constant. Please verify if this is as expected.');
+            error('The 1st-stage objective function is a constant. If the objective function must be a constant, modify the model by specifying min x, s.t. x=constant.');
         end
     end
 
@@ -190,7 +190,7 @@ function [Solution, CCG_record] = solve_TRO(tro_model, ops, u_init)
         elseif deg_2 > 2
             error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Second Stage detected (Degree: %d). Not supported.', deg_2);
         else
-            warning('The 2nd-stage objective function is a constant. Please verify if this is as expected.');
+            error('The 2nd-stage objective function is a constant. If the objective function must be a constant, modify the model by specifying min x, s.t. x=constant.');
         end
     end
     

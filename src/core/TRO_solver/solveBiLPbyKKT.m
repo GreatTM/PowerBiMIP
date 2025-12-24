@@ -75,7 +75,7 @@ function Solution = solveBiLPbyKKT(model, ops)
                        model.E_l_vars; model.F_l_vars];
 
     [kkt_conds, ~] = kkt(ll_constraints, ll_objective, parametric_vars, sdpsettings('kkt.dualbounds',0,'verbose',0));
-
+    
     % Add KKT conditions to the main model constraints
     model.cons = model.cons + kkt_conds;
     
