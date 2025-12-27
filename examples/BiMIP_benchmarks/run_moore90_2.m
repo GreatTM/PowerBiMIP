@@ -29,8 +29,10 @@ function run_moore90_2()
     %---------------------------
     % 1) 指定算例路径
     %---------------------------
-    aux_path = "E:\3. Toolbox\PowerBiMIP\examples\BiMIP_benchmarks\moore90_2.aux";
-    mps_path = "E:\3. Toolbox\PowerBiMIP\examples\BiMIP_benchmarks\moore90_2.mps";
+    this_dir = fileparts(mfilename('fullpath'));
+    
+    aux_path = fullfile(this_dir, "moore90_2.aux");
+    mps_path = fullfile(this_dir, "moore90_2.mps");
 
     if ~isfile(aux_path)
         error('找不到 AUX 文件：%s', aux_path);

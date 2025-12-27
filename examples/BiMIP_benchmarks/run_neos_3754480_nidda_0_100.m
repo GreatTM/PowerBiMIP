@@ -30,15 +30,10 @@ function run_neos_3754480_nidda_0_100()
     yalmip('clear');
 
     %---------------------------
-    % 1) 指定算例路径
-    %    说明：这里给出"常见目录结构"的默认写法：
-    %          E:\3. Toolbox\PowerBiMIP\examples\BiMIP_benchmarks\
-    %          你如果实际文件不在该目录，请直接改成真实路径。
-    %---------------------------
-    base_dir = "E:\3. Toolbox\PowerBiMIP\examples\BiMIP_benchmarks\";
-
-    aux_path = base_dir + "neos-3754480-nidda_0_100.aux";
-    mps_path = base_dir + "neos-3754480-nidda_0_100.mps";
+    this_dir = fileparts(mfilename('fullpath'));
+    
+    aux_path = fullfile(this_dir, "neos-3754480-nidda_0_100.aux");
+    mps_path = fullfile(this_dir, "neos-3754480-nidda_0_100.mps");
 
     if ~isfile(aux_path)
         error('找不到 AUX 文件：%s', aux_path);
