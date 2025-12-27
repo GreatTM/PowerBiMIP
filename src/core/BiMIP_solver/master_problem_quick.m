@@ -372,8 +372,8 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
             end
             prev_primal_vec = curr_primal_vec;
 
-            is_stable = primal_diff <= ops.padm_tolerance;
-
+            % is_stable = primal_diff <= ops.padm_tolerance;
+            is_stable = obj_gap <= ops.padm_tolerance;
             if ops.verbose >= 1
                 msgFmt = 'L1-PADM Iter %d: L1-PADM1=%.4f | L1-PADM2=%.4f | Gap=%.2f%% | PrimalDiff=%.1e\n';
                 if ops.verbose <= 2
