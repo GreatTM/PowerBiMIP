@@ -38,6 +38,13 @@ function options = BiMIPsettings(varargin)
     default_options.plot.style = 'paper';    % 'paper' or 'screen'
     default_options.plot.verbose = 0;        % 0=no plot, 1=final plot, 2=real-time plot
     default_options.plot.saveDir = 'results/figures/'; % Directory to save figures
+
+    % Initial value for PADM
+    default_options.initial_value_flag = false;
+    default_options.initial_value_A_l_vars = [];
+    default_options.initial_value_B_l_vars = [];
+    default_options.initial_value_E_l_vars = [];
+    default_options.initial_value_F_l_vars = [];
     
     % Solver settings
     default_options.solver = 'gurobi';       % Choose MIP solver

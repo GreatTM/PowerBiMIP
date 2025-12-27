@@ -49,57 +49,66 @@ function Solution = solveBiLPbyPADM(model, ops)
 %   s.t. dual_ineq <= 0
 %        dual_ineq' * C_l + dual_eq' * G_l == c5'
 
-    %% Initialization: Solve Relaxed Problem (High Point Problem)
-    % Solve the High Point Problem (UL + LL constraints only) to get initial primal values.
-    model_init = model;
-    model_init.constraints = [];
-    
-    % Upper Level
-    if ~isempty(model.b_u)
-        model_init.constraints = model_init.constraints + ...
-            ([model.A_u, model.B_u, model.C_u, model.D_u] * ...
-            [model.A_u_vars; model.B_u_vars; model.C_u_vars; model.D_u_vars] <= model.b_u);
-    end
-    if ~isempty(model.f_u)
-        model_init.constraints = model_init.constraints + ...
-            ([model.E_u, model.F_u, model.G_u, model.H_u] * ...
-            [model.E_u_vars; model.F_u_vars; model.G_u_vars; model.H_u_vars] == model.f_u);
-    end
-    
-    % Lower Level (Primal)
-    if ~isempty(model.b_l)
-        model_init.constraints = model_init.constraints + ...
-            ([model.A_l, model.B_l, model.C_l, model.D_l] * ...
-            [model.A_l_vars; model.B_l_vars; model.C_l_vars; model.D_l_vars] <= model.b_l);
-    end
-    if ~isempty(model.f_l)
-        model_init.constraints = model_init.constraints + ...
-            ([model.E_l, model.F_l, model.G_l, model.H_l] * ...
-            [model.E_l_vars; model.F_l_vars; model.G_l_vars; model.H_l_vars] == model.f_l);
-    end
-    
-    model_init.objective = [model.c1', model.c2', model.c3', model.c4'] * ...
-        [model.c1_vars; model.c2_vars; model.c3_vars; model.c4_vars];
+    if ops.initial_value_flag == false
+        %% Initialization: Solve Relaxed Problem (High Point Problem)
+        % Solve the High Point Problem (UL + LL constraints only) to get initial primal values.
+        model_init = model;
+        model_init.constraints = [];
         
-    sol_init = optimize(model_init.constraints, model_init.objective, ops.ops_MP);
+        % Upper Level
+        if ~isempty(model.b_u)
+            model_init.constraints = model_init.constraints + ...
+                ([model.A_u, model.B_u, model.C_u, model.D_u] * ...
+                [model.A_u_vars; model.B_u_vars; model.C_u_vars; model.D_u_vars] <= model.b_u);
+        end
+        if ~isempty(model.f_u)
+            model_init.constraints = model_init.constraints + ...
+                ([model.E_u, model.F_u, model.G_u, model.H_u] * ...
+                [model.E_u_vars; model.F_u_vars; model.G_u_vars; model.H_u_vars] == model.f_u);
+        end
+        
+        % Lower Level (Primal)
+        if ~isempty(model.b_l)
+            model_init.constraints = model_init.constraints + ...
+                ([model.A_l, model.B_l, model.C_l, model.D_l] * ...
+                [model.A_l_vars; model.B_l_vars; model.C_l_vars; model.D_l_vars] <= model.b_l);
+        end
+        if ~isempty(model.f_l)
+            model_init.constraints = model_init.constraints + ...
+                ([model.E_l, model.F_l, model.G_l, model.H_l] * ...
+                [model.E_l_vars; model.F_l_vars; model.G_l_vars; model.H_l_vars] == model.f_l);
+        end
+        
+        model_init.objective = [model.c1', model.c2', model.c3', model.c4'] * ...
+            [model.c1_vars; model.c2_vars; model.c3_vars; model.c4_vars];
+            
+        sol_init = optimize(model_init.constraints, model_init.objective, ops.ops_MP);
+        
+        if sol_init.problem ~= 0
+             warning('Relaxed problem failed to solve. Proceeding with zero initialization.');
+        end
     
-    if sol_init.problem ~= 0
-         warning('Relaxed problem failed to solve. Proceeding with zero initialization.');
-    end
+        % Extract initial Primal Values
+        % Initialize prev primal for convergence check
+        curr_primal_vec = [value(model.c1_vars(:)); value(model.c2_vars(:)); ...
+                           value(model.c3_vars(:)); value(model.c4_vars(:)); ...
+                           value(model.c5_vars(:))]; 
+        curr_primal_vec(isnan(curr_primal_vec)) = 0;
+        prev_primal_vec = curr_primal_vec;
+        
+        % Extract variables needed for subproblem1
+        val_A_l_vars = value(model.A_l_vars); val_A_l_vars(isnan(val_A_l_vars)) = 0;
+        val_B_l_vars = value(model.B_l_vars); val_B_l_vars(isnan(val_B_l_vars)) = 0;
+        val_E_l_vars = value(model.E_l_vars); val_E_l_vars(isnan(val_E_l_vars)) = 0;
+        val_F_l_vars = value(model.F_l_vars); val_F_l_vars(isnan(val_F_l_vars)) = 0;
+    else
+        val_A_l_vars = ops.inital_value_A_l_vars;
+        val_B_l_vars = ops.inital_value_B_l_vars;
+        val_E_l_vars = ops.inital_value_E_l_vars;
+        val_F_l_vars = ops.inital_value_F_l_vars;
 
-    % Extract initial Primal Values
-    % Initialize prev primal for convergence check
-    curr_primal_vec = [value(model.c1_vars(:)); value(model.c2_vars(:)); ...
-                       value(model.c3_vars(:)); value(model.c4_vars(:)); ...
-                       value(model.c5_vars(:))]; 
-    curr_primal_vec(isnan(curr_primal_vec)) = 0;
-    prev_primal_vec = curr_primal_vec;
-    
-    % Extract variables needed for dual objective calculation
-    val_A_l_vars = value(model.A_l_vars); val_A_l_vars(isnan(val_A_l_vars)) = 0;
-    val_B_l_vars = value(model.B_l_vars); val_B_l_vars(isnan(val_B_l_vars)) = 0;
-    val_E_l_vars = value(model.E_l_vars); val_E_l_vars(isnan(val_E_l_vars)) = 0;
-    val_F_l_vars = value(model.F_l_vars); val_F_l_vars(isnan(val_F_l_vars)) = 0;
+        prev_primal_vec = inf;
+    end
     
     % Define Dual Variables
     bigM = 1e6;  % Big-M constant for dual variable bounds
