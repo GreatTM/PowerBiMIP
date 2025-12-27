@@ -1,4 +1,4 @@
-function model = mpsaux2yalmip(mps_path, aux_path)
+function model = mpsaux2yalmip(mps_path, aux_path, add_slack)
 %==========================================================================
 % mpsaux2yalmip
 %--------------------------------------------------------------------------
@@ -34,6 +34,14 @@ function model = mpsaux2yalmip(mps_path, aux_path)
 %==========================================================================
 
     %---------------------------
+    % 0) 可选参数
+    %---------------------------
+    if nargin < 3
+        add_slack = false; % 默认不加松弛变量
+    end
+    rho = 1e4; % 惩罚系数（固定）
+
+    %---------------------------
     % 1) 解析文件
     %---------------------------
     mps = parse_mps_file(mps_path);
@@ -55,7 +63,8 @@ function model = mpsaux2yalmip(mps_path, aux_path)
     % 4) 构建目标函数
     %---------------------------
     % 上层目标：来自 MPS objective row（N 行）
-    model.obj_upper = mps.c_obj(:)' * allVars;
+    obj_upper_base = mps.c_obj(:)' * allVars;
+    model.obj_upper = obj_upper_base;
 
     % 下层目标：来自 AUX 的变量系数（只对 aux.lower_var_names）
     model.obj_lower = 0;
@@ -69,39 +78,93 @@ function model = mpsaux2yalmip(mps_path, aux_path)
         model.obj_lower = model.obj_lower + coeff * allVars(idx);
     end
 
+
     %---------------------------
     % 5) 构建约束（ROWS 中 L/G/E，按 aux.lower_constr_names 划分）
+    %    若 add_slack=true：对下层约束加松弛变量，并在下层目标惩罚
     %---------------------------
     model.cons_upper = [];
     model.cons_lower = [];
-
+    
     isLowerRow = ismember(mps.constr_names, aux.lower_constr_names);
-
+    
+    % 收集所有下层松弛变量（列向量）
+    slack_list = [];  % sdpvar 列向量（动态追加）
+    
     for i = 1:numel(mps.constr_names)
         rowName = mps.constr_names{i};
         sense   = mps.constr_sense{i}; % '<=' , '>=' , '=='
         arow    = mps.A(i,:);          % 1-by-n sparse
         rhs     = mps.b(i);
-
+    
         lhsExpr = arow * allVars;
-
-        switch sense
-            case '<='
-                ci = (lhsExpr <= rhs);
-            case '>='
-                ci = (lhsExpr >= rhs);
-            case '=='
-                ci = (lhsExpr == rhs);
-            otherwise
-                error('未知约束 sense: %s (row=%s)', sense, rowName);
-        end
-
-        if isLowerRow(i)
+    
+        if isLowerRow(i) && add_slack
+            %------------------------------------------------------------
+            % 对下层约束加松弛变量（松弛变量属于下层）
+            %------------------------------------------------------------
+            switch sense
+                case '<='
+                    s = sdpvar(1,1);
+                    slack_list = [slack_list; s]; %#ok<AGROW>
+                    ci = [lhsExpr <= rhs + s, s >= 0];
+    
+                case '>='
+                    s = sdpvar(1,1);
+                    slack_list = [slack_list; s]; %#ok<AGROW>
+                    ci = [lhsExpr >= rhs - s, s >= 0];
+    
+                case '=='
+                    s_pos = sdpvar(1,1);
+                    s_neg = sdpvar(1,1);
+                    slack_list = [slack_list; s_pos; s_neg]; %#ok<AGROW>
+                    ci = [lhsExpr == rhs + s_pos - s_neg, s_pos >= 0, s_neg >= 0];
+    
+                otherwise
+                    error('未知约束 sense: %s (row=%s)', sense, rowName);
+            end
+    
             model.cons_lower = [model.cons_lower, ci];
+    
         else
-            model.cons_upper = [model.cons_upper, ci];
+            %------------------------------------------------------------
+            % 原始约束（不加松弛，或这是上层约束）
+            %------------------------------------------------------------
+            switch sense
+                case '<='
+                    ci = (lhsExpr <= rhs);
+                case '>='
+                    ci = (lhsExpr >= rhs);
+                case '=='
+                    ci = (lhsExpr == rhs);
+                otherwise
+                    error('未知约束 sense: %s (row=%s)', sense, rowName);
+            end
+    
+            if isLowerRow(i)
+                model.cons_lower = [model.cons_lower, ci];
+            else
+                model.cons_upper = [model.cons_upper, ci];
+            end
         end
     end
+    
+    %------------------------------------------------------------
+    % 关键收尾：
+    % 1) slack 加入 var_lower（必须，否则 PowerBiMIP 会认为环境不干净/变量不全）
+    % 2) slack 惩罚加入 obj_lower（你这次的需求）
+    %------------------------------------------------------------
+    if add_slack && ~isempty(slack_list)
+        slack_list = slack_list(:);          % 强制列向量
+        model.slack_lower = slack_list;      % 可选输出，便于调试/统计
+    
+        model.var_lower = [model.var_lower; slack_list];
+        model.obj_lower = model.obj_lower + rho * sum(slack_list);
+    else
+        model.slack_lower = [];
+    end
+
+
 
     %---------------------------
     % 6) 将变量 bounds 转换为约束，并按规则归属上下层

@@ -1,4 +1,4 @@
-function run_neos5_0_100()
+function run_neos17_0_100()
 %==========================================================================
 % run_neos_3754480_nidda_0_100
 %--------------------------------------------------------------------------
@@ -31,8 +31,8 @@ function run_neos5_0_100()
 
     this_dir = fileparts(mfilename('fullpath'));
     
-    aux_path = fullfile(this_dir, "neos5_0_100.aux");
-    mps_path = fullfile(this_dir, "neos5_0_100.mps");
+    aux_path = fullfile(this_dir, "neos17_0_100.aux");
+    mps_path = fullfile(this_dir, "neos17_0_100.mps");
 
     if ~isfile(aux_path)
         error('找不到 AUX 文件：%s', aux_path);
@@ -61,7 +61,7 @@ function run_neos5_0_100()
     % 你也可以将 method 改为 'exact_strong_duality' 或 'quick'
     ops = BiMIPsettings( ...
         'perspective',    'optimistic', ...
-        'method',         'quick', ...
+        'method',         'exact_strong_duality', ...
         'solver',         'gurobi', ...
         'max_iterations', 200, ...
         'optimal_gap',    1e-6, ...
@@ -72,7 +72,7 @@ function run_neos5_0_100()
     % 4) 调用 PowerBiMIP 求解
     %---------------------------
     fprintf('\n============================================================\n');
-    fprintf('Solving instance: neos5_0_100\n');
+    fprintf('Solving instance: neos17_0_100\n');
     fprintf('MPS: %s\nAUX: %s\n', mps_path, aux_path);
     fprintf('============================================================\n');
 

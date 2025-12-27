@@ -165,79 +165,108 @@ function Solution = master_problem_KKT(model,ops,iteration_record)
         model.obj_for_KKT = cell(1,iteration_record.iteration_num - 1);
         kkt_conditions = cell(1,iteration_record.iteration_num - 1);
         kkt_details = cell(1,iteration_record.iteration_num - 1);
+
+        rho_slack = 1e4;
+
         for i = 1 : iteration_record.iteration_num - 1
-            % Define the objective term for the i-th subproblem.
-            obj_term_i = [model.c5', model.c6'] * ...
-                         [model.new_var(i).c5_vars; model.new_var(i).c6_vars];
+            % -----------------------------
+            % (1) Build relaxed constraints first (so slacks exist)
+            % -----------------------------
+            model.cons_for_KKT{i} = [];
             
-            % Add the optimality cut to the master problem.
-            model.constraints = model.constraints + ...
-                ([model.c5', model.c6'] * ...
-                [model.c5_vars; model.c6_vars] <= ...
-                obj_term_i);
-            % Check if the objective term is constant. YALMIP's kkt() function
-            % does not support constant objectives.
-            if degree(obj_term_i) == 0
-                % If it is constant, the optimality cut above is sufficient.
-                % Skip generating full KKT conditions for this iteration.
-                continue;
+            % inequality with slack: LHS <= b + s_ineq
+            if ~isempty(model.b_l)
+                nI = length(model.b_l);
+                model.new_var(i).s_ineq = sdpvar(nI,1,'full');
+                model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_ineq >= 0);
+            
+                LHS_ineq = ([model.A_l, model.B_l, model.C_l, model.D_l] * ...
+                           [model.A_l_vars; model.B_l_vars; model.new_var(i).C_l_vars; model.new_var(i).D_l_vars]);
+                model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
+                    (LHS_ineq <= model.b_l + model.new_var(i).s_ineq);
             else
-                % If not constant, generate the full KKT conditions to enforce optimality.
-                % kkt condition---primary
-                % lower level
-                % inequality
-                if isempty(model.b_l)
-                    model.cons_for_KKT{i} = model.cons_for_KKT{i} + [];
-                else
-                    model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
-                        ([model.A_l, model.B_l, ...
-                        model.C_l, model.D_l] * ...
-                        [model.A_l_vars; model.B_l_vars; model.new_var(i).C_l_vars; model.new_var(i).D_l_vars] <= ...
-                        model.b_l);
-                end
-                % equality
-                if isempty(model.f_l)
-                    model.cons_for_KKT{i} = model.cons_for_KKT{i} + [];
-                else
-                    model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
-                        ([model.E_l, model.F_l, ...
-                        model.G_l, model.H_l] * ...
-                        [model.E_l_vars; model.F_l_vars; model.new_var(i).G_l_vars; model.new_var(i).H_l_vars] == ...
-                        model.f_l);
-                end
-                model.obj_for_KKT{i} = [model.c5', model.c6'] * [model.new_var(i).c5_vars; model.new_var(i).c6_vars];
-                [kkt_conditions{i}, kkt_details{i}] = kkt(model.cons_for_KKT{i}, ...
-                    model.obj_for_KKT{i}, [model.A_l_vars; model.B_l_vars; ...
-                    model.E_l_vars; model.F_l_vars], sdpsettings('kkt.dualbounds',0,'verbose',0));
-
-                % Store the dual variables associated with the KKT conditions.
-                model.new_var(i).dual_ineq = kkt_details{i}.dual;
-                model.new_var(i).dual_eq = kkt_details{i}.dualeq;
-                
-                model.constraints = model.constraints + kkt_conditions{i};
-
-%             % kkt condition---dual
-%             model.constraints = model.constraints + ...
-%                 (model.new_var(i).dual_ineq >= 0);
-%             % kkt condition---complementary
-%             model.constraints = model.constraints + ...
-%                 (model.new_var(i).dual_ineq <= big_M * model.new_var(i).dual_ineq_bin);
-%             model.constraints = model.constraints + ...
-%                 (model.new_var(i).dual_eq >= -big_M);
-%             model.constraints = model.constraints + ...
-%                 (model.new_var(i).dual_eq <= big_M);
-%             model.constraints = model.constraints + ...
-%                 (-big_M * (1 - model.new_var(i).dual_ineq_bin) <= ...
-%                 [model.A_l, model.B_l, ...
-%                 model.C_l, model.D_l] * ...
-%                 [model.A_l_vars; model.B_l_vars; model.new_var(i).C_l_vars; model.new_var(i).D_l_vars] - ...
-%                 model.b_l);
-%             % kkt condition---stationary
-%             model.constraints = model.constraints + ...
-%                 (model.c5' + ...
-%                 model.new_var(i).dual_ineq' * model.C_l + ...
-%                 model.new_var(i).dual_eq' * model.G_l == 0);
+                model.new_var(i).s_ineq = [];
             end
+            
+            % equality with signed slacks: LHS == f + s_pos - s_neg
+            if ~isempty(model.f_l)
+                nE = length(model.f_l);
+                model.new_var(i).s_eq_pos = sdpvar(nE,1,'full');
+                model.new_var(i).s_eq_neg = sdpvar(nE,1,'full');
+                model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_eq_pos >= 0);
+                model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_eq_neg >= 0);
+            
+                LHS_eq = ([model.E_l, model.F_l, model.G_l, model.H_l] * ...
+                         [model.E_l_vars; model.F_l_vars; model.new_var(i).G_l_vars; model.new_var(i).H_l_vars]);
+                model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
+                    (LHS_eq == model.f_l + model.new_var(i).s_eq_pos - model.new_var(i).s_eq_neg);
+            else
+                model.new_var(i).s_eq_pos = [];
+                model.new_var(i).s_eq_neg = [];
+            end
+            
+            % -----------------------------
+            % (2) slack penalty term
+            % -----------------------------
+            slack_penalty = 0;
+            if ~isempty(model.new_var(i).s_ineq)
+                slack_penalty = slack_penalty + sum(model.new_var(i).s_ineq);
+            end
+            if ~isempty(model.new_var(i).s_eq_pos)
+                slack_penalty = slack_penalty + sum(model.new_var(i).s_eq_pos) + sum(model.new_var(i).s_eq_neg);
+            end
+            
+            % -----------------------------
+            % (3) obj_term_i MUST include slack penalty (this is what you asked)
+            % -----------------------------
+            obj_term_i = ([model.c5', model.c6'] * [model.new_var(i).c5_vars; model.new_var(i).c6_vars]) ...
+                       + rho_slack * slack_penalty;
+            
+            % Add the optimality cut using the relaxed objective value
+            model.constraints = model.constraints + ...
+                ([model.c5', model.c6'] * [model.c5_vars; model.c6_vars] <= obj_term_i);
+            
+            % If constant objective, skip KKT (same logic as before)
+            if degree(obj_term_i) == 0
+                continue;
+            end
+            
+            % -----------------------------
+            % (4) KKT objective must match obj_term_i exactly
+            % -----------------------------
+            model.obj_for_KKT{i} = obj_term_i;
+
+            [kkt_conditions{i}, kkt_details{i}] = kkt(model.cons_for_KKT{i}, ...
+                model.obj_for_KKT{i}, [model.A_l_vars; model.B_l_vars; ...
+                model.E_l_vars; model.F_l_vars], sdpsettings('kkt.dualbounds',0,'verbose',0));
+
+            % Store the dual variables associated with the KKT conditions.
+            model.new_var(i).dual_ineq = kkt_details{i}.dual;
+            model.new_var(i).dual_eq = kkt_details{i}.dualeq;
+            
+            model.constraints = model.constraints + kkt_conditions{i};
+
+            % % kkt condition---dual
+            % model.constraints = model.constraints + ...
+            %     (model.new_var(i).dual_ineq >= 0);
+            % % kkt condition---complementary
+            % model.constraints = model.constraints + ...
+            %     (model.new_var(i).dual_ineq <= big_M * model.new_var(i).dual_ineq_bin);
+            % model.constraints = model.constraints + ...
+            %     (model.new_var(i).dual_eq >= -big_M);
+            % model.constraints = model.constraints + ...
+            %     (model.new_var(i).dual_eq <= big_M);
+            % model.constraints = model.constraints + ...
+            %     (-big_M * (1 - model.new_var(i).dual_ineq_bin) <= ...
+            %     [model.A_l, model.B_l, ...
+            %     model.C_l, model.D_l] * ...
+            %     [model.A_l_vars; model.B_l_vars; model.new_var(i).C_l_vars; model.new_var(i).D_l_vars] - ...
+            %     model.b_l);
+            % % kkt condition---stationary
+            % model.constraints = model.constraints + ...
+            %     (model.c5' + ...
+            %     model.new_var(i).dual_ineq' * model.C_l + ...
+            %     model.new_var(i).dual_eq' * model.G_l == 0);
         end
         
         %% Objective building

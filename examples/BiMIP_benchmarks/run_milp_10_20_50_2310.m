@@ -37,7 +37,7 @@ end
 %% 3. Configure Solver
 % Initialize solver settings
 ops = BiMIPsettings(...
-    'method', 'quick', ...      % Use Exact KKT method
+    'method', 'exact_KKT', ...      % Use Exact KKT method
     'solver', 'gurobi', ...            % Use CBC (ensure YALMIP recognizes it)
     'verbose', 2, ...               % Show detailed output
     'max_iterations', 5000, ...       % Set iteration limit

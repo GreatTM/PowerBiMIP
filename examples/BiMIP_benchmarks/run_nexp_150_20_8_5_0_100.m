@@ -1,4 +1,4 @@
-function run_neos5_0_100()
+function run_nexp_150_20_8_5_0_100()
 %==========================================================================
 % run_neos_3754480_nidda_0_100
 %--------------------------------------------------------------------------
@@ -31,8 +31,8 @@ function run_neos5_0_100()
 
     this_dir = fileparts(mfilename('fullpath'));
     
-    aux_path = fullfile(this_dir, "neos5_0_100.aux");
-    mps_path = fullfile(this_dir, "neos5_0_100.mps");
+    aux_path = fullfile(this_dir, "nexp-150-20-8-5_0_100.aux");
+    mps_path = fullfile(this_dir, "nexp-150-20-8-5_0_100.mps");
 
     if ~isfile(aux_path)
         error('找不到 AUX 文件：%s', aux_path);
@@ -72,7 +72,7 @@ function run_neos5_0_100()
     % 4) 调用 PowerBiMIP 求解
     %---------------------------
     fprintf('\n============================================================\n');
-    fprintf('Solving instance: neos5_0_100\n');
+    fprintf('Solving instance: nexp-150-20-8-5_0_100\n');
     fprintf('MPS: %s\nAUX: %s\n', mps_path, aux_path);
     fprintf('============================================================\n');
 

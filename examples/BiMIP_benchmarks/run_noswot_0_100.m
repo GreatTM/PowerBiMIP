@@ -1,9 +1,9 @@
-function run_neos5_0_100()
+function run_noswot_0_100()
 %==========================================================================
-% run_neos_3754480_nidda_0_100
+% run_noswot_0_100
 %--------------------------------------------------------------------------
 % 作用：
-%   求解算例 neos-3754480-nidda_0_100（由 .mps + .aux 定义的 BiMIP）。
+%   求解算例 noswot_0_100（由 .mps + .aux 定义的 BiMIP）。
 %   流程：
 %     1) yalmip('clear') 清理环境（PowerBiMIP 强制要求）
 %     2) 调用 mpsaux2yalmip(mps_path, aux_path) 转换为 YALMIP 双层对象
@@ -31,8 +31,8 @@ function run_neos5_0_100()
 
     this_dir = fileparts(mfilename('fullpath'));
     
-    aux_path = fullfile(this_dir, "neos5_0_100.aux");
-    mps_path = fullfile(this_dir, "neos5_0_100.mps");
+    aux_path = fullfile(this_dir, "noswot_0_100.aux");
+    mps_path = fullfile(this_dir, "noswot_0_100.mps");
 
     if ~isfile(aux_path)
         error('找不到 AUX 文件：%s', aux_path);
@@ -61,7 +61,7 @@ function run_neos5_0_100()
     % 你也可以将 method 改为 'exact_strong_duality' 或 'quick'
     ops = BiMIPsettings( ...
         'perspective',    'optimistic', ...
-        'method',         'quick', ...
+        'method',         'exact_KKT', ...
         'solver',         'gurobi', ...
         'max_iterations', 200, ...
         'optimal_gap',    1e-6, ...
