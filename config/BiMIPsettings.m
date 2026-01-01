@@ -29,7 +29,7 @@ function options = BiMIPsettings(varargin)
     default_options.penalty_term_gap = 1e-4; % Tolerance for the penalty term to be considered zero
     default_options.rho_tolerance = 1;       % Relative tolerance for penalty rho search (currently unused)
     default_options.padm_tolerance = 1e-3;   % Convergence tolerance for the PADM algorithm
-    default_options.padm_max_iter = 100;     % Max iterations for the PADM algorithm
+    default_options.padm_max_iter = 50;     % Max iterations for the PADM algorithm
     
     % Output and Logging
     default_options.verbose = 1;             % Verbosity level [0: silent | 1: summary | 2: detailed | 3: very detailed]
@@ -100,7 +100,7 @@ function options = BiMIPsettings(varargin)
         solverVerbose = 1; % Expose solver logs only in debug mode
     end
     % options.ops_MP = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'method', 4);
-    options.ops_MP  = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 3600, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 2000);
-    options.ops_SP1 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
-    options.ops_SP2 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
+    options.ops_MP  = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 1500, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 1500);
+    options.ops_SP1 = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 1500, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 1500);
+    options.ops_SP2 = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 1500, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 1500);
 end

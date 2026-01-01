@@ -1,11 +1,8 @@
 %% 1. 初始化设置
 clear; clc;
 
-% --- 新增：设置超时时间 (秒) ---
-timeLimit = 15000; 
-
 % 定义输出 Excel 文件名
-outputFileName = 'BiMIP_Benchmark_Results_WithTimeout.xlsx';
+outputFileName = 'BiMIP_Benchmark_Results.xlsx';
 
 % 定义你要运行的函数列表
 funcNames = { ...
@@ -33,43 +30,17 @@ runConfigs = {
     'exact_KKT',            'gurobi'   % Config 4
 };
 
+% 定义配置对应的前缀 (Excel表头用)
 configPrefixes = {'KKT_Cplex', 'Quick_Cplex', 'SD_Gurobi', 'KKT_Gurobi'};
 
-%% 2. 检查并行环境
-% 获取当前并形池
-p = gcp('nocreate');
-
-% 逻辑：如果不为空且 Worker 数量不是 1，则关闭重建
-if ~isempty(p) && p.NumWorkers ~= 1
-    delete(p);
-    p = [];
-end
-
-if isempty(p)
-    fprintf('正在启动单核并行池 (以确保严格串行并支持超时)...\n');
-    % 核心修改：强制只开启 1 个 Worker
-    parpool(1); 
-else
-    fprintf('使用现有的并行池 (Workers: %d)\n', p.NumWorkers);
-end
-
-%% 3. 准备数据结构
+%% 2. 准备表头
 numCases = length(funcNames);
 numConfigs = size(runConfigs, 1);
 numOutputs = 4; % time, iter, obj, gap
-
+% 计算总列数：1(函数名) + 配置数*4输出 + 1(备注信息)
 totalCols = 1 + (numConfigs * numOutputs) + 1;
-resultData = cell(numCases, totalCols);
 
-% 初始化
-for i = 1:numCases
-    for j = 2:(totalCols-1)
-        resultData{i, j} = NaN;
-    end
-    resultData{i, end} = ''; 
-end
-
-% 构建表头
+% --- 构建表头 ---
 varNames = {'CaseName'};
 for k = 1:numConfigs
     p = configPrefixes{k};
@@ -78,90 +49,98 @@ for k = 1:numConfigs
 end
 varNames = [varNames, {'Notes'}];
 
-%% 4. 循环执行算例
-fprintf('开始执行，单次求解超时限制: %d 秒\n', timeLimit);
+% 为了在Workspace里也能看到完整结果，保留这个大矩阵（可选）
+% 但写入Excel时我们不再使用它，而是使用单行变量
+fullResultData = cell(numCases, totalCols);
+
+%% 3. 循环执行算例并实时追加写入 (Append Mode)
+fprintf('开始执行 %d 个算例，结果将追加至: %s\n', numCases, outputFileName);
 
 for i = 1:numCases
     currentFuncName = funcNames{i};
-    resultData{i, 1} = currentFuncName;
     
-    fprintf('\n======================================================\n');
-    fprintf('算例 [%d/%d]: %s\n', i, numCases, currentFuncName);
+    % --- 初始化当前行的临时数据 ---
+    % 每一行初始化为 NaN，最后一位为空字符串
+    currentRow = cell(1, totalCols);
+    for c = 2:totalCols-1
+        currentRow{c} = NaN; 
+    end
+    currentRow{1} = currentFuncName; % 第一列填名字
+    currentRow{end} = '';            % 最后一列初始化 Note
+    
+    fprintf('\n------------------------------------------------------\n');
+    fprintf('正在处理算例 [%d/%d]: %s\n', i, numCases, currentFuncName);
     
     try
-        % 准备函数句柄
-        fHandle = str2func(currentFuncName);
+        % 加载函数句柄
+        f = str2func(currentFuncName);
         
+        % 内部循环：依次执行 4 种配置
         for k = 1:numConfigs
             method = runConfigs{k, 1};
             solver = runConfigs{k, 2};
             cfgName = configPrefixes{k};
             
-            fprintf('  > 配置 %d [%-20s]... ', k, [method, '+', solver]);
+            fprintf('  > 配置 %d [%s + %s]... ', k, method, solver);
             
             try
-                % --- 核心修改：使用 parfeval 异步执行 ---
-                % 参数说明: parfeval(函数句柄, 输出参数个数, 输入1, 输入2)
-                future = parfeval(fHandle, 4, method, solver);
+                % --- 执行函数 ---
+                [t, iter, obj, gap] = f(method, solver);
                 
-                % 等待结果，直到 timeLimit 秒
-                % wait 返回 true 表示完成，false 表示超时
-                isFinished = wait(future, 'finished', timeLimit);
+                % --- 填入当前行数据 ---
+                % 计算列索引：1(名字) + (k-1)*4 + 1(偏移)
+                startCol = 1 + (k-1)*numOutputs + 1; 
                 
-                if isFinished
-                    % --- 正常完成 ---
-                    if ~isempty(future.Error)
-                        % 如果函数内部报错 (如 MPS 文件找不到)
-                        rethrow(future.Error); 
-                    end
-                    
-                    % 获取结果
-                    [t, iter, obj, gap] = fetchOutputs(future);
-                    
-                    % 记录数据
-                    startCol = 1 + (k-1)*numOutputs + 1;
-                    resultData{i, startCol}     = t;
-                    resultData{i, startCol + 1} = iter;
-                    resultData{i, startCol + 2} = obj;
-                    resultData{i, startCol + 3} = gap;
-                    
-                    fprintf('成功 (Time=%.2f)\n', t);
-                    
-                else
-                    % --- 超时 ---
-                    cancel(future); % 强制杀死后台任务
-                    fprintf(2, '超时 ( > %ds) ! \n', timeLimit);
-                    
-                    % 记录超时信息
-                    currentNote = resultData{i, end};
-                    newNote = sprintf('[%s: Timeout(%ds)] ', cfgName, timeLimit);
-                    resultData{i, end} = [currentNote, newNote];
-                    
-                    % 数据格保持 NaN，表示未获取到结果
-                end
+                currentRow{startCol}     = t;
+                currentRow{startCol + 1} = iter;
+                currentRow{startCol + 2} = obj;
+                currentRow{startCol + 3} = gap;
+                
+                fprintf('成功 (Time=%.2f)\n', t);
                 
             catch ME
-                % --- 捕获报错 (无论是函数内报错还是 parfeval 报错) ---
-                fprintf('出错! (%s)\n', ME.message);
-                currentNote = resultData{i, end};
+                % --- 捕获单个配置错误 ---
+                fprintf('失败! (%s)\n', ME.message);
+                % 追加错误信息到 Note 列
+                currentNote = currentRow{end};
                 newNote = sprintf('[%s Err: %s] ', cfgName, ME.message);
-                resultData{i, end} = [currentNote, newNote];
+                currentRow{end} = [currentNote, newNote];
             end
         end
         
     catch ME_Main
-        fprintf(2, '无法加载函数: %s\n', ME_Main.message);
-        resultData{i, end} = sprintf('Critical: %s', ME_Main.message);
+        % 函数本身加载失败
+        fprintf(2, '无法运行函数 %s: %s\n', currentFuncName, ME_Main.message);
+        currentRow{end} = sprintf('Critical: %s', ME_Main.message);
     end
     
-    % --- 实时保存 ---
+    % 将当前行存入总结果（仅用于Workspace查看，不影响Excel写入）
+    fullResultData(i, :) = currentRow;
+    
+    % ==========================================================
+    % 核心修改：每跑完一个算例，构建单行 Table 并追加写入
+    % ==========================================================
     try
-        T = cell2table(resultData, 'VariableNames', varNames);
-        writetable(T, outputFileName);
-        fprintf('  >> (已保存)\n');
+        % 1. 将当前行的 cell 转换为 table
+        T_row = cell2table(currentRow, 'VariableNames', varNames);
+        
+        % 2. 判断文件是否存在
+        if exist(outputFileName, 'file')
+            % --- 情况 A: 文件已存在，使用追加模式 (Append) ---
+            % 'WriteMode', 'append' 会自动写在最后一行下面
+            writetable(T_row, outputFileName, 'WriteMode', 'append');
+            fprintf('  >> (已追加写入 Excel)\n');
+        else
+            % --- 情况 B: 文件不存在，创建新文件 ---
+            % 第一次写入时，默认会包含表头
+            writetable(T_row, outputFileName);
+            fprintf('  >> (新建文件并写入 Excel)\n');
+        end
+        
     catch ME_File
-        warning(ME_File.identifier, '保存Excel失败: %s', ME_File.message);
+        warning('SaveError:Excel', '写入 Excel 失败 (请确保文件未被打开): %s', ME_File.message);
     end
 end
 
-fprintf('\n全部完成。\n');
+fprintf('\n------------------------------------------------------\n');
+fprintf('全部完成。请检查: %s\n', outputFileName);
