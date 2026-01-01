@@ -27,13 +27,14 @@ function [is_coupled, coupled_info] = has_coupled_constraints(model)
 %                                    (true means coupled).
 %           .num_ineq     (double):  The number of coupled inequality constraints.
 %           .num_eq       (double):  The number of coupled equality constraints.
+%           .needs_relaxation (logical): True if coupled upper vars appear in lower constraints.
 
     % -- Input Validation --
     if ~isstruct(model)
         error('PowerBiMIP:InvalidInput', 'Input must be a struct.');
     end
     
-    coupled_info = struct('ineq_idx', [], 'eq_idx', [], 'num_ineq', 0, 'num_eq', 0);
+    coupled_info = struct('ineq_idx', [], 'eq_idx', [], 'num_ineq', 0, 'num_eq', 0, 'needs_relaxation', false);
     
     % Tolerance for checking if a coefficient is effectively zero.
     tolerance = 1e-9; 
@@ -85,6 +86,62 @@ function [is_coupled, coupled_info] = has_coupled_constraints(model)
     % --- Final Determination ---
     if coupled_info.num_ineq > 0 || coupled_info.num_eq > 0
         is_coupled = 1;
+        
+        % --- Check if upper-level vars in coupled constraints appear in lower-level constraints ---
+        % Extract variable indices from coupled upper-level constraints
+        upper_vars_in_coupled = [];
+        
+        % Get indices from inequality coupled constraints
+        if coupled_info.num_ineq > 0
+            if isfield(model, 'A_u_vars') && ~isempty(model.A_u_vars)
+                upper_vars_in_coupled = [upper_vars_in_coupled; getvariables(model.A_u_vars(:))];
+            end
+            if isfield(model, 'B_u_vars') && ~isempty(model.B_u_vars)
+                upper_vars_in_coupled = [upper_vars_in_coupled; getvariables(model.B_u_vars(:))];
+            end
+        end
+        
+        % Get indices from equality coupled constraints
+        if coupled_info.num_eq > 0
+            if isfield(model, 'E_u_vars') && ~isempty(model.E_u_vars)
+                upper_vars_in_coupled = [upper_vars_in_coupled; getvariables(model.E_u_vars(:))];
+            end
+            if isfield(model, 'F_u_vars') && ~isempty(model.F_u_vars)
+                upper_vars_in_coupled = [upper_vars_in_coupled; getvariables(model.F_u_vars(:))];
+            end
+        end
+        
+        upper_vars_in_coupled = unique(upper_vars_in_coupled);
+        
+        % Extract variable indices from lower-level constraints
+        lower_vars_from_upper = [];
+        if isfield(model, 'A_l_vars') && ~isempty(model.A_l_vars)
+            lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.A_l_vars(:))];
+        end
+        if isfield(model, 'B_l_vars') && ~isempty(model.B_l_vars)
+            lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.B_l_vars(:))];
+        end
+        if isfield(model, 'E_l_vars') && ~isempty(model.E_l_vars)
+            lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.E_l_vars(:))];
+        end
+        if isfield(model, 'F_l_vars') && ~isempty(model.F_l_vars)
+            lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.F_l_vars(:))];
+        end
+        
+        lower_vars_from_upper = unique(lower_vars_from_upper);
+        
+        % Check if there's any intersection
+        common_vars = intersect(upper_vars_in_coupled, lower_vars_from_upper);
+        
+        if ~isempty(common_vars)
+            % Upper vars in coupled constraints also appear in lower constraints
+            % Need relaxation (traditional transform_coupled_to_uncoupled)
+            coupled_info.needs_relaxation = true;
+        else
+            % Upper vars in coupled constraints do NOT appear in lower constraints
+            % No need for relaxation, can handle directly in SP2
+            coupled_info.needs_relaxation = false;
+        end
     else
         is_coupled = 0;
     end

@@ -35,10 +35,26 @@ function [model_processed, current_ops] = preprocess_bilevel_model(model, ops)
     current_ops = ops;
     
     % Check if the initial model has coupled constraints.
-    [is_coupled, ~] = has_coupled_constraints(current_model);
+    [is_coupled, coupled_info] = has_coupled_constraints(current_model);
     
     if ~is_coupled
         % If the model is already uncoupled, no preprocessing is needed.
+        model_processed = current_model;
+        return;
+    end
+    
+    % Check if coupled constraints need relaxation
+    if is_coupled && ~coupled_info.needs_relaxation
+        % Coupled constraints exist, but upper vars in coupled constraints 
+        % do NOT appear in lower-level constraints. No transformation needed.
+        % The coupled constraints will be handled directly in SP2.
+        if ops.verbose >= 1
+            fprintf('Initial model has coupled constraints, but they do NOT require relaxation.\n');
+            fprintf('Upper-level variables in coupled constraints do not appear in lower-level constraints.\n');
+            fprintf('Skipping transformation. Coupled constraints will be handled in subproblems.\n');
+        end
+        % Mark the model as "special coupled" so SP2 knows to handle it
+        current_model.has_simple_coupled = true;
         model_processed = current_model;
         return;
     end

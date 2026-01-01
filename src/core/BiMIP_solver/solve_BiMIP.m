@@ -150,12 +150,8 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
         warning('PowerBiMIP:Settings','plot.verbose>0 is ignored unless verbose>=2.');
     end
     
-    % --- Welcome Message ---
+    % --- Disciplined bilevel programming process ---
     if ops.verbose >= 1
-        log_utils('print_banner', ops.verbose, 'Bilevel optimization interface');
-        if isfield(ops, 'custom_params') && ~isempty(fieldnames(ops.custom_params))
-            % ... (Optional: Print custom params logic) ...
-        end
         fprintf('Starting disciplined bilevel programming process...\n');
     end
     
