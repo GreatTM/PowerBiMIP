@@ -160,13 +160,13 @@ function Solution = master_problem_KKT(model,ops,iteration_record)
         end
 
         % optimality condition(KKT approach)
-%         big_M = 1e6;
+        big_M = ops.KKT_bigM;
         model.cons_for_KKT = cell(1,iteration_record.iteration_num - 1);
         model.obj_for_KKT = cell(1,iteration_record.iteration_num - 1);
         kkt_conditions = cell(1,iteration_record.iteration_num - 1);
         kkt_details = cell(1,iteration_record.iteration_num - 1);
 
-        rho_slack = 1e4;
+        % rho_slack = ops.KKT_RCR_rho;
 
         for i = 1 : iteration_record.iteration_num - 1
             % -----------------------------
@@ -176,52 +176,58 @@ function Solution = master_problem_KKT(model,ops,iteration_record)
             
             % inequality with slack: LHS <= b + s_ineq
             if ~isempty(model.b_l)
-                nI = length(model.b_l);
-                model.new_var(i).s_ineq = sdpvar(nI,1,'full');
-                model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_ineq >= 0);
+                % nI = length(model.b_l);
+                % model.new_var(i).s_ineq = sdpvar(nI,1,'full');
+                % model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_ineq >= 0);
             
                 LHS_ineq = ([model.A_l, model.B_l, model.C_l, model.D_l] * ...
                            [model.A_l_vars; model.B_l_vars; model.new_var(i).C_l_vars; model.new_var(i).D_l_vars]);
+                % model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
+                %     (LHS_ineq <= model.b_l + model.new_var(i).s_ineq);
                 model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
-                    (LHS_ineq <= model.b_l + model.new_var(i).s_ineq);
-            else
-                model.new_var(i).s_ineq = [];
+                    (LHS_ineq <= model.b_l);
+
+            % else
+            %     model.new_var(i).s_ineq = [];
             end
             
             % equality with signed slacks: LHS == f + s_pos - s_neg
             if ~isempty(model.f_l)
-                nE = length(model.f_l);
-                model.new_var(i).s_eq_pos = sdpvar(nE,1,'full');
-                model.new_var(i).s_eq_neg = sdpvar(nE,1,'full');
-                model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_eq_pos >= 0);
-                model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_eq_neg >= 0);
+                % nE = length(model.f_l);
+                % model.new_var(i).s_eq_pos = sdpvar(nE,1,'full');
+                % model.new_var(i).s_eq_neg = sdpvar(nE,1,'full');
+                % model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_eq_pos >= 0);
+                % model.cons_for_KKT{i} = model.cons_for_KKT{i} + (model.new_var(i).s_eq_neg >= 0);
             
                 LHS_eq = ([model.E_l, model.F_l, model.G_l, model.H_l] * ...
                          [model.E_l_vars; model.F_l_vars; model.new_var(i).G_l_vars; model.new_var(i).H_l_vars]);
+                % model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
+                %     (LHS_eq == model.f_l + model.new_var(i).s_eq_pos - model.new_var(i).s_eq_neg);
                 model.cons_for_KKT{i} = model.cons_for_KKT{i} + ...
-                    (LHS_eq == model.f_l + model.new_var(i).s_eq_pos - model.new_var(i).s_eq_neg);
-            else
-                model.new_var(i).s_eq_pos = [];
-                model.new_var(i).s_eq_neg = [];
+                    (LHS_eq == model.f_l);
+            % else
+            %     model.new_var(i).s_eq_pos = [];
+            %     model.new_var(i).s_eq_neg = [];
             end
             
-            % -----------------------------
-            % (2) slack penalty term
-            % -----------------------------
-            slack_penalty = 0;
-            if ~isempty(model.new_var(i).s_ineq)
-                slack_penalty = slack_penalty + sum(model.new_var(i).s_ineq);
-            end
-            if ~isempty(model.new_var(i).s_eq_pos)
-                slack_penalty = slack_penalty + sum(model.new_var(i).s_eq_pos) + sum(model.new_var(i).s_eq_neg);
-            end
+            % % -----------------------------
+            % % (2) slack penalty term
+            % % -----------------------------
+            % slack_penalty = 0;
+            % if ~isempty(model.new_var(i).s_ineq)
+            %     slack_penalty = slack_penalty + sum(model.new_var(i).s_ineq);
+            % end
+            % if ~isempty(model.new_var(i).s_eq_pos)
+            %     slack_penalty = slack_penalty + sum(model.new_var(i).s_eq_pos) + sum(model.new_var(i).s_eq_neg);
+            % end
             
             % -----------------------------
             % (3) obj_term_i MUST include slack penalty (this is what you asked)
             % -----------------------------
-            obj_term_i = ([model.c5', model.c6'] * [model.new_var(i).c5_vars; model.new_var(i).c6_vars]) ...
-                       + rho_slack * slack_penalty;
-            
+            % obj_term_i = ([model.c5', model.c6'] * [model.new_var(i).c5_vars; model.new_var(i).c6_vars]) ...
+            %            + rho_slack * slack_penalty;
+
+            obj_term_i = ([model.c5', model.c6'] * [model.new_var(i).c5_vars; model.new_var(i).c6_vars]);
             % Add the optimality cut using the relaxed objective value
             model.constraints = model.constraints + ...
                 ([model.c5', model.c6'] * [model.c5_vars; model.c6_vars] <= obj_term_i);
@@ -243,7 +249,7 @@ function Solution = master_problem_KKT(model,ops,iteration_record)
             % Store the dual variables associated with the KKT conditions.
             model.new_var(i).dual_ineq = kkt_details{i}.dual;
             model.new_var(i).dual_eq = kkt_details{i}.dualeq;
-            
+            % model.new_var(i).dual_ineq_bin = binvar(size(kkt_details{i}.dual,1),size(kkt_details{i}.dual,2),'full');
             model.constraints = model.constraints + kkt_conditions{i};
 
             % % kkt condition---dual

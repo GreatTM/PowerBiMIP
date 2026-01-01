@@ -1,6 +1,6 @@
-function run_neos_3754480_nidda_0_100()
+function [time, iter, obj, gap] = run_neos_3754480_nidda_0_100(method, solver)
 %==========================================================================
-% run_neos_3754480_nidda_0_100
+% run_neos-3754480-nidda_0_100
 %--------------------------------------------------------------------------
 % 作用：
 %   求解算例 neos-3754480-nidda_0_100（由 .mps + .aux 定义的 BiMIP）。
@@ -22,14 +22,13 @@ function run_neos_3754480_nidda_0_100()
 %   - mpsaux2yalmip.m 已在 MATLAB path（包含你已修复的 RHS 段识别 bug）
 %==========================================================================
 
-    clc; clearvars;
+    % clc; clearvars;
 
     %---------------------------
     % 0) 清理 YALMIP 环境（必须）
     %---------------------------
     yalmip('clear');
 
-    %---------------------------
     this_dir = fileparts(mfilename('fullpath'));
     
     aux_path = fullfile(this_dir, "neos-3754480-nidda_0_100.aux");
@@ -62,11 +61,11 @@ function run_neos_3754480_nidda_0_100()
     % 你也可以将 method 改为 'exact_strong_duality' 或 'quick'
     ops = BiMIPsettings( ...
         'perspective',    'optimistic', ...
-        'method',         'exact_KKT', ...
-        'solver',         'gurobi', ...
-        'max_iterations', 200, ...
+        'method',         method, ...
+        'solver',         solver, ...
+        'max_iterations', 100, ...
         'optimal_gap',    1e-6, ...
-        'verbose',        3, ...
+        'verbose',        2, ...
         'plot.verbose',   0);
 
     %---------------------------
@@ -112,14 +111,10 @@ function run_neos_3754480_nidda_0_100()
         fprintf('(提示) 未能通过 value() 直接读取变量值/目标值，请查看 Solution 结构体。\n');
     end
 
-    %---------------------------
-    % 7)（可选）保存结果
-    %---------------------------
-    % out_dir = fullfile(pwd, "results");
-    % if ~exist(out_dir, 'dir'); mkdir(out_dir); end
-    % save(fullfile(out_dir, "neos-3754480-nidda_0_100_solution.mat"), ...
-    %     "Solution", "BiMIP_record", "ops");
-
     fprintf('\nDone.\n');
 
+    time = BiMIP_record.total_time;
+    iter = BiMIP_record.iteration_num;
+    obj = BiMIP_record.UB(end);
+    gap = BiMIP_record.gap;
 end

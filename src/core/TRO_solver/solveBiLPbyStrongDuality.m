@@ -40,7 +40,7 @@ function Solution = solveBiLPbyStrongDuality(model, ops)
 %         dual_ineq, dual_eq are the dual variables of the lower level inequality and equality constraints,
 
     %% Define Dual Variables
-    bigM = 1e6;  % Big-M constant for dual variable bounds
+    bigM = inf;  % Big-M constant for dual variable bounds
     
     % Dual variables for lower-level inequality constraints (size of b_l)
     % Bounded: [-bigM, 0]

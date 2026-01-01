@@ -3,70 +3,46 @@ function model = mpsaux2yalmip(mps_path, aux_path, add_slack)
 % mpsaux2yalmip
 %--------------------------------------------------------------------------
 % 作用：
-%   将标准 .mps（MILP Relaxation，高点松弛/ MILP relax）与 .aux（下层归属信息）
-%   转换为指定格式的 MATLAB/YALMIP 建模对象，并输出结构体 model：
+%   将标准 .mps（MILP Relaxation）与 .aux（下层归属信息）
+%   转换为指定格式的 MATLAB/YALMIP 双层优化建模对象 model：
 %
-%   model.var_upper  : 上层变量列向量（元素可为 sdpvar/intvar/binvar）
-%   model.var_lower  : 下层变量列向量（元素可为 sdpvar/intvar/binvar）
-%   model.cons_upper : 上层约束（YALMIP constraints 集合）
-%   model.cons_lower : 下层约束（YALMIP constraints 集合）
-%   model.obj_upper  : 上层目标函数（YALMIP expression）
-%   model.obj_lower  : 下层目标函数（YALMIP expression）
+%   model.var_upper  : 上层变量列向量
+%   model.var_lower  : 下层变量列向量
+%   model.cons_upper : 上层约束（YALMIP constraints）
+%   model.cons_lower : 下层约束（YALMIP constraints）
+%   model.obj_upper  : 上层目标（YALMIP expression）
+%   model.obj_lower  : 下层目标（YALMIP expression）
 %
 % 输入：
-%   mps_path : .mps 文件的完整路径（可与本代码不在同一目录）
-%   aux_path : .aux 文件的完整路径（可与本代码不在同一目录）
+%   mps_path   : .mps 文件路径
+%   aux_path   : .aux 文件路径（新/旧格式都支持）
+%   add_slack  : 是否对所有下层约束加松弛变量并在下层目标惩罚（默认 false）
 %
-% 输出：
-%   model    : 结构体，字段如上
-%
-% 依赖：
-%   需要已安装 YALMIP，并已 addpath
-%
-% 注意：
-%   1) 仅解析 MPS 的 ROWS/COLUMNS/RHS/BOUNDS/ENDATA 核心段。
-%   2) 不处理 RANGES 段（若出现会 warning）。
-%   3) bounds 归属规则：
-%        - 若变量属于 aux 指定的下层变量，则其 bounds 默认加入下层约束；
-%        - 否则加入上层约束。
-%      若你希望某个下层变量 bounds 属于上层，请在 MPS 中显式写成命名 ROW 约束
-%      并且不要把该约束列入 aux 的下层约束列表。
+% 说明：
+%   - 松弛变量只加在"下层约束"，并加入 model.var_lower
+%   - 惩罚项 rho*sum(slack) 加到 model.obj_lower（下层目标）
 %==========================================================================
 
-    %---------------------------
-    % 0) 可选参数
-    %---------------------------
     if nargin < 3
-        add_slack = false; % 默认不加松弛变量
+        add_slack = false;
     end
-    rho = 1e4; % 惩罚系数（固定）
+    rho = 1e4;
 
-    %---------------------------
-    % 1) 解析文件
-    %---------------------------
+    % 1) 解析 MPS / AUX
     mps = parse_mps_file(mps_path);
-    aux = parse_aux_file(aux_path);
+    aux = parse_aux_file(aux_path, mps);  % 支持新/旧 aux
 
-    %---------------------------
-    % 2) 构建全量 YALMIP 变量向量（与 mps.var_names 对齐）
-    %---------------------------
-    [allVars, varType] = build_yalmip_vars(mps.var_names, mps.is_integer, mps.is_binary);
+    % 2) 构建全量 YALMIP 变量（与 mps.var_names 对齐）
+    [allVars, ~] = build_yalmip_vars(mps.var_names, mps.is_integer, mps.is_binary);
 
-    %---------------------------
-    % 3) 上下层变量拆分（列向量）
-    %---------------------------
+    % 3) 上下层变量拆分
     isLowerVar = ismember(mps.var_names, aux.lower_var_names);
     model.var_lower = allVars(isLowerVar);
     model.var_upper = allVars(~isLowerVar);
 
-    %---------------------------
-    % 4) 构建目标函数
-    %---------------------------
-    % 上层目标：来自 MPS objective row（N 行）
-    obj_upper_base = mps.c_obj(:)' * allVars;
-    model.obj_upper = obj_upper_base;
+    % 4) 目标函数
+    model.obj_upper = mps.c_obj(:)' * allVars;
 
-    % 下层目标：来自 AUX 的变量系数（只对 aux.lower_var_names）
     model.obj_lower = 0;
     for k = 1:numel(aux.lower_var_names)
         vname = aux.lower_var_names{k};
@@ -78,58 +54,49 @@ function model = mpsaux2yalmip(mps_path, aux_path, add_slack)
         model.obj_lower = model.obj_lower + coeff * allVars(idx);
     end
 
-
-    %---------------------------
-    % 5) 构建约束（ROWS 中 L/G/E，按 aux.lower_constr_names 划分）
-    %    若 add_slack=true：对下层约束加松弛变量，并在下层目标惩罚
-    %---------------------------
+    % 5) 约束拆分 + （可选）下层约束加松弛
     model.cons_upper = [];
     model.cons_lower = [];
-    
+
     isLowerRow = ismember(mps.constr_names, aux.lower_constr_names);
-    
-    % 收集所有下层松弛变量（列向量）
-    slack_list = [];  % sdpvar 列向量（动态追加）
-    
+
+    slack_list = []; % 收集所有下层松弛变量（列向量）
+
     for i = 1:numel(mps.constr_names)
         rowName = mps.constr_names{i};
         sense   = mps.constr_sense{i}; % '<=' , '>=' , '=='
-        arow    = mps.A(i,:);          % 1-by-n sparse
+        arow    = mps.A(i,:);
         rhs     = mps.b(i);
-    
+
         lhsExpr = arow * allVars;
-    
+
         if isLowerRow(i) && add_slack
-            %------------------------------------------------------------
-            % 对下层约束加松弛变量（松弛变量属于下层）
-            %------------------------------------------------------------
+            % 对下层约束加松弛变量（属于下层）
             switch sense
                 case '<='
                     s = sdpvar(1,1);
                     slack_list = [slack_list; s]; %#ok<AGROW>
                     ci = [lhsExpr <= rhs + s, s >= 0];
-    
+
                 case '>='
                     s = sdpvar(1,1);
                     slack_list = [slack_list; s]; %#ok<AGROW>
                     ci = [lhsExpr >= rhs - s, s >= 0];
-    
+
                 case '=='
                     s_pos = sdpvar(1,1);
                     s_neg = sdpvar(1,1);
                     slack_list = [slack_list; s_pos; s_neg]; %#ok<AGROW>
                     ci = [lhsExpr == rhs + s_pos - s_neg, s_pos >= 0, s_neg >= 0];
-    
+
                 otherwise
                     error('未知约束 sense: %s (row=%s)', sense, rowName);
             end
-    
+
             model.cons_lower = [model.cons_lower, ci];
-    
+
         else
-            %------------------------------------------------------------
-            % 原始约束（不加松弛，或这是上层约束）
-            %------------------------------------------------------------
+            % 不加松弛：原始约束
             switch sense
                 case '<='
                     ci = (lhsExpr <= rhs);
@@ -140,7 +107,7 @@ function model = mpsaux2yalmip(mps_path, aux_path, add_slack)
                 otherwise
                     error('未知约束 sense: %s (row=%s)', sense, rowName);
             end
-    
+
             if isLowerRow(i)
                 model.cons_lower = [model.cons_lower, ci];
             else
@@ -148,46 +115,27 @@ function model = mpsaux2yalmip(mps_path, aux_path, add_slack)
             end
         end
     end
-    
-    %------------------------------------------------------------
-    % 关键收尾：
-    % 1) slack 加入 var_lower（必须，否则 PowerBiMIP 会认为环境不干净/变量不全）
-    % 2) slack 惩罚加入 obj_lower（你这次的需求）
-    %------------------------------------------------------------
+
+    % 松弛变量加入下层变量 & 下层目标惩罚
     if add_slack && ~isempty(slack_list)
-        slack_list = slack_list(:);          % 强制列向量
-        model.slack_lower = slack_list;      % 可选输出，便于调试/统计
-    
+        slack_list = slack_list(:);
+        model.slack_lower = slack_list; % 便于调试
         model.var_lower = [model.var_lower; slack_list];
         model.obj_lower = model.obj_lower + rho * sum(slack_list);
     else
         model.slack_lower = [];
     end
 
-
-
-    %---------------------------
-    % 6) 将变量 bounds 转换为约束，并按规则归属上下层
-    %---------------------------
-    % MPS 中默认 lower bound=0, upper bound=+inf（除非 FR/MI/PL 等）
+    % 6) bounds -> 约束，并按变量归属上下层
     for j = 1:numel(mps.var_names)
-        x = allVars(j);
+        x  = allVars(j);
         lb = mps.lb(j);
         ub = mps.ub(j);
 
-        % 对 binvar/intvar，YALMIP 会自带整数/0-1属性；
-        % 这里仍然将有限 bounds 显式添加为约束（更清晰也更稳妥）
         cons_bnd = [];
-        if ~isinf(lb)
-            cons_bnd = [cons_bnd, (x >= lb)];
-        end
-        if ~isinf(ub)
-            cons_bnd = [cons_bnd, (x <= ub)];
-        end
-
-        if isempty(cons_bnd)
-            continue;
-        end
+        if ~isinf(lb), cons_bnd = [cons_bnd, (x >= lb)]; end
+        if ~isinf(ub), cons_bnd = [cons_bnd, (x <= ub)]; end
+        if isempty(cons_bnd), continue; end
 
         if isLowerVar(j)
             model.cons_lower = [model.cons_lower, cons_bnd];
@@ -195,87 +143,185 @@ function model = mpsaux2yalmip(mps_path, aux_path, add_slack)
             model.cons_upper = [model.cons_upper, cons_bnd];
         end
     end
-
-    %---------------------------
-    % 7)（可选）给出一点调试信息
-    %---------------------------
-    % disp(['Parsed vars = ', num2str(numel(mps.var_names)), ...
-    %       ', constr = ', num2str(numel(mps.constr_names))]);
-
 end
 
 %==========================================================================
-%                           子函数：解析 AUX
+% 子函数：解析 AUX（新/旧格式兼容）
 %==========================================================================
-function aux = parse_aux_file(aux_path)
+function aux = parse_aux_file(aux_path, mps)
     lines = read_text_lines(aux_path);
 
-    % 兼容大小写、兼容 @NUMCONSTR 与 @NUMCONSTRS、@CONSTRBEGIN 与 @CONSTRSBEGIN 等
-    upperLines = lines;
-    for i = 1:numel(upperLines)
-        upperLines{i} = strtrim(upperLines{i});
+    % 判断新格式：只要出现 @ 开头关键字，就按新格式（保持原逻辑）
+    isNewStyle = false;
+    for i = 1:numel(lines)
+        s = strtrim(lines{i});
+        if startsWith(s, '@')
+            isNewStyle = true;
+            break;
+        end
     end
 
-    aux.lower_var_names    = {};
-    aux.lower_obj_coeff    = [];
-    aux.lower_constr_names = {};
-
-    mode = ""; % "VARS" or "CONSTR"
-    i = 1;
-
-    while i <= numel(upperLines)
-        s = upperLines{i};
-        if isempty(s) || startsWith(s, '*')
-            i = i + 1; continue;
+    if isNewStyle
+        %------------------------------
+        % 新格式解析（尽量不动你原逻辑）
+        %------------------------------
+        upperLines = lines;
+        for i = 1:numel(upperLines)
+            upperLines{i} = strtrim(upperLines{i});
         end
 
-        if startsWith(s, '@', 'IgnoreCase', true)
-            key = upper(s);
+        aux.lower_var_names    = {};
+        aux.lower_obj_coeff    = [];
+        aux.lower_constr_names = {};
 
-            % section switches
-            if any(strcmp(key, {'@VARSBEGIN'}))
-                mode = "VARS";
-                i = i + 1; continue;
-            elseif any(strcmp(key, {'@VARSEND'}))
-                mode = "";
-                i = i + 1; continue;
-            elseif any(strcmp(key, {'@CONSTRBEGIN','@CONSTRSBEGIN'}))
-                mode = "CONSTR";
-                i = i + 1; continue;
-            elseif any(strcmp(key, {'@CONSTREND','@CONSTRSEND'}))
-                mode = "";
-                i = i + 1; continue;
-            else
-                % 其它关键字（@NUMVARS/@NUMCONSTRS/@NAME/@MPS/@LP）这里不强依赖
+        mode = ""; % "VARS" or "CONSTR"
+        i = 1;
+
+        while i <= numel(upperLines)
+            s = upperLines{i};
+            if isempty(s) || startsWith(s, '*')
                 i = i + 1; continue;
             end
+
+            if startsWith(s, '@', 'IgnoreCase', true)
+                key = upper(s);
+
+                if any(strcmp(key, {'@VARSBEGIN'}))
+                    mode = "VARS"; i = i + 1; continue;
+                elseif any(strcmp(key, {'@VARSEND'}))
+                    mode = ""; i = i + 1; continue;
+                elseif any(strcmp(key, {'@CONSTRBEGIN','@CONSTRSBEGIN'}))
+                    mode = "CONSTR"; i = i + 1; continue;
+                elseif any(strcmp(key, {'@CONSTREND','@CONSTRSEND'}))
+                    mode = ""; i = i + 1; continue;
+                else
+                    i = i + 1; continue;
+                end
+            end
+
+            if mode == "VARS"
+                [vname, coeff] = parse_name_coeff(s);
+                aux.lower_var_names{end+1,1} = vname; %#ok<AGROW>
+                aux.lower_obj_coeff(end+1,1) = coeff; %#ok<AGROW>
+            elseif mode == "CONSTR"
+                aux.lower_constr_names{end+1,1} = strtrim(s); %#ok<AGROW>
+            end
+
+            i = i + 1;
         end
 
-        if mode == "VARS"
-            % 每行：varName + coeff（允许出现"C0002-1."这种无空格情况）
-            [vname, coeff] = parse_name_coeff(s);
-            aux.lower_var_names{end+1,1} = vname; %#ok<AGROW>
-            aux.lower_obj_coeff(end+1,1) = coeff; %#ok<AGROW>
-        elseif mode == "CONSTR"
-            aux.lower_constr_names{end+1,1} = strtrim(s); %#ok<AGROW>
-        else
-            % ignore
+        if numel(aux.lower_obj_coeff) ~= numel(aux.lower_var_names)
+            error('AUX 新格式解析异常：lower_var_names 与 lower_obj_coeff 长度不一致。');
         end
 
-        i = i + 1;
+    else
+        %------------------------------
+        % 旧格式解析（本次关键修复）
+        %------------------------------
+        aux = parse_aux_file_legacy(lines, mps);
+    end
+end
+
+function aux = parse_aux_file_legacy(lines, mps)
+%--------------------------------------------------------------------------
+% 【修复点说明（对照你给的 loadMibSInstance）】
+%   旧格式 aux 关键字段含义应为：
+%     LC <idx> : 下层变量索引（0-based）
+%     LR <idx> : 下层约束索引（0-based）
+%     LO <val> : 下层目标系数序列（按出现顺序与 LC 一一对应）
+%     N/M/OS   : 元信息（可选）
+%
+% 【我上一版错的地方】：
+%   - 把 LO 当成"上层变量索引"，导致 lower_obj_coeff 构造错误。
+%   - 还默认用 mps.c_obj(lc) 当下层系数，这与很多旧格式实例不一致。
+%
+% 【现在的做法】：
+%   - LC_idx 收集下层变量索引（转 1-based）
+%   - LR_idx 收集下层约束索引（转 1-based）
+%   - LO_val 收集下层目标系数（按顺序）
+%   - lower_obj_coeff：对每个 LC_idx(k)，系数取 LO_val(k)（不足则补 0）
+%--------------------------------------------------------------------------
+
+    LC_idx = []; % 1-based
+    LR_idx = []; % 1-based
+    LO_val = []; % 系数序列
+    aux = struct();
+    aux.lower_var_names = {};
+    aux.lower_obj_coeff = [];
+    aux.lower_constr_names = {};
+
+    for i = 1:numel(lines)
+        ln = strtrim(lines{i});
+        if isempty(ln) || startsWith(ln, '*')
+            continue;
+        end
+
+        parts = split_ws(ln);
+        key = upper(parts{1});
+
+        % 注意：旧格式行可能只有两个 token，如 "LC 0" 或 "LO 4"
+        if numel(parts) < 2
+            continue;
+        end
+
+        % 允许 parts{2:end}（但一般只有一个数）
+        val = str2double(parts{2});
+        if isnan(val)
+            continue;
+        end
+
+        switch key
+            case 'LC'
+                LC_idx = [LC_idx; val + 1]; %#ok<AGROW> % 0->1
+            case 'LR'
+                LR_idx = [LR_idx; val + 1]; %#ok<AGROW>
+            case 'LO'
+                LO_val = [LO_val; val]; %#ok<AGROW>
+            case 'N'
+                aux.N = val;
+            case 'M'
+                aux.M = val;
+            case 'OS'
+                aux.OS = val;
+        end
     end
 
+    if isempty(LC_idx)
+        error('旧格式 aux 解析失败：未找到任何 LC 行（下层变量索引）。');
+    end
+
+    % 越界检查（LC）
+    if any(LC_idx < 1) || any(LC_idx > numel(mps.var_names))
+        error('旧格式 aux：LC 索引越界。请确认 aux 是否为 0-based，或文件是否损坏。');
+    end
+
+    % 下层变量名
+    aux.lower_var_names = mps.var_names(LC_idx);
+
+    % 下层目标系数：按 LC 出现顺序匹配 LO（效仿你给的代码）
+    coeff = zeros(numel(LC_idx), 1);
+    cnt = min(numel(LC_idx), numel(LO_val));
+    if cnt > 0
+        coeff(1:cnt) = LO_val(1:cnt);
+    end
+    % 若 LO 数量不足：剩余下层变量系数默认为 0（与参考实现一致）
+    aux.lower_obj_coeff = coeff;
+
+    % 下层约束名（LR 指向的是"约束行"的顺序：与你 mps.constr_names 一致）
+    if isempty(LR_idx)
+        aux.lower_constr_names = {};
+    else
+        if any(LR_idx < 1) || any(LR_idx > numel(mps.constr_names))
+            % 旧格式有时 LR 可能包含越界索引，参考实现里也做了 valid_mask
+            valid_mask = (LR_idx >= 1) & (LR_idx <= numel(mps.constr_names));
+            LR_idx = LR_idx(valid_mask);
+        end
+        aux.lower_constr_names = mps.constr_names(LR_idx);
+    end
 end
 
 function [name, coeff] = parse_name_coeff(line)
-    % 兼容：
-    %  1) "C0002 -1."
-    %  2) "C0002-1."
-    %  3) "x12  3.5"
-    % 思路：抓取末尾数值 token，其前面部分作为 name
     line = strtrim(line);
-
-    % 末尾数值（支持科学计数）
     expr = '([+-]?\d+(\.\d*)?|\.\d+)([eEdD][+-]?\d+)?\s*$';
     m = regexp(line, expr, 'match');
     if isempty(m)
@@ -283,12 +329,8 @@ function [name, coeff] = parse_name_coeff(line)
     end
     numStr = m{1};
     coeff = str2double(strrep(lower(numStr), 'd', 'e'));
-
-    % name 是去掉末尾数值后剩余部分
     namePart = regexprep(line, expr, '');
     namePart = strtrim(namePart);
-
-    % 如果 namePart 为空，说明类似 "-1." 单独出现，不合法
     if isempty(namePart)
         error('AUX 变量行无法解析变量名："%s"', line);
     end
@@ -296,77 +338,55 @@ function [name, coeff] = parse_name_coeff(line)
 end
 
 %==========================================================================
-%                           子函数：解析 MPS
+% 子函数：解析 MPS（你现有"修复版 section 识别 + BOUNDS 扩展 LI/UI/SC/SI"逻辑）
 %==========================================================================
 function mps = parse_mps_file(mps_path)
     lines = read_text_lines(mps_path);
 
     section = "";
     rowNames = {};
-    rowTypes = {}; % 'N','L','G','E'
+    rowTypes = {};
     objRowName = '';
 
-    % 用 map 管理索引
     rowIndex = containers.Map();
     varIndex = containers.Map();
 
     varNames = {};
     isInt = [];
     isBin = [];
-    % 系数暂存：用 triplet (iRow, jVar, val)
-    I = [];
-    J = [];
-    V = [];
 
-    % RHS 与 bounds
-    rhsMap = containers.Map(); % rowName -> rhs
-    % 默认 bounds：0 <= x <= inf
-    lb = [];
-    ub = [];
+    I = []; J = []; V = [];
+
+    rhsMap = containers.Map();
+
+    lb = []; ub = [];
 
     inIntBlock = false;
 
     for k = 1:numel(lines)
-        raw = lines{k};
-        s = strtrim(raw);
+        s = strtrim(lines{k});
         if isempty(s) || startsWith(s, '*')
             continue;
         end
 
-    %------------------------------------------------------------
-    % 识别 section（修复版）
-    % 说明：
-    %   不能用"首 token"判断 section，因为 RHS 段的数据行常以 rhs 开头，
-    %   upper(rhs)=RHS 会误判为 section 行，导致 RHS 数据被跳过。
-    %   正确做法：仅当整行等于关键字（或 NAME 行特殊处理）才切换 section。
-    %------------------------------------------------------------
-    
-    sU = upper(strtrim(s));
-    
-    % NAME 行特殊：通常为 "NAME  instance"
-    if startsWith(sU, 'NAME', 'IgnoreCase', true)
-        section = 'NAME';
-        % 这里不 continue 也行，但为了统一逻辑，直接 continue
-        continue;
-    end
-    
-    % 其它 section 行：通常整行就是关键字
-    if any(strcmp(sU, {'ROWS','COLUMNS','RHS','BOUNDS','RANGES','ENDATA'}))
-        section = sU;
-        if strcmp(section, 'RANGES')
-            warning('检测到 RANGES 段：当前代码未处理该段，将忽略。');
+        % section 识别（修复版）
+        sU = upper(strtrim(s));
+        if startsWith(sU, 'NAME', 'IgnoreCase', true)
+            section = 'NAME';
+            continue;
         end
-        continue;
-    end
-
+        if any(strcmp(sU, {'ROWS','COLUMNS','RHS','BOUNDS','RANGES','ENDATA'}))
+            section = sU;
+            if strcmp(section, 'RANGES')
+                warning('检测到 RANGES 段：当前代码未处理该段，将忽略。');
+            end
+            continue;
+        end
 
         switch section
             case 'ROWS'
-                % 格式：<type> <rowName>
                 toks = split_ws(s);
-                if numel(toks) < 2
-                    continue;
-                end
+                if numel(toks) < 2, continue; end
                 rtype = upper(toks{1});
                 rname = toks{2};
 
@@ -379,45 +399,33 @@ function mps = parse_mps_file(mps_path)
                 end
 
             case 'COLUMNS'
-                % 可能出现 marker 行：MARKxxxx 'MARKER' 'INTORG'/'INTEND'
                 if contains(s, 'MARKER', 'IgnoreCase', true) && ...
                    (contains(s, 'INTORG', 'IgnoreCase', true) || contains(s, 'INTEND', 'IgnoreCase', true))
-                    if contains(s, 'INTORG', 'IgnoreCase', true)
-                        inIntBlock = true;
-                    elseif contains(s, 'INTEND', 'IgnoreCase', true)
-                        inIntBlock = false;
-                    end
+                    if contains(s, 'INTORG', 'IgnoreCase', true), inIntBlock = true; end
+                    if contains(s, 'INTEND', 'IgnoreCase', true), inIntBlock = false; end
                     continue;
                 end
 
                 toks = split_ws(s);
-                if numel(toks) < 3
-                    continue;
-                end
+                if numel(toks) < 3, continue; end
 
                 vname = toks{1};
                 if ~isKey(varIndex, vname)
                     varNames{end+1,1} = vname; %#ok<AGROW>
                     varIndex(vname) = numel(varNames);
 
-                    % 初始化类型与 bounds
                     isInt(end+1,1) = inIntBlock; %#ok<AGROW>
                     isBin(end+1,1) = false;      %#ok<AGROW>
                     lb(end+1,1) = 0;             %#ok<AGROW>
                     ub(end+1,1) = inf;           %#ok<AGROW>
                 else
-                    % 若之前见过，若当前在整数块内，也将其标为整数
-                    if inIntBlock
-                        isInt(varIndex(vname)) = true;
-                    end
+                    if inIntBlock, isInt(varIndex(vname)) = true; end
                 end
 
                 j = varIndex(vname);
 
-                % 后续按 (row, val) 成对出现，最多两对
                 pairs = toks(2:end);
                 if mod(numel(pairs),2) ~= 0
-                    % 容错：有些 MPS 行可能不规范
                     pairs = pairs(1:end-1);
                 end
 
@@ -435,12 +443,8 @@ function mps = parse_mps_file(mps_path)
                 end
 
             case 'RHS'
-                % 格式：rhsName row val [row val]
                 toks = split_ws(s);
-                if numel(toks) < 3
-                    continue;
-                end
-                % rhsName = toks{1}; % 可忽略
+                if numel(toks) < 3, continue; end
                 pairs = toks(2:end);
                 if mod(numel(pairs),2) ~= 0
                     pairs = pairs(1:end-1);
@@ -448,20 +452,17 @@ function mps = parse_mps_file(mps_path)
                 for p = 1:2:numel(pairs)
                     rname = pairs{p};
                     val   = str2double_mps(pairs{p+1});
-                    rhsMap(rname) = val; % 覆盖式
+                    rhsMap(rname) = val;
                 end
 
             case 'BOUNDS'
-                % 格式：btype bndName varName value?
                 toks = split_ws(s);
-                if numel(toks) < 3
-                    continue;
-                end
+                if numel(toks) < 3, continue; end
+
                 btype = upper(toks{1});
                 vname = toks{3};
 
                 if ~isKey(varIndex, vname)
-                    % 如果 bounds 出现新变量名，按标准也允许：这里补建变量
                     varNames{end+1,1} = vname; %#ok<AGROW>
                     varIndex(vname) = numel(varNames);
                     isInt(end+1,1) = false; %#ok<AGROW>
@@ -476,6 +477,10 @@ function mps = parse_mps_file(mps_path)
                     val = str2double_mps(toks{4});
                 else
                     val = NaN;
+                end
+
+                if ~hasVal && any(strcmp(btype, {'LO','UP','FX','LI','UI','SC','SI'}))
+                    error('BOUNDS 类型 "%s" 需要 value，但该行缺少 value。变量=%s', btype, vname);
                 end
 
                 switch btype
@@ -495,14 +500,26 @@ function mps = parse_mps_file(mps_path)
                         lb(j) = 0; ub(j) = 1;
                         isBin(j) = true;
                         isInt(j) = true;
+
+                    case 'LI'  % integer lower bound
+                        lb(j) = val;
+                        isInt(j) = true;
+                    case 'UI'  % integer upper bound
+                        ub(j) = val;
+                        isInt(j) = true;
+
+                    case 'SC'
+                        warning('BOUNDS 类型 "SC"(semi-continuous) 暂不支持析取语义，将近似为普通连续 bounds。变量=%s', vname);
+                        lb(j) = val;
+
+                    case 'SI'
+                        warning('BOUNDS 类型 "SI"(semi-integer) 暂不支持析取语义，将近似为普通整数 bounds。变量=%s', vname);
+                        lb(j) = val;
+                        isInt(j) = true;
+
                     otherwise
                         warning('未处理的 BOUNDS 类型 "%s"（变量=%s），将忽略该行。', btype, vname);
                 end
-
-            case 'RANGES'
-                % 忽略
-            otherwise
-                % ignore
         end
     end
 
@@ -510,46 +527,33 @@ function mps = parse_mps_file(mps_path)
         error('MPS 中未找到 objective row（ROWS 段需要至少一个 N 行）。');
     end
 
-    % 将 triplet 组装为 sparse 系数矩阵（ROWS全体 x VARS全体）
     Aall = sparse(I, J, V, numel(rowNames), numel(varNames));
 
-    % 分离 objective 与 constraints
     objRowIdx = rowIndex(objRowName);
-    c_obj = full(Aall(objRowIdx,:)); % 1-by-n
+    c_obj = full(Aall(objRowIdx,:));
 
-    % constraints 是除 objective row 外的 ROWS 中 L/G/E
     constrNames = {};
     constrSense = {};
     Arows = [];
     brows = [];
 
     for i = 1:numel(rowNames)
-        if i == objRowIdx
-            continue;
-        end
+        if i == objRowIdx, continue; end
 
         rtype = rowTypes{i};
         rname = rowNames{i};
 
-        if strcmp(rtype, 'L')
-            sense = '<=';
-        elseif strcmp(rtype, 'G')
-            sense = '>=';
-        elseif strcmp(rtype, 'E')
-            sense = '==';
-        else
-            % 额外 N 行：通常表示自由行/额外目标，不纳入约束
-            continue;
-        end
+        if strcmp(rtype, 'L'), sense = '<=';
+        elseif strcmp(rtype, 'G'), sense = '>=';
+        elseif strcmp(rtype, 'E'), sense = '==';
+        else, continue; end
 
         constrNames{end+1,1} = rname; %#ok<AGROW>
         constrSense{end+1,1} = sense; %#ok<AGROW>
 
         Arows(end+1,:) = Aall(i,:); %#ok<AGROW>
-        if isKey(rhsMap, rname)
-            brows(end+1,1) = rhsMap(rname); %#ok<AGROW>
-        else
-            brows(end+1,1) = 0; %#ok<AGROW>
+        if isKey(rhsMap, rname), brows(end+1,1) = rhsMap(rname); %#ok<AGROW>
+        else, brows(end+1,1) = 0; %#ok<AGROW>
         end
     end
 
@@ -566,11 +570,10 @@ function mps = parse_mps_file(mps_path)
     mps.constr_sense = constrSense;
     mps.A = sparse(Arows);
     mps.b = brows(:);
-
 end
 
 %==========================================================================
-%                       子函数：构建 YALMIP 变量
+% 构建 YALMIP 变量
 %==========================================================================
 function [allVars, varType] = build_yalmip_vars(varNames, isInt, isBin)
     n = numel(varNames);
@@ -590,46 +593,32 @@ function [allVars, varType] = build_yalmip_vars(varNames, isInt, isBin)
         end
     end
 
-    % 拼成列向量
     allVars = vertcat(varCells{:});
 end
 
 %==========================================================================
-%                           工具函数：读文本
+% 工具函数
 %==========================================================================
 function lines = read_text_lines(path)
     fid = fopen(path, 'r');
     if fid < 0
         error('无法打开文件：%s', path);
     end
-    c = onCleanup(@() fclose(fid));
+    c = onCleanup(@() fclose(fid)); %#ok<NASGU>
     lines = {};
     while true
         tline = fgetl(fid);
-        if ~ischar(tline)
-            break;
-        end
+        if ~ischar(tline), break; end
         lines{end+1,1} = tline; %#ok<AGROW>
     end
 end
 
-function tok = first_token(s)
-    toks = split_ws(s);
-    if isempty(toks)
-        tok = '';
-    else
-        tok = toks{1};
-    end
-end
-
 function toks = split_ws(s)
-    % 按空白分割，去掉空 token
     toks = regexp(strtrim(s), '\s+', 'split');
     toks = toks(~cellfun('isempty', toks));
 end
 
 function v = str2double_mps(s)
-    % MPS 里可能出现 D 指数：1.0D+03
     s = strtrim(s);
     s = regexprep(s, '[dD]', 'e');
     v = str2double(s);

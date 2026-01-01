@@ -102,7 +102,7 @@ function Solution = solveBiLPbyPADM(model, ops)
     val_F_l_vars = value(model.F_l_vars); val_F_l_vars(isnan(val_F_l_vars)) = 0;
     
     % Define Dual Variables
-    bigM = 1e6;  % Big-M constant for dual variable bounds
+    bigM = inf;  % Big-M constant for dual variable bounds
     
     % Inequality dual variables: [-bigM, 0]
     dual_ineq = sdpvar(length(model.b_l), 1, 'full');

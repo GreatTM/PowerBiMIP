@@ -272,5 +272,6 @@ function iteration_record = optimistic_solver(model, ops)
         [~, idx_flipped] = min(flip(objectives));
         selected_index = numel(objectives) - idx_flipped + 1;
         iteration_record.optimal_solution.var = iteration_record.subproblem_2_solution{selected_index}.var;
+        iteration_record.total_time = total_time;
     end
 end

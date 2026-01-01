@@ -21,6 +21,8 @@ function options = BiMIPsettings(varargin)
     default_options.max_iterations = 10;     % Max iterations for the main algorithm
     default_options.optimal_gap = 0.01;      % Optimality gap tolerance (e.g., 0.01 for 1%)
     default_options.kappa = 50;              % Penalty factor for transforming coupled constraints
+    default_options.KKT_RCR_rho = 1e7;
+    default_options.KKT_bigM = 1e4;
 
     % Parameters for the 'quick' method (L1-PADM based)
     default_options.penalty_rho = 50;        % Initial penalty factor for the PADM algorithm
@@ -97,7 +99,8 @@ function options = BiMIPsettings(varargin)
     if options.verbose >= 3
         solverVerbose = 1; % Expose solver logs only in debug mode
     end
-    options.ops_MP  = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
+    % options.ops_MP = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'method', 4);
+    options.ops_MP  = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 3600, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 2000);
     options.ops_SP1 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
     options.ops_SP2 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
 end
