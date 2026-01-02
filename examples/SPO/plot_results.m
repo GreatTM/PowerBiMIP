@@ -21,8 +21,8 @@ function [CostReduction, Statistics] = plot_results(test_data, MSE_prediction_re
 
     %% 图2：UC2成本项对比（新增过滤逻辑）
     % 提取非零成本项
-    mse_terms = Solution_UC2_MSE.var.cost_terms;
-    spo_terms = Solution_UC2_SPO.var.cost_terms;
+    mse_terms = Solution_UC2_MSE.cost_terms;
+    spo_terms = Solution_UC2_SPO.cost_terms;
     
     % 创建非零索引（至少有一个模型对应项不为零）
     non_zero_idx = (mse_terms ~= 0) | (spo_terms ~= 0);

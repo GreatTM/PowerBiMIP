@@ -20,85 +20,9 @@ function [Solution] = subproblem2(model,master_problem_solution,subproblem_1_sol
 %       Solution - struct: A struct containing the solution of SP2. The
 %                  objective value of this solution is a valid Upper Bound.
 
-    %% Determine which upper-level variables appear in lower-level constraints
-    % Extract variable indices that appear in lower-level constraints
-    lower_vars_from_upper = [];
-    if ~isempty(model.A_l_vars)
-        lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.A_l_vars(:))];
-    end
-    if ~isempty(model.B_l_vars)
-        lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.B_l_vars(:))];
-    end
-    if ~isempty(model.E_l_vars)
-        lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.E_l_vars(:))];
-    end
-    if ~isempty(model.F_l_vars)
-        lower_vars_from_upper = [lower_vars_from_upper; getvariables(model.F_l_vars(:))];
-    end
-    lower_vars_from_upper = unique(lower_vars_from_upper);
-    
-    %% Build fixed variable substitutions for lower-level constraints only
-    % Only fix variables that appear in lower-level constraints
-    fixed_A_l_vars = model.A_l_vars;
-    fixed_B_l_vars = model.B_l_vars;
-    fixed_E_l_vars = model.E_l_vars;
-    fixed_F_l_vars = model.F_l_vars;
-    
-    % Replace with fixed values for variables that appear in lower constraints
-    if ~isempty(model.A_l_vars)
-        idx_in_lower = ismember(getvariables(model.A_l_vars(:)), lower_vars_from_upper);
-        fixed_A_l_vars(idx_in_lower) = master_problem_solution.A_l_vars(idx_in_lower);
-    end
-    if ~isempty(model.B_l_vars)
-        idx_in_lower = ismember(getvariables(model.B_l_vars(:)), lower_vars_from_upper);
-        fixed_B_l_vars(idx_in_lower) = master_problem_solution.B_l_vars(idx_in_lower);
-    end
-    if ~isempty(model.E_l_vars)
-        idx_in_lower = ismember(getvariables(model.E_l_vars(:)), lower_vars_from_upper);
-        fixed_E_l_vars(idx_in_lower) = master_problem_solution.E_l_vars(idx_in_lower);
-    end
-    if ~isempty(model.F_l_vars)
-        idx_in_lower = ismember(getvariables(model.F_l_vars(:)), lower_vars_from_upper);
-        fixed_F_l_vars(idx_in_lower) = master_problem_solution.F_l_vars(idx_in_lower);
-    end
-    
     %% Constraints building
     model.constraints = [];
-    
-    % --- Add UPPER-level constraints if model has "simple coupled" flag ---
-    if isfield(model, 'has_simple_coupled') && model.has_simple_coupled
-        % Upper level inequality constraints with partial fixing
-        if ~isempty(model.b_u)
-            upper_ineq_lhs = model.A_u * master_problem_solution.A_u_vars + ...
-                             model.B_u * master_problem_solution.B_u_vars + ...
-                             model.C_u * model.C_u_vars + ...
-                             model.D_u * model.D_u_vars;
-            
-            % Filter out constraints that become logical (constant <= constant)
-            for i = 1:length(model.b_u)
-                if isa(upper_ineq_lhs(i), 'sdpvar') && ~is(upper_ineq_lhs(i), 'constant')
-                    model.constraints = model.constraints + (upper_ineq_lhs(i) <= model.b_u(i));
-                end
-            end
-        end
-        
-        % Upper level equality constraints with partial fixing
-        if ~isempty(model.f_u)
-            upper_eq_lhs = model.E_u * master_problem_solution.E_u_vars + ...
-                           model.F_u * master_problem_solution.F_u_vars + ...
-                           model.G_u * model.G_u_vars + ...
-                           model.H_u * model.H_u_vars;
-            
-            % Filter out constraints that become logical
-            for i = 1:length(model.f_u)
-                if isa(upper_eq_lhs(i), 'sdpvar') && ~is(upper_eq_lhs(i), 'constant')
-                    model.constraints = model.constraints + (upper_eq_lhs(i) == model.f_u(i));
-                end
-            end
-        end
-    end
-    
-    % --- Lower level constraints (with partial fixing) ---
+    % lower level
     % inequality
     if isempty(model.b_l)
         model.constraints = model.constraints + [];
@@ -106,7 +30,7 @@ function [Solution] = subproblem2(model,master_problem_solution,subproblem_1_sol
         model.constraints = model.constraints + ...
             ([model.A_l, model.B_l, ...
             model.C_l, model.D_l] * ...
-            [fixed_A_l_vars; fixed_B_l_vars; model.C_l_vars; model.D_l_vars] <= ...
+            [master_problem_solution.A_l_vars; master_problem_solution.B_l_vars; model.C_l_vars; model.D_l_vars] <= ...
             model.b_l);
     end
 
@@ -117,7 +41,7 @@ function [Solution] = subproblem2(model,master_problem_solution,subproblem_1_sol
         model.constraints = model.constraints + ...
             ([model.E_l, model.F_l, ...
             model.G_l, model.H_l] * ...
-            [fixed_E_l_vars; fixed_F_l_vars; model.G_l_vars; model.H_l_vars] == ...
+            [master_problem_solution.E_l_vars; master_problem_solution.F_l_vars; model.G_l_vars; model.H_l_vars] == ...
             model.f_l);
     end
 
@@ -127,11 +51,69 @@ function [Solution] = subproblem2(model,master_problem_solution,subproblem_1_sol
         [model.c5_vars; model.c6_vars] <= ...
         subproblem_1_solution.objective);
 
-    %% Objective building
-    model.objective = [model.c1', model.c2', ...
-        model.c3', model.c4'] * ...
-        [master_problem_solution.c1_vars; master_problem_solution.c2_vars; model.c3_vars; model.c4_vars];
+    % --- Add UPPER-level constraints if model has "simple coupled" flag ---
+    if isfield(model, 'model_type') && strcmpi(model.model_type, 'OBL-CC-1')
+        % inequality
+        if isempty(model.b_u)
+            model.constraints = model.constraints + [];
+        else
+            model.constraints = model.constraints + ...
+                ([model.linking.A_u_nolink, model.linking.B_u_nolink, ...
+                model.linking.A_u_link, model.linking.B_u_link, ...
+                model.C_u, model.D_u] * ...
+                [model.linking.A_u_vars_nolink; model.linking.B_u_vars_nolink; ...
+                master_problem_solution.linking.A_u_vars_link; master_problem_solution.linking.B_u_vars_link; ...
+                model.C_u_vars; model.D_u_vars] <= ...
+                model.b_u);
+        end
 
+        % equality
+        if isempty(model.f_u)
+            model.constraints = model.constraints + [];
+        else
+            model.constraints = model.constraints + ...
+                ([model.linking.E_u_nolink, model.linking.F_u_nolink, ...
+                model.linking.E_u_link, model.linking.F_u_link, ...
+                model.G_u, model.H_u] * ...
+                [model.linking.E_u_vars_nolink; model.linking.F_u_vars_nolink; ...
+                master_problem_solution.linking.E_u_vars_link; master_problem_solution.linking.F_u_vars_link; ...
+                model.G_u_vars; model.H_u_vars] == ...
+                model.f_u);
+        end
+    end
+
+    %% Objective building
+    if isfield(model, 'model_type') && strcmpi(model.model_type, 'OBL-CC-1')
+        % 1. 拼接所有系数 (行向量)
+        % MATLAB 拼接特性：[A, []] 结果就是 A。空集会被自动"吞掉"。
+        coeffs = [ ...
+            model.linking.c1_link',   model.linking.c2_link', ...
+            model.linking.c1_nolink', model.linking.c2_nolink', ...
+            model.c3',                model.c4' ...
+        ];
+    
+        % 2. 拼接所有变量 (列向量)
+        % 顺序必须与上面的系数严格对应
+        % 只固定linking variables
+        vars = [ ...
+            master_problem_solution.linking.c1_vars_link;   master_problem_solution.linking.c2_vars_link; ...
+            model.linking.c1_vars_nolink; model.linking.c2_vars_nolink; ...
+            model.c3_vars;                                  model.c4_vars ...
+        ];
+    
+        % 3. 计算目标函数
+        if isempty(coeffs)
+            model.objective = 0;
+        else
+            model.objective = coeffs * vars;
+        end
+    else
+        model.objective = [model.c1', model.c2', ...
+            model.c3', model.c4'] * ...
+            [master_problem_solution.c1_vars; master_problem_solution.c2_vars; model.c3_vars; model.c4_vars];
+    end
+
+    
     %% Solving
     model.solution = optimize(model.constraints,model.objective,ops.ops_SP2);
 
@@ -144,3 +126,8 @@ function [Solution] = subproblem2(model,master_problem_solution,subproblem_1_sol
 
     Solution.objective = value(model.objective);
 end
+
+%     model.objective = sum(model.var.var_upper.cost_terms,'all') + ...
+%                       sum(model.var.var_lower.cost_terms,'all') + ...
+%                         10 * ...
+%                         sum(abs(master_problem_solution.A_l_vars),'all');

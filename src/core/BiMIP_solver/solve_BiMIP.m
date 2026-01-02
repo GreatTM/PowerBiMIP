@@ -55,8 +55,6 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
             end
             fprintf('--------------------------------------------------------------------------\n');
         end
-
-        fprintf('Starting disciplined bilevel programming process...\n');
     end
 
     % =========================================================================
@@ -206,12 +204,22 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     model.var.var_upper = bimip_model.var_upper;
     model.var.var_lower = bimip_model.var_lower;
 
-    % --- Step 2: Classify and preprocess the Model ---
-    [model_processed, ops_processed] = preprocess_bilevel_model(model, ops);
+    % --- Step 2: Classifier ---
+    [model_type, coupled_info] =  BiMIP_Model_Classifier(model, ops);
+    
+    model.model_type = model_type;
+
+    if ops.verbose >= 1
+        fprintf('Original model type: %s\n', model.model_type);
+    end
+
+    % --- Step2.5: Preprocess the Model ---
+    model_processed = BimipModelTransformation(coupled_info, model, ops);
 
     % Only print detailed statistics if verbose >= 2
     if ops.verbose >= 1
         fprintf('Disciplined bilevel programming process completed.\n');
+        fprintf('Final Model type: %s\n', model_processed.model_type);
         % Coefficients Statistics
         fprintf('Problem Statistics:\n');
         fprintf('  Upper-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
@@ -219,7 +227,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
         fprintf('  Lower-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
             model_processed.lower_total_rows, model_processed.lower_ineq_rows, model_processed.lower_eq_rows, model_processed.lower_nonzeros);
         fprintf('  Variables (Total): %d continuous, %d integer (%d binary)\n', ...
-            model_processed.cont_vars, model_processed.int_vars + model_processed.bin_vars, model_processed.bin_vars);
+            model_processed.cont_vars, model_processed.int_vars, model_processed.bin_vars);
         fprintf('Coefficient Ranges:\n');
         fprintf('  Matrix Coefficients: [%.1e, %.1e]\n', model_processed.matrix_min, model_processed.matrix_max);
         fprintf('  Objective Coefficients: [%.1e, %.1e]\n', model_processed.obj_min, model_processed.obj_max);
@@ -229,7 +237,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
 
     % --- Step 3: Solve the Model ---
     % Invoke the solver dispatcher to select and run the appropriate algorithm.
-    BiMIP_record = solver_algorithm(model_processed, ops_processed);
+    BiMIP_record = solver_algorithm(model_processed, ops);
 
     % --- Step 4: Extract and Format the Final Solution ---
     Solution = myFun_GetValue(bimip_model);

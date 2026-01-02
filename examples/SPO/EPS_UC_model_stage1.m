@@ -10,8 +10,7 @@ function [var, cons, obj] = EPS_UC_model_stage1(parameter, system_data, data, pr
     var.u = binvar(system_data.Ngen,data.Ntime,'full');
     var.v = binvar(system_data.Ngen,data.Ntime,'full');
     var.w = binvar(system_data.Ngen,data.Ntime,'full');
-    var.pres_forecast = pres_forecast; % 预测向量[data.Ntime x Nwindfarm]
-     
+         
     %% 其他变量定义
     var.pgen = sdpvar(system_data.Ngen,data.Ntime,'full');
     var.ru = sdpvar(system_data.Ngen,data.Ntime,'full');
@@ -47,7 +46,7 @@ function [var, cons, obj] = EPS_UC_model_stage1(parameter, system_data, data, pr
         cons = cons + ...
             (var.rescurtailment >= 0);
         cons = cons + ...
-            (var.rescurtailment <= var.pres_forecast');
+            (var.rescurtailment <= pres_forecast');
     end
     % 切负荷上下限
     if parameter.load_shedding

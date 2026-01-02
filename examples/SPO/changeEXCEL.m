@@ -50,7 +50,7 @@ function changeEXCEL(filename_Belguimload,...
     %% ----------------------------温度-------------------------------- %%
     % 检查路径中是否存在温度mat文件
     if exist('Belguimtemperature.mat', 'file')
-        disp('比利时温度数据mat文件已存在，无需重新生成。');
+        % disp('比利时温度数据mat文件已存在，无需重新生成。');
     else
         % 读取 Excel 文件中的数据
         data_temperature = readtable(filename_Belguimtemperature);
@@ -73,7 +73,7 @@ function changeEXCEL(filename_Belguimload,...
     %% ----------------------------负荷-------------------------------- %%
     % 检查路径中是否存在负荷mat文件
     if exist('Belguimload.mat', 'file')
-        disp('比利时负荷数据mat文件已存在，无需重新生成。');
+        % disp('比利时负荷数据mat文件已存在，无需重新生成。');
     else
         % 读取 Excel 文件中的数据
         data_load = readtable(filename_Belguimload);
@@ -101,7 +101,7 @@ function changeEXCEL(filename_Belguimload,...
     if exist('Belguimoffshore_wind.mat', 'file') &&...
             exist('BelguimFlanders_wind.mat', 'file') &&...
             exist('BelguimWallonias_wind.mat', 'file') % 如果三个文件都存在
-        disp('比利时风电数据mat文件已存在，无需重新生成。');
+        % disp('比利时风电数据mat文件已存在，无需重新生成。');
     else
         % 读取原始Excel文件
         data_wind = readtable(filename_Belguimwind);
@@ -184,7 +184,7 @@ function changeEXCEL(filename_Belguimload,...
     %% -----------------------------光伏------------------------------- %%
     if exist('BelguimFlanders_solar.mat', 'file') &&...
             exist('BelguimWallonias_solar.mat', 'file')  % 如果两个文件都存在
-        disp('比利时光伏数据mat文件已存在，无需重新生成。');
+        % disp('比利时光伏数据mat文件已存在，无需重新生成。');
     else
         % 读取原始Excel文件
         data_solar = readtable(filename_Belguimsolar);

@@ -6,12 +6,7 @@ function main_Centralized_SPO()
     %% 环境初始化
     dbstop if error
     clear; close all; clc; yalmip('clear');
-    originalPath = path; % 记录原路径，方便运行结束之后恢复
-    addpath(genpath('.\src'));    % 加载项目源代码文件夹
-    addpath(genpath('.\data'));   % 加载项目数据文件夹
-    addpath(genpath('.\config')); % 加载项目配置文件夹
-    cleaner = onCleanup(@() myCleanupFun(originalPath)); % 运行结束之后恢复原路径，避免路径污染
-    
+
     %% 参数设置
     params = params_settings(...
         'results_record', 0 ...
@@ -84,14 +79,6 @@ function main_Centralized_SPO()
 
         fprintf('系统：%s,%s\n', params.system_kind,params.system_scale);
 
-        % BiMIP求解工具包配置
-        ops = BiMIPsettings( ...
-            'method', 'exact_KKT', ...
-            'solver', 'gurobi', ...
-            'verbose', 2, ...
-            'max_iterations', 10, ...
-            'optimal_gap', 0.01, ...
-            'penalty_rho',1e4);
         
         tic;
         %% 数据加载
@@ -105,20 +92,24 @@ function main_Centralized_SPO()
         model = model_building(system_data, training_data, params);
         
         %% 调用BiMIP求解器
-        bimip_model = struct();
-        bimip_model.var_upper = model.var; % 包含 theta 等上层决策变量
-        bimip_model.var_lower = {model.var_xl, model.var_zl};
-        bimip_model.cons_upper = model.constraints_upper;
-        bimip_model.cons_lower = model.constraints_lower;
-        bimip_model.obj_upper = model.objective_upper;
-        bimip_model.obj_lower = model.objective_lower;
+        % BiMIP求解工具包配置
+        ops = BiMIPsettings( ...
+            'method', 'exact_KKT', ...
+            'solver', 'gurobi', ...
+            'verbose', 2, ...
+            'max_iterations', 10, ...
+            'optimal_gap', 1e-3, ...
+            'penalty_rho',1e4);
 
-        [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops);
+        [Solution, BiMIP_record] = solve_BiMIP(model, ops);
 
         %% 预测
+        % 得到theta值
+        theta_SPO = Solution.var_upper.theta;
+
         % SPO预测
         SPO_prediction_result = test_data.RES_feature_data * ...
-            BiMIP_record.optimal_solution.var.var_upper.theta(2:end) + BiMIP_record.optimal_solution.var.var_upper.theta(1);
+            theta_SPO(2:end) + theta_SPO(1);
         % 传统预测
         RES_mlrmodel = fitlm(training_data.RES_feature_data, sum(training_data.RES_realization_data,2));
         MSE_prediction_result = predict(RES_mlrmodel, test_data.RES_feature_data);

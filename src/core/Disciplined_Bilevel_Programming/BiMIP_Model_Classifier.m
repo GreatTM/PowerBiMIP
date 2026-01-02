@@ -1,43 +1,13 @@
-function [is_coupled, coupled_info] = has_coupled_constraints(model)
-%HAS_COUPLED_CONSTRAINTS Checks for and identifies coupled constraints in a bilevel model.
-%
-%   Syntax:
-%       [is_coupled, coupled_info] = has_coupled_constraints(model)
-%
-%   Description:
-%       This function checks if a standard-form bilevel MIP model contains
-%       coupled constraints and returns detailed information about them.
-%
-%       A coupled constraint is defined as an upper-level constraint that
-%       includes lower-level decision variables (i.e., a row where the
-%       corresponding coefficients in matrices C_u, D_u, G_u, or H_u are
-%       not all zero).
-%
-%   Input:
-%       model - struct: The standard PowerBiMIP model structure.
-%
-%   Output:
-%       is_coupled   - double: Returns 1 if coupled constraints exist, 0 otherwise.
-%       coupled_info - struct: A struct containing details about the coupled constraints.
-%           .ineq_idx     (logical): A logical vector indicating coupled rows
-%                                    in the upper-level inequality constraints
-%                                    (true means coupled).
-%           .eq_idx       (logical): A logical vector indicating coupled rows
-%                                    in the upper-level equality constraints
-%                                    (true means coupled).
-%           .num_ineq     (double):  The number of coupled inequality constraints.
-%           .num_eq       (double):  The number of coupled equality constraints.
-%           .needs_relaxation (logical): True if coupled upper vars appear in lower constraints.
-
-    % -- Input Validation --
-    if ~isstruct(model)
-        error('PowerBiMIP:InvalidInput', 'Input must be a struct.');
-    end
-    
-    coupled_info = struct('ineq_idx', [], 'eq_idx', [], 'num_ineq', 0, 'num_eq', 0, 'needs_relaxation', false);
-    
+function [model_type, coupled_info] =  BiMIP_Model_Classifier(model, ops)
+    % 检查模型是否含有耦合约束
+    % 初始化耦合约束信息
+    coupled_info = struct('ineq_idx', [], ...
+                              'eq_idx', [], ...
+                              'num_ineq', 0, ...
+                              'num_eq', 0, ...
+                              'needs_relaxation', false);
     % Tolerance for checking if a coefficient is effectively zero.
-    tolerance = 1e-9; 
+    tolerance = 1e-9;
     
     % --- Check inequality constraints: A_u*x_u + B_u*z_u + C_u*x_l + D_u*z_l <= b_u ---
     m_ineq = model.upper_ineq_rows;
@@ -82,14 +52,52 @@ function [is_coupled, coupled_info] = has_coupled_constraints(model)
     else
         coupled_info.eq_idx = false(0,1);
     end
-    
+
     % --- Final Determination ---
     if coupled_info.num_ineq > 0 || coupled_info.num_eq > 0
-        is_coupled = 1;
+        coupled_info.is_coupled = 1;
+    else
+        coupled_info.is_coupled = 0;
+    end
+    
+    % =====================================================================
+    % 检查模型的乐观/悲观属性并赋值 model_type
+    % =====================================================================
+    
+    % 1. 验证 perspective 字段是否存在
+    if ~isfield(ops, 'perspective')
+        error('参数 ops 中缺少 perspective 字段，请指定 ''optimistic'' 或 ''pessimistic''。');
+    end
         
+    % 2. 判断乐观/悲观 (使用 strcmpi 忽略大小写，增强鲁棒性)
+    if strcmpi(ops.perspective, 'optimistic')
+        is_optimistic = true;
+    elseif strcmpi(ops.perspective, 'pessimistic')
+        is_optimistic = false;
+    else
+        % 如果输入既不是 optimistic 也不是 pessimistic
+        error('输入错误：ops.perspective 必须为 ''optimistic'' 或 ''pessimistic''。当前输入为: %s', string(ops.perspective));
+    end
+    
+    % 3. 根据 耦合情况(is_coupled) 和 视角(is_optimistic) 确定 model_type
+    if is_optimistic
+        if coupled_info.is_coupled
+            model_type = 'OBL-CC'; % 乐观 + 有耦合 (Optimistic Bilevel - Coupled Constraints)
+        else
+            model_type = 'OBL';    % 乐观 + 无耦合 (Optimistic Bilevel)
+        end
+    else
+        if coupled_info.is_coupled
+            model_type = 'PBL-CC'; % 悲观 + 有耦合 (Pessimistic Bilevel - Coupled Constraints)
+        else
+            model_type = 'PBL';    % 悲观 + 无耦合 (Pessimistic Bilevel)
+        end
+    end
+
+    % 4. 如果是OBL-CC，进一步细化
+    if strcmpi(model_type, 'OBL-CC')
         % --- Check if upper-level vars in coupled constraints appear in lower-level constraints ---
-        % Extract variable indices from coupled upper-level constraints
-        upper_vars_in_coupled = [];
+        linkingvar_in_coupled = [];
         
         % Tolerance to detect non-zero coefficients
         tol = 1e-9;
@@ -105,14 +113,14 @@ function [is_coupled, coupled_info] = has_coupled_constraints(model)
                 % Find columns that have non-zero coefficients in these rows
                 active_cols = find(sum(abs(sub_Au), 1) > tol);
                 % Extract the variables corresponding to these columns
-                upper_vars_in_coupled = [upper_vars_in_coupled; reshape(getvariables(model.A_u_vars(active_cols)), [], 1)];
+                linkingvar_in_coupled = [linkingvar_in_coupled; reshape(getvariables(model.A_u_vars(active_cols)), [], 1)];
             end
             
             % Check B_u (Binary/Integer upper vars in inequalities)
             if isfield(model, 'B_u') && ~isempty(model.B_u) && isfield(model, 'B_u_vars') && ~isempty(model.B_u_vars)
                 sub_Bu = model.B_u(idx_rows, :);
                 active_cols = find(sum(abs(sub_Bu), 1) > tol);
-                upper_vars_in_coupled = [upper_vars_in_coupled; reshape(getvariables(model.B_u_vars(active_cols)), [], 1)];
+                linkingvar_in_coupled = [linkingvar_in_coupled; reshape(getvariables(model.B_u_vars(active_cols)), [], 1)];
             end
         end
         
@@ -124,18 +132,18 @@ function [is_coupled, coupled_info] = has_coupled_constraints(model)
             if isfield(model, 'E_u') && ~isempty(model.E_u) && isfield(model, 'E_u_vars') && ~isempty(model.E_u_vars)
                 sub_Eu = model.E_u(idx_rows, :);
                 active_cols = find(sum(abs(sub_Eu), 1) > tol);
-                upper_vars_in_coupled = [upper_vars_in_coupled; reshape(getvariables(model.E_u_vars(active_cols)), [], 1)];
+                linkingvar_in_coupled = [linkingvar_in_coupled; reshape(getvariables(model.E_u_vars(active_cols)), [], 1)];
             end
             
             % Check F_u (Binary/Integer upper vars in equalities)
             if isfield(model, 'F_u') && ~isempty(model.F_u) && isfield(model, 'F_u_vars') && ~isempty(model.F_u_vars)
                 sub_Fu = model.F_u(idx_rows, :);
                 active_cols = find(sum(abs(sub_Fu), 1) > tol);
-                upper_vars_in_coupled = [upper_vars_in_coupled; reshape(getvariables(model.F_u_vars(active_cols)), [], 1)];
+                linkingvar_in_coupled = [linkingvar_in_coupled; reshape(getvariables(model.F_u_vars(active_cols)), [], 1)];
             end
         end
         
-        upper_vars_in_coupled = unique(upper_vars_in_coupled);
+        linkingvar_in_coupled = unique(linkingvar_in_coupled);
 
         % Extract variable indices from lower-level constraints
         lower_vars_from_upper = [];
@@ -155,18 +163,16 @@ function [is_coupled, coupled_info] = has_coupled_constraints(model)
         lower_vars_from_upper = unique(lower_vars_from_upper);
         
         % Check if there's any intersection
-        common_vars = intersect(upper_vars_in_coupled, lower_vars_from_upper);
+        common_vars = intersect(linkingvar_in_coupled, lower_vars_from_upper);
         
-        if ~isempty(common_vars)
-            % Upper vars in coupled constraints also appear in lower constraints
-            % Need relaxation (traditional transform_coupled_to_uncoupled)
-            coupled_info.needs_relaxation = true;
-        else
+        if isempty(common_vars)
             % Upper vars in coupled constraints do NOT appear in lower constraints
             % No need for relaxation, can handle directly in SP2
-            coupled_info.needs_relaxation = false;
+            model_type = 'OBL-CC-1'; % 虽然含有耦合约束，但是不需要进行转化
+        else
+            % Upper vars in coupled constraints also appear in lower constraints
+            % Need relaxation (traditional transform_coupled_to_uncoupled)
+            model_type = 'OBL-CC-2'; % 含有耦合约束，且需要进行转化
         end
-    else
-        is_coupled = 0;
     end
 end

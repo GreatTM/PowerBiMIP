@@ -85,7 +85,7 @@ function [var, cons, obj] = EPS_UC_model_stage2(parameter, system_data, data, fi
 %     cons = cons + ((branch_flow <= system_data.pbranchlimit.upper * ones(1,data.Ntime)));
     
     %% 统一目标函数
-    var.cost_terms = [
+    cost_term = [
         sum((system_data.cost.c1 * ones(1,data.Ntime)) .* first_stage_var.pgen, 'all')      % 燃料成本
         sum((system_data.cost.c0 * ones(1,data.Ntime)) .* first_stage_var.u, 'all')         % 空载成本
         sum((system_data.cost.startup * ones(1,data.Ntime)) .* first_stage_var.v, 'all')         % 启停成本（新增）
@@ -95,5 +95,11 @@ function [var, cons, obj] = EPS_UC_model_stage2(parameter, system_data, data, fi
         200 * sum(var.rescurtailment_2stage, 'all') .* parameter.res_curtailment
         1000 * sum(var.loadshedding_2stage, 'all') .* parameter.load_shedding
     ];
-    obj = sum(var.cost_terms);
+    obj = sum(cost_term);
+    var.cost_terms = [
+        sum((system_data.cost.compensation_up * ones(1,data.Ntime)) .* var.pgen_up, 'all')  % 上调补偿
+        sum((system_data.cost.compensation_down * ones(1,data.Ntime)) .* var.pgen_down, 'all') % 下调补偿
+        200 * sum(var.rescurtailment_2stage, 'all') .* parameter.res_curtailment
+        1000 * sum(var.loadshedding_2stage, 'all') .* parameter.load_shedding
+    ];
 end
