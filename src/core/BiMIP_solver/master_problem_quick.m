@@ -71,34 +71,7 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         model.solution = optimize(model.constraints,model.objective,ops.ops_MP);
 
         %% Output
-        Solution.var = myFun_GetValue(model.var);
-        Solution.solution = model.solution;
-
-        Solution.A_u_vars = value(model.A_u_vars);
-        Solution.B_u_vars = value(model.B_u_vars);
-        Solution.C_u_vars = value(model.C_u_vars);
-        Solution.D_u_vars = value(model.D_u_vars);
-        Solution.E_u_vars = value(model.E_u_vars);
-        Solution.F_u_vars = value(model.F_u_vars);
-        Solution.G_u_vars = value(model.G_u_vars);
-        Solution.H_u_vars = value(model.H_u_vars);
-
-        Solution.A_l_vars = value(model.A_l_vars);
-        Solution.B_l_vars = value(model.B_l_vars);
-        Solution.C_l_vars = value(model.C_l_vars);
-        Solution.D_l_vars = value(model.D_l_vars);
-        Solution.E_l_vars = value(model.E_l_vars);
-        Solution.F_l_vars = value(model.F_l_vars);
-        Solution.G_l_vars = value(model.G_l_vars);
-        Solution.H_l_vars = value(model.H_l_vars);
-
-        Solution.c1_vars = value(model.c1_vars);
-        Solution.c2_vars = value(model.c2_vars);
-        Solution.c3_vars = value(model.c3_vars);
-        Solution.c4_vars = value(model.c4_vars);
-        Solution.c5_vars = value(model.c5_vars);
-        Solution.c6_vars = value(model.c6_vars);
-        Solution.objective = value(model.objective);
+        Solution = myFun_GetValue(model);
         Solution.padm_log_chars = 0;
 
     else
@@ -449,36 +422,8 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         model.solution.problem = 0; % Indicate successful solve.
         
         %% Output
+        Solution = myFun_GetValue(model);
         Solution.padm_iter = padm_iter;
-        Solution.var = myFun_GetValue(model.var);
-        Solution.new_var = myFun_GetValue(model.new_var);
-        Solution.solution = model.solution;
-
-        Solution.A_u_vars = value(model.A_u_vars);
-        Solution.B_u_vars = value(model.B_u_vars);
-        Solution.C_u_vars = value(model.C_u_vars);
-        Solution.D_u_vars = value(model.D_u_vars);
-        Solution.E_u_vars = value(model.E_u_vars);
-        Solution.F_u_vars = value(model.F_u_vars);
-        Solution.G_u_vars = value(model.G_u_vars);
-        Solution.H_u_vars = value(model.H_u_vars);
-
-        Solution.A_l_vars = value(model.A_l_vars);
-        Solution.B_l_vars = value(model.B_l_vars);
-        Solution.C_l_vars = value(model.C_l_vars);
-        Solution.D_l_vars = value(model.D_l_vars);
-        Solution.E_l_vars = value(model.E_l_vars);
-        Solution.F_l_vars = value(model.F_l_vars);
-        Solution.G_l_vars = value(model.G_l_vars);
-        Solution.H_l_vars = value(model.H_l_vars);
-
-        Solution.c1_vars = value(model.c1_vars);
-        Solution.c2_vars = value(model.c2_vars);
-        Solution.c3_vars = value(model.c3_vars);
-        Solution.c4_vars = value(model.c4_vars);
-        Solution.c5_vars = value(model.c5_vars);
-        Solution.c6_vars = value(model.c6_vars);
-
         Solution.objective = value(original_objective);
         Solution.padm_log_chars = padm_log_chars;
     end

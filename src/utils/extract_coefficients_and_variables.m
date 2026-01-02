@@ -160,6 +160,82 @@ function model = extract_coefficients_and_variables(var_x_u, var_z_u, var_x_l, v
         model.rhs_min = 0;
         model.rhs_max = 0;
     end
+    
+    % =====================================================================
+    % --- Step 8: Identify Linking Variables ---
+    % =====================================================================
+    model.linking = struct();
+
+    idx_linking_vars = [];
+    if isfield(model, 'A_l_vars') && ~isempty(model.A_l_vars)
+        idx_linking_vars = [idx_linking_vars; reshape(getvariables(model.A_l_vars(:)), [], 1)];
+    end
+    if isfield(model, 'B_l_vars') && ~isempty(model.B_l_vars)
+        idx_linking_vars = [idx_linking_vars; reshape(getvariables(model.B_l_vars(:)), [], 1)];
+    end
+    if isfield(model, 'E_l_vars') && ~isempty(model.E_l_vars)
+        idx_linking_vars = [idx_linking_vars; reshape(getvariables(model.E_l_vars(:)), [], 1)];
+    end
+    if isfield(model, 'F_l_vars') && ~isempty(model.F_l_vars)
+        idx_linking_vars = [idx_linking_vars; reshape(getvariables(model.F_l_vars(:)), [], 1)];
+    end
+    
+    idx_linking_vars = unique(idx_linking_vars);
+    
+    idx_A_u_vars = getvariables(model.A_u_vars);
+    idx_B_u_vars = getvariables(model.B_u_vars);
+    idx_E_u_vars = getvariables(model.E_u_vars);
+    idx_F_u_vars = getvariables(model.F_u_vars);
+    idx_c1_vars = getvariables(model.c1_vars);
+    idx_c2_vars = getvariables(model.c2_vars);
+    
+    % --- 识别关联变量 (Linking Variables) ---
+    model.linking.A_u_vars_link = recover(intersect(idx_A_u_vars, idx_linking_vars));
+    model.linking.B_u_vars_link = recover(intersect(idx_B_u_vars, idx_linking_vars));
+    model.linking.E_u_vars_link = recover(intersect(idx_E_u_vars, idx_linking_vars));
+    model.linking.F_u_vars_link = recover(intersect(idx_F_u_vars, idx_linking_vars));
+    model.linking.c1_vars_link = recover(intersect(idx_c1_vars, idx_linking_vars));
+    model.linking.c2_vars_link = recover(intersect(idx_c2_vars, idx_linking_vars));
+    
+    % --- 识别非关联变量 (Non-linking Variables) ---
+    % 注意：这里需要对比的是"该类变量的总索引"与"该类变量中被识别为link的索引"
+    model.linking.A_u_vars_nolink = recover(setdiff(idx_A_u_vars, idx_linking_vars));
+    model.linking.B_u_vars_nolink = recover(setdiff(idx_B_u_vars, idx_linking_vars));
+    model.linking.E_u_vars_nolink = recover(setdiff(idx_E_u_vars, idx_linking_vars));
+    model.linking.F_u_vars_nolink = recover(setdiff(idx_F_u_vars, idx_linking_vars));
+    model.linking.c1_vars_nolink = recover(setdiff(idx_c1_vars, idx_linking_vars));
+    model.linking.c2_vars_nolink = recover(setdiff(idx_c2_vars, idx_linking_vars));
+
+    % =====================================================================
+    % --- Step 9: Extract Coefficients for Linked and Non-linked Variables ---
+    % =====================================================================
+    % 提取 A 对应的系数
+    [model.linking.A_u_link, ~] = extract_coefficients(model.linking.A_u_vars_link, model.A_u_vars, model.A_u);
+    [model.linking.A_u_nolink, ~] = extract_coefficients(model.linking.A_u_vars_nolink, model.A_u_vars, model.A_u);
+
+    % 提取 B 对应的系数
+    [model.linking.B_u_link, ~] = extract_coefficients(model.linking.B_u_vars_link, model.B_u_vars, model.B_u);
+    [model.linking.B_u_nolink, ~] = extract_coefficients(model.linking.B_u_vars_nolink, model.B_u_vars, model.B_u);
+
+    % 提取 E 对应的系数
+    [model.linking.E_u_link, ~] = extract_coefficients(model.linking.E_u_vars_link, model.E_u_vars, model.E_u);
+    [model.linking.E_u_nolink, ~] = extract_coefficients(model.linking.E_u_vars_nolink, model.E_u_vars, model.E_u);
+
+    % 提取 F 对应的系数
+    [model.linking.F_u_link, ~] = extract_coefficients(model.linking.F_u_vars_link, model.F_u_vars, model.F_u);
+    [model.linking.F_u_nolink, ~] = extract_coefficients(model.linking.F_u_vars_nolink, model.F_u_vars, model.F_u);
+
+    % 提取 c1 对应的系数
+    [c1_link_temp, ~] = extract_coefficients(model.linking.c1_vars_link, model.c1_vars, model.c1');
+    model.linking.c1_link = c1_link_temp(:);
+    [c1_nolink_temp, ~] = extract_coefficients(model.linking.c1_vars_nolink, model.c1_vars, model.c1');
+    model.linking.c1_nolink = c1_nolink_temp(:);
+
+    % 提取 c2 对应的系数
+    [c2_link_temp, ~] = extract_coefficients(model.linking.c2_vars_link, model.c2_vars, model.c2');
+    model.linking.c2_link = c2_link_temp(:);
+    [c2_nolink_temp, ~] = extract_coefficients(model.linking.c2_vars_nolink, model.c2_vars, model.c2');
+    model.linking.c2_nolink = c2_nolink_temp(:);
 end
 
 %% Helper Function - Extract Coefficients with Variable Filtering

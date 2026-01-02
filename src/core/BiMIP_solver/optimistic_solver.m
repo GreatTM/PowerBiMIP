@@ -140,9 +140,9 @@ function iteration_record = optimistic_solver(model, ops)
             %      % SP2 is not needed, reuse SP1 solution
             %      iteration_record.subproblem_2_solution{curr_iter} = iteration_record.subproblem_1_solution{curr_iter};
             % else
-                iteration_record.subproblem_2_solution{curr_iter} = subproblem2(model,...
-                    iteration_record.master_problem_solution{curr_iter},...
-                    iteration_record.subproblem_1_solution{curr_iter}, ops);
+            iteration_record.subproblem_2_solution{curr_iter} = subproblem2(model,...
+                iteration_record.master_problem_solution{curr_iter},...
+                iteration_record.subproblem_1_solution{curr_iter}, ops);
             % end
             
             % Ensure objective is scalar (handle empty or vector cases)
@@ -162,6 +162,7 @@ function iteration_record = optimistic_solver(model, ops)
                 new_UB = iteration_record.UB(end);
                 iteration_record.UB(end+1) = new_UB; 
                 if ~is_quick_mode
+                    % 允许SP2不可行
                     warning('Subproblem 2 failed to solve in iter %d\n%s',...
                             curr_iter, yalmiperror(iteration_record.subproblem_2_solution{curr_iter}.solution.problem));
                 end
