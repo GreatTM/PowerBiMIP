@@ -77,12 +77,12 @@ function [var, cons, obj] = EPS_UC_model_stage2(parameter, system_data, data, fi
     cons = cons + ...
         (sum(first_stage_var.pgen + var.pgen_up - var.pgen_down,1) + sum(renewable_power,1) == sum(load_power,1));
     
-    % 直流潮流
-    branch_flow = system_data.PTDF.gen * (first_stage_var.pgen + var.pgen_up - var.pgen_down) + ...
-                 system_data.PTDF.renewablegen * renewable_power - ...
-                 system_data.PTDF.load * load_power;
-    cons = cons + ((system_data.pbranchlimit.lower * ones(1,data.Ntime)) <= branch_flow);
-    cons = cons + ((branch_flow <= system_data.pbranchlimit.upper * ones(1,data.Ntime)));
+    % % 直流潮流
+    % branch_flow = system_data.PTDF.gen * (first_stage_var.pgen + var.pgen_up - var.pgen_down) + ...
+    %              system_data.PTDF.renewablegen * renewable_power - ...
+    %              system_data.PTDF.load * load_power;
+    % cons = cons + ((system_data.pbranchlimit.lower * ones(1,data.Ntime)) <= branch_flow);
+    % cons = cons + ((branch_flow <= system_data.pbranchlimit.upper * ones(1,data.Ntime)));
     
     %% 统一目标函数
     cost_term = [

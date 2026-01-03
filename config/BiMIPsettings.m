@@ -100,7 +100,7 @@ function options = BiMIPsettings(varargin)
         solverVerbose = 1; % Expose solver logs only in debug mode
     end
     % options.ops_MP = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'method', 4);
-    options.ops_MP  = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 1500, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 1500);
-    options.ops_SP1 = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 1500, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 1500);
-    options.ops_SP2 = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'cplex.timelimit', 1500, 'gurobi.TuneTimeLimit', 0, 'gurobi.TimeLimit', 1500);
+    options.ops_MP  = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
+    options.ops_SP1 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
+    options.ops_SP2 = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
 end
