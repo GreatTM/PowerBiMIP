@@ -1,0 +1,65 @@
+第1个周期 [2023-11-26 至 2023-12-02]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  method          = 'quick'
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 45538 (45370 ineq, 168 eq), 105860 non-zeros
+  Lower-Level Constraints: 45528 (37800 ineq, 7728 eq), 83685 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [9.8e-01, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 4.0e+02]
+  RHS Values:          [2.5e+01, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB Gap (estimated) |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  159342.3295 162433.5335 159706.6978 |   159342.33   159706.70       0.23% |      1.7
+L1-PADM Iter 1: L1-PADM1=564196.0534 | L1-PADM2=159624.6252 | Gap=71.71% | PrimalDiff=Inf
+L1-PADM Iter 2: L1-PADM1=159624.6252 | L1-PADM2=159624.6252 | Gap=0.00% | PrimalDiff=4.0e-12
+L1-PADM achieved primal stability.
+Penalty term is acceptable (0.0000 <= 0.0001). L1-PADM converged.
+                                                                                                                                                                                                                                                                                                 2 |  159624.6252 162986.3359 159624.6252 |   159624.63   159624.63       0.00% |      4.8
+Quick mode convergence condition met.
+
+Convergence criteria met (gap (estimated) = 0.00% <= 0.10%).
+-----------------------------------------------------------------------------------------------
+Solution Summary:
+  Objective value: 159624.6252    
+  Best bound:      159624.6252    
+  Gap:             0.00% (estimated)
+  Iterations:      2
+  Time elapsed:    4.82 seconds
+-----------------------------------------------------------------------------------------------
+
+Total Cost Reduction: 8.32%
+
+Statistical Metrics Comparison:
+       <strong>Metric</strong>       <strong>MSE_Pred</strong>    <strong>SPO_Pred</strong>
+    <strong>____________</strong>    <strong>________</strong>    <strong>________</strong>
+    {'MSE'     }     1.3588      14.609 
+    {'MAE'     }    0.92901      3.6171 
+    {'MOPE (%)'}     3.5302           0 
+    {'MUPE (%)'}     2.5714      24.069 
+所有结果已保存至文件夹: .\results\20260104_002044

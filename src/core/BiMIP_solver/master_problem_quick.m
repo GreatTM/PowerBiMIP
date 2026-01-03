@@ -424,6 +424,9 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         %% Output
         Solution = myFun_GetValue(model);
         Solution.padm_iter = padm_iter;
+        Solution.padm1_objectives = padm1_objectives;
+        Solution.padm2_objectives = padm2_objectives;
+        Solution.padm_gap = padm_gaps;
         Solution.objective = value(original_objective);
         Solution.padm_log_chars = padm_log_chars;
     end

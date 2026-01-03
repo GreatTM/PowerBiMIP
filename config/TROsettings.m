@@ -89,6 +89,6 @@ function options = TROsettings(varargin)
     if options.verbose >= 3
         solverVerbose = 1; % Only expose solver logs in debug mode
     end
-    options.ops_MP = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'method', 4);
+    options.ops_MP = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
     options.ops_SP = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
 end

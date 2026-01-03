@@ -1,4 +1,4 @@
-function [CostReduction, Statistics] = plot_results(test_data, MSE_prediction_result, SPO_prediction_result, Solution_UC2_MSE, Solution_UC2_SPO, params, test_range)
+function [CostReduction, Statistics] = plot_results(test_data, MSE_prediction_result, SPO_prediction_result, Solution_UC1_MSE, Solution_UC1_SPO, Solution_UC2_MSE, Solution_UC2_SPO, params, test_range)
     %% 获取测试日期范围
     test_date_str = [datestr(test_range(1), 'yyyy-mm-dd') ' 至 ' datestr(test_range(2), 'yyyy-mm-dd')];
     
@@ -21,8 +21,8 @@ function [CostReduction, Statistics] = plot_results(test_data, MSE_prediction_re
 
     %% 图2：UC2成本项对比（新增过滤逻辑）
     % 提取非零成本项
-    mse_terms = Solution_UC2_MSE.cost_terms;
-    spo_terms = Solution_UC2_SPO.cost_terms;
+    mse_terms = [Solution_UC1_MSE.var.cost_terms(1:4); Solution_UC2_MSE.var.cost_terms];
+    spo_terms = [Solution_UC1_SPO.var.cost_terms(1:4); Solution_UC2_SPO.var.cost_terms];
     
     % 创建非零索引（至少有一个模型对应项不为零）
     non_zero_idx = (mse_terms ~= 0) | (spo_terms ~= 0);
