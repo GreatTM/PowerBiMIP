@@ -63,3 +63,5 @@ Statistical Metrics Comparison:
     {'MOPE (%)'}     3.5302           0 
     {'MUPE (%)'}     2.5714      24.069 
 所有结果已保存至文件夹: .\results\20260104_002044
+clc
+clear

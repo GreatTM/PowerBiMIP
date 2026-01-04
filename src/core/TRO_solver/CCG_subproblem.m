@@ -228,7 +228,7 @@ function sp_result = CCG_subproblem(model, ops, y_star, ~)
     sp_result.u_star = u_star;
     sp_result.Q_value = Q_value;
     sp_result.x_star = x_star;
-    sp_result.sp_solution = struct('Solution',Solution);
+    sp_result.sp_solution = Solution;
     sp_result.solution = struct('problem',0);
 end
 

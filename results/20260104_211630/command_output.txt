@@ -1,0 +1,82 @@
+第1个周期 [2023-11-26 至 2023-12-02]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 45538 (45370 ineq, 168 eq), 105860 non-zeros
+  Lower-Level Constraints: 45528 (37800 ineq, 7728 eq), 83685 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [9.8e-01, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 4.0e+02]
+  RHS Values:          [2.5e+01, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB         Gap |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  159342.3295 162433.5335 159706.6978 |   159342.33   159706.70       0.23% |      3.1
+{Operation terminated by user during <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sortrows>sortBackToFront', 'D:\MATLAB\R2025b\toolbox\matlab\datafun\sortrows.m', 119)" style="font-weight:bold">sortrows>sortBackToFront</a> (<a href="matlab: opentoline('D:\MATLAB\R2025b\toolbox\matlab\datafun\sortrows.m',119,0)">line 119</a>)
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sortrows', 'D:\MATLAB\R2025b\toolbox\matlab\datafun\sortrows.m', 73)" style="font-weight:bold">sortrows</a> (<a href="matlab: opentoline('D:\MATLAB\R2025b\toolbox\matlab\datafun\sortrows.m',73,0)">line 73</a>)
+            I = sortBackToFront(A, col, nanflag, compareflag);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('unique>uniqueR2012a', 'D:\MATLAB\R2025b\toolbox\matlab\ops\unique.m', 239)" style="font-weight:bold">unique>uniqueR2012a</a> (<a href="matlab: opentoline('D:\MATLAB\R2025b\toolbox\matlab\ops\unique.m',239,0)">line 239</a>)
+            [sortA,indSortA] = sortrows(a);
+                               ^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('unique', 'D:\MATLAB\R2025b\toolbox\matlab\ops\unique.m', 101)" style="font-weight:bold">unique</a> (<a href="matlab: opentoline('D:\MATLAB\R2025b\toolbox\matlab\ops\unique.m',101,0)">line 101</a>)
+        [varargout{1:nlhs}] = uniqueR2012a(varargin{1},sortedOutput,firstOccurrence,byRows);
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('lmi/kkt', 'D:\YALMIP-R20230622\extras\@lmi\kkt.m', 157)" style="font-weight:bold">lmi/kkt</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\extras\@lmi\kkt.m',157,0)">line 157</a>)
+[dummy,rr] = unique([A b],'rows');
+             ^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('master_problem_KKT', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\master_problem_KKT.m', 245)" style="font-weight:bold">master_problem_KKT</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\master_problem_KKT.m',245,0)">line 245</a>)
+            [kkt_conditions{i}, kkt_details{i}] = kkt(model.cons_for_KKT{i}, ...
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('optimistic_solver', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\optimistic_solver.m', 94)" style="font-weight:bold">optimistic_solver</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\optimistic_solver.m',94,0)">line 94</a>)
+                        master_problem_KKT(model, ops, iteration_record);
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solver_algorithm', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solver_algorithm.m', 21)" style="font-weight:bold">solver_algorithm</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solver_algorithm.m',21,0)">line 21</a>)
+        BiMIP_record = optimistic_solver(model, ops);
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solve_BiMIP', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m', 240)" style="font-weight:bold">solve_BiMIP</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m',240,0)">line 240</a>)
+    BiMIP_record = solver_algorithm(model_processed, ops);
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Copy_of_main_Centralized_SPO', 'E:\3. Toolbox\PowerBiMIP\examples\SPO\Copy_of_main_Centralized_SPO.m', 105)" style="font-weight:bold">Copy_of_main_Centralized_SPO</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\SPO\Copy_of_main_Centralized_SPO.m',105,0)">line 105</a>)
+        [Solution, BiMIP_record] = solve_BiMIP(model, ops);
+                                   ^^^^^^^^^^^^^^^^^^^^^^^} 
+{Operation terminated by user during matlab.graphics.controls.internal.Backdrop
+
+In matlab.graphics.controls.AxesToolbar
+
+In matlab.ui.controls.AxesToolbar
+
+In matlab.graphics.controls.ToolbarController.getDefaultToolbar
+
+In matlab.graphics.controls.WebToolbarController.createToolbar
+
+In matlab.graphics.controls.WebToolbarController/cleanupStrandedToolbars
+
+In matlab.graphics.controls.WebToolbarController>localCleanupStrandedToolbars
+
+In matlab.graphics.controls.WebToolbarController>@()localCleanupStrandedToolbars(obj,allAx(1))} 
+main_Centralized_SPO

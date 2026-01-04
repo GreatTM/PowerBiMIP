@@ -222,6 +222,8 @@ function CCG_record = algorithm_CCG(model, ops, u_init)
         plotConvergenceCurves(plotData, ops.plot, 'final');
     end
     
+    CCG_record.master_problem_solution = iteration_record.master_problem_solution;
+    CCG_record.subproblem_solution = iteration_record.subproblem_solution;
     CCG_record.convergence_trace.lb = trace_lb(1:actual_iter);
     CCG_record.convergence_trace.ub = trace_ub(1:actual_iter);
     CCG_record.convergence_trace.gap = trace_gap(1:actual_iter);
