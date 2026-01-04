@@ -1,0 +1,202 @@
+第1个周期 [2023-11-24 至 2023-11-30]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  method          = 'quick'
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 48562 (48394 ineq, 168 eq), 110396 non-zeros
+  Lower-Level Constraints: 48552 (40824 ineq, 7728 eq), 95781 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [4.9e-02, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 4.0e+02]
+  RHS Values:          [5.6e-02, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB Gap (estimated) |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  139938.3455 124767.7547 276380.1669 |   139938.35   276380.17      49.37% |     10.8
+L1-PADM Iter 1: L1-PADM1=1464863087.7309 | L1-PADM2=196376.7681 | Gap=99.99% | PrimalDiff=Inf
+L1-PADM Iter 2: L1-PADM1=196376.7681 | L1-PADM2=192344.4473 | Gap=2.05% | PrimalDiff=1.0e+00
+L1-PADM Iter 3: L1-PADM1=192344.4473 | L1-PADM2=191173.2994 | Gap=0.61% | PrimalDiff=1.0e+00
+L1-PADM Iter 4: L1-PADM1=191173.2994 | L1-PADM2=191173.2994 | Gap=0.00% | PrimalDiff=8.8e-01
+L1-PADM achieved primal stability.
+Penalty term is acceptable (0.0000 <= 0.0001). L1-PADM converged.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               2 |  191173.2994 139548.8890 191173.2994 |   191173.30   191173.30      -0.00% |     36.1
+Quick mode convergence condition met.
+
+Convergence criteria met (gap (estimated) = -0.00% <= 0.10%).
+-----------------------------------------------------------------------------------------------
+Solution Summary:
+  Objective value: 191173.2994    
+  Best bound:      191173.2994    
+  Gap:             -0.00% (estimated)
+  Iterations:      2
+  Time elapsed:    36.15 seconds
+-----------------------------------------------------------------------------------------------
+
+Total Cost Reduction: -47.98%
+
+Statistical Metrics Comparison:
+       Metric       MSE_Pred    SPO_Pred 
+    ____________    ________    _________
+
+    {'MSE'     }    0.79278        5.1531
+    {'MAE'     }    0.68472        2.0449
+    {'MOPE (%)'}      3.673        63.627
+    {'MUPE (%)'}     9.4833     0.0072579
+
+第2个周期 [2023-11-25 至 2023-12-01]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  method          = 'quick'
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 48562 (48394 ineq, 168 eq), 110396 non-zeros
+  Lower-Level Constraints: 48552 (40824 ineq, 7728 eq), 95781 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [4.9e-02, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 4.0e+02]
+  RHS Values:          [5.6e-02, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB Gap (estimated) |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  148774.3436 136006.2352 263595.0389 |   148774.34   263595.04      43.56% |      4.8
+L1-PADM Iter 1: L1-PADM1=1176928595.9288 | L1-PADM2=209934.9383 | Gap=99.98% | PrimalDiff=Inf
+L1-PADM Iter 2: L1-PADM1=209934.9383 | L1-PADM2=209783.1455 | Gap=0.07% | PrimalDiff=1.0e+00
+L1-PADM Iter 3: L1-PADM1=209783.1455 | L1-PADM2=209783.1455 | Gap=0.00% | PrimalDiff=1.0e+00
+L1-PADM achieved primal stability.
+Penalty term is acceptable (0.0000 <= 0.0001). L1-PADM converged.
+                                                                                                                                                                                                                                                                                                                                                                                                  2 |  209783.1455 144249.0197 209783.1455 |   209783.15   209783.15      -0.00% |     17.6
+Quick mode convergence condition met.
+
+Convergence criteria met (gap (estimated) = -0.00% <= 0.10%).
+-----------------------------------------------------------------------------------------------
+Solution Summary:
+  Objective value: 209783.1455    
+  Best bound:      209783.1455    
+  Gap:             -0.00% (estimated)
+  Iterations:      2
+  Time elapsed:    17.59 seconds
+-----------------------------------------------------------------------------------------------
+
+Total Cost Reduction: -43.49%
+
+Statistical Metrics Comparison:
+       Metric       MSE_Pred    SPO_Pred
+    ____________    ________    ________
+
+    {'MSE'     }    0.48907      3.4489 
+    {'MAE'     }    0.56856      1.7501 
+    {'MOPE (%)'}     6.6434      78.941 
+    {'MUPE (%)'}     9.8751           0 
+
+第3个周期 [2023-11-26 至 2023-12-02]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  method          = 'quick'
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 48562 (48394 ineq, 168 eq), 110396 non-zeros
+  Lower-Level Constraints: 48552 (40824 ineq, 7728 eq), 95781 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [4.9e-02, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 4.0e+02]
+  RHS Values:          [5.6e-02, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB Gap (estimated) |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  154965.6753 142961.9595 262906.8375 |   154965.68   262906.84      41.06% |      6.6
+L1-PADM Iter 1: L1-PADM1=1041928937.8031 | L1-PADM2=223267.7162 | Gap=99.98% | PrimalDiff=Inf
+L1-PADM Iter 2: L1-PADM1=223267.7162 | L1-PADM2=223267.7162 | Gap=0.00% | PrimalDiff=1.2e-01
+L1-PADM achieved primal stability.
+Penalty term is acceptable (0.0000 <= 0.0001). L1-PADM converged.
+                                                                                                                                                                                                                                                                                                     2 |  223267.7162 148504.0954 223267.7162 |   223267.72   223267.72      -0.00% |     21.1
+Quick mode convergence condition met.
+
+Convergence criteria met (gap (estimated) = -0.00% <= 0.10%).
+-----------------------------------------------------------------------------------------------
+Solution Summary:
+  Objective value: 223267.7162    
+  Best bound:      223267.7162    
+  Gap:             -0.00% (estimated)
+  Iterations:      2
+  Time elapsed:    21.09 seconds
+-----------------------------------------------------------------------------------------------
+
+Total Cost Reduction: 0.23%
+
+Statistical Metrics Comparison:
+       Metric       MSE_Pred    SPO_Pred
+    ____________    ________    ________
+
+    {'MSE'     }     1.3588      1.4474 
+    {'MAE'     }    0.92901      1.0077 
+    {'MOPE (%)'}     3.5302      4.7012 
+    {'MUPE (%)'}     2.5714      2.4684 
+
+所有结果已保存至文件夹: .\results\20260104_003414

@@ -1,0 +1,51 @@
+第1个周期 [2023-11-24 至 2023-11-30]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 137938 (137770 ineq, 168 eq), 12355244 non-zeros
+  Lower-Level Constraints: 138600 (130872 ineq, 7728 eq), 7783629 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [4.6e-05, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 1.0e+03]
+  RHS Values:          [3.9e-01, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB         Gap |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  139927.9570 189075.3534 164501.6552 |   139927.96   164501.66      14.94% |    173.8
+{错误使用 <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('optimistic_solver', 'C:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\optimistic_solver.m', 105)" style="font-weight:bold">optimistic_solver</a> (<a href="matlab: opentoline('C:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\optimistic_solver.m',105,0)">第 105 行</a>)
+Master problem failed to solve in iter 2:
+Unknown problem (<a href="yalmip.github.io/inside/debug">learn to debug</a>)
+
+出错 <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solver_algorithm', 'C:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solver_algorithm.m', 21)" style="font-weight:bold">solver_algorithm</a> (<a href="matlab: opentoline('C:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solver_algorithm.m',21,0)">第 21 行</a>)
+        BiMIP_record = optimistic_solver(model, ops);
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+出错 <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solve_BiMIP', 'C:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m', 240)" style="font-weight:bold">solve_BiMIP</a> (<a href="matlab: opentoline('C:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m',240,0)">第 240 行</a>)
+    BiMIP_record = solver_algorithm(model_processed, ops);
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+出错 <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Copy_8_of_main_Centralized_SPO', 'C:\3. Toolbox\PowerBiMIP\examples\SPO\Copy_8_of_main_Centralized_SPO.m', 105)" style="font-weight:bold">Copy_8_of_main_Centralized_SPO</a> (<a href="matlab: opentoline('C:\3. Toolbox\PowerBiMIP\examples\SPO\Copy_8_of_main_Centralized_SPO.m',105,0)">第 105 行</a>)
+        [Solution, BiMIP_record] = solve_BiMIP(model, ops);
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+} 
