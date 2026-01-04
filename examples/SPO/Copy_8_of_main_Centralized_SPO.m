@@ -2,7 +2,7 @@
 % 函数输入：无
 % 函数输出：无
 
-function main_Centralized_SPO()
+function Copy_8_of_main_Centralized_SPO()
     %% 环境初始化
     dbstop if error
     clear; close all; clc; yalmip('clear');

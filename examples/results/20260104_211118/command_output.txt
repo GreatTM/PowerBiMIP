@@ -1,0 +1,38 @@
+第1个周期 [2023-11-26 至 2023-12-02]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  method          = 'eaxct_KKT'
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+{Operation terminated by user during <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sdpvar/subsref>subsref1d', 'D:\YALMIP-R20230622\@sdpvar\subsref.m', 254)" style="font-weight:bold">sdpvar/subsref>subsref1d</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\@sdpvar\subsref.m',254,0)">line 254</a>)
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sdpvar/subsref', 'D:\YALMIP-R20230622\@sdpvar\subsref.m', 47)" style="font-weight:bold">indexing</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\@sdpvar\subsref.m',47,0)">line 47</a>)
+                    y = subsref1d(X,Y(1).subs{1},Y);
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('extsubsref', 'D:\YALMIP-R20230622\extras\extsubsref.m', 4)" style="font-weight:bold">extsubsref</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\extras\extsubsref.m',4,0)">line 4</a>)
+    z = x(i);
+        ^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sdpvar/exponents', 'D:\YALMIP-R20230622\@sdpvar\exponents.m', 9)" style="font-weight:bold">sdpvar/exponents</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\@sdpvar\exponents.m',9,0)">line 9</a>)
+    x_var = [x_var getvariables(extsubsref(x,i))];
+                                ^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sdpvar/degree', 'D:\YALMIP-R20230622\@sdpvar\degree.m', 56)" style="font-weight:bold">sdpvar/degree</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\@sdpvar\degree.m',56,0)">line 56</a>)
+    exponent_p = exponents(p,y);
+                 ^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solve_BiMIP', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m', 174)" style="font-weight:bold">solve_BiMIP</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m',174,0)">line 174</a>)
+    deg_u = degree(obj_upper);
+            ^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('main_Centralized_SPO', 'E:\3. Toolbox\PowerBiMIP\examples\SPO\main_Centralized_SPO.m', 104)" style="font-weight:bold">main_Centralized_SPO</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\SPO\main_Centralized_SPO.m',104,0)">line 104</a>)
+        [Solution, BiMIP_record] = solve_BiMIP(model, ops);
+                                   ^^^^^^^^^^^^^^^^^^^^^^^} 
+main_Centralized_SPO
