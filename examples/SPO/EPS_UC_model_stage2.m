@@ -18,23 +18,23 @@ function [var, cons, obj] = EPS_UC_model_stage2(parameter, system_data, data, fi
     % 非负约束
     cons = cons + (var.pgen_up >= 0);
     cons = cons + (var.pgen_down >= 0);
-    cons = cons + (var.ru_2stage >= 0);
-    cons = cons + (var.rd_2stage >= 0);
-    % 旋转备用上下限
-    cons = cons + ...
-        (var.ru_2stage <= first_stage_var.u .* (system_data.ramplimit.up * ones(1,data.Ntime)));
-    cons = cons + ...
-        (var.rd_2stage <= first_stage_var.u .* (system_data.ramplimit.down * ones(1,data.Ntime)));
+    % cons = cons + (var.ru_2stage >= 0);
+    % cons = cons + (var.rd_2stage >= 0);
+    % % 旋转备用上下限
+    % cons = cons + ...
+    %     (var.ru_2stage <= first_stage_var.u .* (system_data.ramplimit.up * ones(1,data.Ntime)));
+    % cons = cons + ...
+    %     (var.rd_2stage <= first_stage_var.u .* (system_data.ramplimit.down * ones(1,data.Ntime)));
     % 出力上下限约束
     adjusted_pgen = first_stage_var.pgen + var.pgen_up - var.pgen_down;
-    cons = cons + ...
-        (adjusted_pgen + var.ru_2stage <= first_stage_var.u .* (system_data.plimit.upper * ones(1,data.Ntime)));
-    cons = cons + ...
-        (adjusted_pgen - var.rd_2stage >= first_stage_var.u .* (system_data.plimit.lower * ones(1,data.Ntime)));
     % cons = cons + ...
-    %     (adjusted_pgen <= first_stage_var.u .* (system_data.plimit.upper * ones(1,data.Ntime)));
+    %     (adjusted_pgen + var.ru_2stage <= first_stage_var.u .* (system_data.plimit.upper * ones(1,data.Ntime)));
     % cons = cons + ...
-    %     (adjusted_pgen >= first_stage_var.u .* (system_data.plimit.lower * ones(1,data.Ntime)));
+    %     (adjusted_pgen - var.rd_2stage >= first_stage_var.u .* (system_data.plimit.lower * ones(1,data.Ntime)));
+    cons = cons + ...
+        (adjusted_pgen <= first_stage_var.u .* (system_data.plimit.upper * ones(1,data.Ntime)));
+    cons = cons + ...
+        (adjusted_pgen >= first_stage_var.u .* (system_data.plimit.lower * ones(1,data.Ntime)));
 
    % 新能源弃风约束
     if parameter.res_curtailment
@@ -48,26 +48,26 @@ function [var, cons, obj] = EPS_UC_model_stage2(parameter, system_data, data, fi
         cons = cons + (var.loadshedding_2stage <= data.pload_realization_data');
     end
 
-    %% 爬坡约束（分周期处理）
-    for block = 1:num_blocks
-        t_start = (block-1)*24 + 1;
-        t_end = block*24;
-        t_range = t_start:t_end;
-
-        % 当前块出力变量
-        block_pgen = first_stage_var.pgen(:,t_range) + var.pgen_up(:,t_range) - var.pgen_down(:,t_range);
-
-        % ====== 爬坡约束 ======
-        delta_pgen = diff(block_pgen, 1, 2);
-        cons = cons + ((-system_data.ramplimit.down * ones(1, 23)) <= delta_pgen);
-        cons = cons + (delta_pgen <= (system_data.ramplimit.up * ones(1, 23)));
-    end
-
-    %% 旋转备用约束
-    cons = cons + ...
-        (sum(var.ru_2stage,1) >= 0.05 * sum(data.pload_realization_data,2)');
-    cons = cons + ...
-        (sum(var.rd_2stage,1) >= 0.05 * sum(data.pload_realization_data,2)');
+    % %% 爬坡约束（分周期处理）
+    % for block = 1:num_blocks
+    %     t_start = (block-1)*24 + 1;
+    %     t_end = block*24;
+    %     t_range = t_start:t_end;
+    % 
+    %     % 当前块出力变量
+    %     block_pgen = first_stage_var.pgen(:,t_range) + var.pgen_up(:,t_range) - var.pgen_down(:,t_range);
+    % 
+    %     % ====== 爬坡约束 ======
+    %     delta_pgen = diff(block_pgen, 1, 2);
+    %     cons = cons + ((-system_data.ramplimit.down * ones(1, 23)) <= delta_pgen);
+    %     cons = cons + (delta_pgen <= (system_data.ramplimit.up * ones(1, 23)));
+    % end
+    % 
+    % %% 旋转备用约束
+    % cons = cons + ...
+    %     (sum(var.ru_2stage,1) >= 0.05 * sum(data.pload_realization_data,2)');
+    % cons = cons + ...
+    %     (sum(var.rd_2stage,1) >= 0.05 * sum(data.pload_realization_data,2)');
 
     %% 统一能量平衡与潮流约束
     renewable_power = data.pres_realization_data' - var.rescurtailment_2stage.*parameter.res_curtailment;

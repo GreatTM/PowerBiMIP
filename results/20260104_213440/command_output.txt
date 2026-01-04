@@ -1,0 +1,80 @@
+第1个周期 [2023-11-24 至 2023-11-30]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  method          = 'quick'
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 167884 (167716 ineq, 168 eq), 12502664 non-zeros
+  Lower-Level Constraints: 123480 (115752 ineq, 7728 eq), 7768509 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [4.6e-05, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 1.0e+03]
+  RHS Values:          [1.9e-03, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB Gap (estimated) |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  139927.9570 189075.3534 164501.6552 |   139927.96   164501.66      14.94% |     46.4
+L1-PADM Iter 1: L1-PADM1=18517161644.0836 | L1-PADM2=163007.2418 | Gap=100.00% | PrimalDiff=Inf
+L1-PADM Iter 2: L1-PADM1=163007.2418 | L1-PADM2=162918.9810 | Gap=0.05% | PrimalDiff=3.0e-01
+L1-PADM Iter 3: L1-PADM1=162918.9810 | L1-PADM2=162588.0979 | Gap=0.20% | PrimalDiff=4.5e-01
+L1-PADM Iter 4: L1-PADM1=162588.0978 | L1-PADM2=162268.7687 | Gap=0.20% | PrimalDiff=5.0e-01
+L1-PADM Iter 5: L1-PADM1=162268.7686 | L1-PADM2=162109.6655 | Gap=0.10% | PrimalDiff=5.6e-01
+L1-PADM Iter 6: L1-PADM1=162109.6654 | L1-PADM2=161043.0555 | Gap=0.66% | PrimalDiff=5.7e-01
+L1-PADM Iter 7: L1-PADM1=161043.0554 | L1-PADM2=160767.9548 | Gap=0.17% | PrimalDiff=4.0e-01
+L1-PADM Iter 8: L1-PADM1=160767.9547 | L1-PADM2=160156.4376 | Gap=0.38% | PrimalDiff=5.2e-01
+{Operation terminated by user during <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('cplexmiqcp')" style="font-weight:bold">cplexmiqcp</a>
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('cplexmilp')" style="font-weight:bold">cplexmilp</a>
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('call_cplexibm_miqp>localSolverCall', 'D:\YALMIP-R20230622\solvers\call_cplexibm_miqp.m', 163)" style="font-weight:bold">call_cplexibm_miqp>localSolverCall</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\solvers\call_cplexibm_miqp.m',163,0)">line 163</a>)
+            evalc('[x,fval,exitflag,output] = cplexmilp(f,Aineq,bineq,Aeq,beq,K.sos.type,K.sos.variables,K.sos.weight,lb,ub,ctype,x0,options.cplex);');
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('call_cplexibm_miqp', 'D:\YALMIP-R20230622\solvers\call_cplexibm_miqp.m', 32)" style="font-weight:bold">call_cplexibm_miqp</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\solvers\call_cplexibm_miqp.m',32,0)">line 32</a>)
+[x,fval,exitflag,output,lambda] = localSolverCall(model);
+                                  ^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('call_cplexibm_qcmiqp', 'D:\YALMIP-R20230622\solvers\call_cplexibm_qcmiqp.m', 9)" style="font-weight:bold">call_cplexibm_qcmiqp</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\solvers\call_cplexibm_qcmiqp.m',9,0)">line 9</a>)
+    output = call_cplexibm_miqp(interfacedata);
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solvesdp', 'D:\YALMIP-R20230622\extras\solvesdp.m', 423)" style="font-weight:bold">solvesdp</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\extras\solvesdp.m',423,0)">line 423</a>)
+        eval(['output = ' solver.call '(interfacedata);']);
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('optimize', 'D:\YALMIP-R20230622\extras\optimize.m', 31)" style="font-weight:bold">optimize</a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\extras\optimize.m',31,0)">line 31</a>)
+[varargout{1:nargout}] = solvesdp(varargin{:});
+                         ^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('master_problem_quick', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\master_problem_quick.m', 319)" style="font-weight:bold">master_problem_quick</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\master_problem_quick.m',319,0)">line 319</a>)
+            padm2_diag = optimize(model.constraints_PADM2, model.objective_PADM2, ops.ops_MP);
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('optimistic_solver', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\optimistic_solver.m', 100)" style="font-weight:bold">optimistic_solver</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\optimistic_solver.m',100,0)">line 100</a>)
+                        master_problem_quick(model, ops, iteration_record);
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solver_algorithm', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solver_algorithm.m', 21)" style="font-weight:bold">solver_algorithm</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solver_algorithm.m',21,0)">line 21</a>)
+        BiMIP_record = optimistic_solver(model, ops);
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('solve_BiMIP', 'E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m', 240)" style="font-weight:bold">solve_BiMIP</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m',240,0)">line 240</a>)
+    BiMIP_record = solver_algorithm(model_processed, ops);
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Copy_2_of_main_Centralized_SPO', 'E:\3. Toolbox\PowerBiMIP\examples\SPO\Copy_2_of_main_Centralized_SPO.m', 105)" style="font-weight:bold">Copy_2_of_main_Centralized_SPO</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\SPO\Copy_2_of_main_Centralized_SPO.m',105,0)">line 105</a>)
+        [Solution, BiMIP_record] = solve_BiMIP(model, ops);
+                                   ^^^^^^^^^^^^^^^^^^^^^^^} 

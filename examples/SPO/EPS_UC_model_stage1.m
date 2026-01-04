@@ -25,22 +25,22 @@ function [var, cons, obj] = EPS_UC_model_stage1(parameter, system_data, data, pr
     cons = [];
     % 变量上下限约束
     cons = cons + (var.pgen >= 0);
-    cons = cons + (var.ru >= 0);
-    cons = cons + (var.rd >= 0);
-    % 旋转备用上下限
-    cons = cons + ...
-        (var.ru <= var.u .* (system_data.ramplimit.up * ones(1,data.Ntime)));
-    cons = cons + ...
-        (var.rd <= var.u .* (system_data.ramplimit.down * ones(1,data.Ntime)));
+    % cons = cons + (var.ru >= 0);
+    % cons = cons + (var.rd >= 0);
+    % % 旋转备用上下限
+    % cons = cons + ...
+    %     (var.ru <= var.u .* (system_data.ramplimit.up * ones(1,data.Ntime)));
+    % cons = cons + ...
+    %     (var.rd <= var.u .* (system_data.ramplimit.down * ones(1,data.Ntime)));
     % 出力上下限约束
-    cons = cons + ...
-        (var.pgen + var.ru <= var.u .* (system_data.plimit.upper * ones(1, data.Ntime)));
-    cons = cons + ...
-        (var.pgen - var.rd >= var.u .* (system_data.plimit.lower * ones(1, data.Ntime)));
     % cons = cons + ...
-    %     (var.pgen <= var.u .* (system_data.plimit.upper * ones(1, data.Ntime)));
+    %     (var.pgen + var.ru <= var.u .* (system_data.plimit.upper * ones(1, data.Ntime)));
     % cons = cons + ...
-    %     (var.pgen >= var.u .* (system_data.plimit.lower * ones(1, data.Ntime)));
+    %     (var.pgen - var.rd >= var.u .* (system_data.plimit.lower * ones(1, data.Ntime)));
+    cons = cons + ...
+        (var.pgen <= var.u .* (system_data.plimit.upper * ones(1, data.Ntime)));
+    cons = cons + ...
+        (var.pgen >= var.u .* (system_data.plimit.lower * ones(1, data.Ntime)));
     % 新能源机组弃风上下限
     if parameter.res_curtailment
         cons = cons + ...
@@ -74,36 +74,36 @@ function [var, cons, obj] = EPS_UC_model_stage1(parameter, system_data, data, pr
                 == v_history(:, history_length + t) - w_history(:, history_length + t));
         end
         
-        % ====== 最小启停时间约束 ======
-        for i = 1:system_data.Ngen
-            % 开机时间约束
-            for t = 1:24
-                start_t = max(1, t - system_data.mintime.on(i) + 1);
-                cons = cons + (sum(v_history(i, history_length + start_t : history_length + t)) <= u_history(i, history_length + t));
-            end
-
-            % 停机时间约束
-            for t = 1:24
-                start_t = max(1, t - system_data.mintime.off(i) + 1);
-                cons = cons + (sum(w_history(i, history_length + start_t : history_length + t)) <= 1 - u_history(i, history_length + t));
-            end
-        end
-
-        % ====== 爬坡约束 ======
-        block_pgen = var.pgen(:, t_range);
-        delta_pgen = diff(block_pgen, 1, 2);
-        cons = cons + ...
-            ((-system_data.ramplimit.down * ones(1, 23)) <= delta_pgen);
-        cons = cons + ...
-            (delta_pgen <= (system_data.ramplimit.up * ones(1, 23)));
+        % % ====== 最小启停时间约束 ======
+        % for i = 1:system_data.Ngen
+        %     % 开机时间约束
+        %     for t = 1:24
+        %         start_t = max(1, t - system_data.mintime.on(i) + 1);
+        %         cons = cons + (sum(v_history(i, history_length + start_t : history_length + t)) <= u_history(i, history_length + t));
+        %     end
+        % 
+        %     % 停机时间约束
+        %     for t = 1:24
+        %         start_t = max(1, t - system_data.mintime.off(i) + 1);
+        %         cons = cons + (sum(w_history(i, history_length + start_t : history_length + t)) <= 1 - u_history(i, history_length + t));
+        %     end
+        % end
+        % 
+        % % ====== 爬坡约束 ======
+        % block_pgen = var.pgen(:, t_range);
+        % delta_pgen = diff(block_pgen, 1, 2);
+        % cons = cons + ...
+        %     ((-system_data.ramplimit.down * ones(1, 23)) <= delta_pgen);
+        % cons = cons + ...
+        %     (delta_pgen <= (system_data.ramplimit.up * ones(1, 23)));
     end
     
     %% 旋转备用约束
-    % ====== 旋转备用约束(每时段备用覆盖负荷15%) ======
-    cons = cons + ...
-        (sum(var.ru,1) >= 0.05 * sum(data.pload_realization_data,2)');
-    cons = cons + ...
-        (sum(var.rd,1) >= 0.05 * sum(data.pload_realization_data,2)');
+    % % ====== 旋转备用约束(每时段备用覆盖负荷15%) ======
+    % cons = cons + ...
+    %     (sum(var.ru,1) >= 0.05 * sum(data.pload_realization_data,2)');
+    % cons = cons + ...
+    %     (sum(var.rd,1) >= 0.05 * sum(data.pload_realization_data,2)');
 
     %% 能量平衡与潮流
     renewable_power = pres_forecast' - var.rescurtailment.*parameter.res_curtailment;
