@@ -85,7 +85,7 @@ function system_data = case118_modified
         1000;1000;1000;1000;1000;1000;1000;1000;1000;1000;
         1000;1000;1000;1000;1000;1000;1000;1000;1000;1000;
         1000;1000;1000;1000;1000;1000
-    ] / system_data.Sbase; % 支路潮流上限
+    ] / system_data.Sbase*2; % 支路潮流上限
     system_data.pbranchlimit.lower = [
         -1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;
         -1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;
@@ -106,7 +106,7 @@ function system_data = case118_modified
         -1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;
         -1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;-1000;
         -1000;-1000;-1000;-1000;-1000;-1000
-    ] / system_data.Sbase; % 支路潮流下限
+    ] / system_data.Sbase*2; % 支路潮流下限
     PTDF = round(makePTDF(mpc), 4); % 计算转移系数（行：to line 列：from bus）
     system_data.PTDF.gen = PTDF(:,system_data.gen_bus); % 机组所在对应的转移系数
     system_data.PTDF.renewablegen = PTDF(:,system_data.renewablegen_bus); % 新能源机组所在节点对应的转移系数

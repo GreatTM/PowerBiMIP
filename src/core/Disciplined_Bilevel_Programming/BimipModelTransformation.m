@@ -3,7 +3,7 @@ function model_processed = BimipModelTransformation(coupled_info, model, ops)
         % If the model is already uncoupled, no preprocessing is needed.
         model_processed = model;
         if ops.verbose >= 1
-            fprintf('No preprocessing is needed');
+            fprintf('No preprocessing is needed.\n');
         end
         return;
     elseif strcmpi(model.model_type, 'OBL-CC-1')

@@ -27,7 +27,7 @@ function Copy_2_of_main_Centralized_SPO()
     end
 
     %% 定义时间参数
-    start_date = datetime('2023-11-24 00:00:00');
+    start_date = datetime('2023-11-26 00:00:00');
     end_date = datetime('2023-12-03 23:45:00');
     current_train_start = start_date;
 

@@ -1,0 +1,560 @@
+第1个周期 [2023-11-26 至 2023-12-02]
+系统：eps,big
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  method          = 'quick'
+  solver          = 'cplex'
+  verbose         = 2
+  plot__verbose   = 1
+  optimal_gap     = 0.001
+  penalty_rho     = 10000
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL-CC-1
+Initial model has coupled constraints, but they do NOT require transformation.
+There are no linking variables in coupled constraints.
+Skipping transformation. Coupled constraints will be handled in subproblems.
+Disciplined bilevel programming process completed.
+Final Model type: OBL-CC-1
+Problem Statistics:
+  Upper-Level Constraints: 122818 (122650 ineq, 168 eq), 12340124 non-zeros
+  Lower-Level Constraints: 123480 (115752 ineq, 7728 eq), 7768509 non-zeros
+  Variables (Total): 86530 continuous, 22680 integer (22680 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [4.6e-05, 2.9e+01]
+  Objective Coefficients: [1.0e+01, 1.0e+03]
+  RHS Values:          [1.0e-01, 5.6e+01]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+-----------------------------------------------------------------------------------------------
+  Iter |       MP Obj     SP1 Obj     SP2 Obj |          LB          UB Gap (estimated) |  Time(s)
+-----------------------------------------------------------------------------------------------
+     1 |  154955.4219 191607.1045 173281.2632 |   154955.42   173281.26      10.58% |     47.3
+L1-PADM Iter 1: L1-PADM1=12458201418.7273 | L1-PADM2=171594.0971 | Gap=100.00% | PrimalDiff=Inf
+L1-PADM Iter 2: L1-PADM1=171594.0971 | L1-PADM2=171239.4818 | Gap=0.21% | PrimalDiff=1.0e+00
+L1-PADM Iter 3: L1-PADM1=171239.4817 | L1-PADM2=170083.1204 | Gap=0.68% | PrimalDiff=1.0e+00
+L1-PADM Iter 4: L1-PADM1=170083.1204 | L1-PADM2=169086.7981 | Gap=0.59% | PrimalDiff=8.8e-01
+L1-PADM Iter 5: L1-PADM1=169086.7980 | L1-PADM2=168754.8862 | Gap=0.20% | PrimalDiff=8.8e-01
+L1-PADM Iter 6: L1-PADM1=168754.8862 | L1-PADM2=168572.6646 | Gap=0.11% | PrimalDiff=8.8e-01
+L1-PADM Iter 7: L1-PADM1=168572.6646 | L1-PADM2=168035.6525 | Gap=0.32% | PrimalDiff=8.8e-01
+L1-PADM Iter 8: L1-PADM1=168035.6524 | L1-PADM2=167517.6129 | Gap=0.31% | PrimalDiff=8.8e-01
+L1-PADM Iter 9: L1-PADM1=167517.6128 | L1-PADM2=167054.2615 | Gap=0.28% | PrimalDiff=8.8e-01
+L1-PADM Iter 10: L1-PADM1=167054.2614 | L1-PADM2=166321.2363 | Gap=0.44% | PrimalDiff=8.8e-01
+L1-PADM Iter 11: L1-PADM1=166321.2362 | L1-PADM2=166173.2851 | Gap=0.09% | PrimalDiff=8.8e-01
+L1-PADM Iter 12: L1-PADM1=166173.2851 | L1-PADM2=165571.3439 | Gap=0.36% | PrimalDiff=8.8e-01
+L1-PADM Iter 13: L1-PADM1=165571.3439 | L1-PADM2=165172.8323 | Gap=0.24% | PrimalDiff=8.8e-01
+L1-PADM Iter 14: L1-PADM1=165172.8323 | L1-PADM2=164527.1850 | Gap=0.39% | PrimalDiff=8.8e-01
+L1-PADM Iter 15: L1-PADM1=164527.1849 | L1-PADM2=164328.6434 | Gap=0.12% | PrimalDiff=8.8e-01
+L1-PADM Iter 16: L1-PADM1=164328.6434 | L1-PADM2=163987.4226 | Gap=0.21% | PrimalDiff=8.8e-01
+L1-PADM Iter 17: L1-PADM1=163987.4226 | L1-PADM2=163857.4831 | Gap=0.08% | PrimalDiff=9.0e-01
+L1-PADM Iter 18: L1-PADM1=163857.4831 | L1-PADM2=163787.8741 | Gap=0.04% | PrimalDiff=8.1e-01
+L1-PADM Iter 19: L1-PADM1=163787.8741 | L1-PADM2=163532.1380 | Gap=0.16% | PrimalDiff=7.6e-01
+L1-PADM Iter 20: L1-PADM1=163532.1380 | L1-PADM2=163312.7061 | Gap=0.13% | PrimalDiff=8.0e-01
+L1-PADM Iter 21: L1-PADM1=163312.7060 | L1-PADM2=163060.5692 | Gap=0.15% | PrimalDiff=1.0e+00
+L1-PADM Iter 22: L1-PADM1=163060.5692 | L1-PADM2=162212.4119 | Gap=0.52% | PrimalDiff=8.6e-01
+L1-PADM Iter 23: L1-PADM1=162212.4119 | L1-PADM2=161831.8537 | Gap=0.23% | PrimalDiff=8.1e-01
+L1-PADM Iter 24: L1-PADM1=161831.8536 | L1-PADM2=161405.9513 | Gap=0.26% | PrimalDiff=8.1e-01
+L1-PADM Iter 25: L1-PADM1=161405.9513 | L1-PADM2=160822.6728 | Gap=0.36% | PrimalDiff=7.2e-01
+L1-PADM Iter 26: L1-PADM1=160822.6728 | L1-PADM2=160689.2155 | Gap=0.08% | PrimalDiff=7.2e-01
+L1-PADM Iter 27: L1-PADM1=160689.2155 | L1-PADM2=160566.1680 | Gap=0.08% | PrimalDiff=7.2e-01
+L1-PADM Iter 28: L1-PADM1=160566.1680 | L1-PADM2=159691.5835 | Gap=0.54% | PrimalDiff=7.2e-01
+L1-PADM Iter 29: L1-PADM1=159691.5835 | L1-PADM2=159650.2885 | Gap=0.03% | PrimalDiff=7.2e-01
+L1-PADM Iter 30: L1-PADM1=159650.2885 | L1-PADM2=159501.4079 | Gap=0.09% | PrimalDiff=4.2e-01
+L1-PADM Iter 31: L1-PADM1=159501.4078 | L1-PADM2=159481.3925 | Gap=0.01% | PrimalDiff=8.1e-01
+L1-PADM Iter 32: L1-PADM1=159481.3925 | L1-PADM2=159478.3462 | Gap=0.00% | PrimalDiff=8.1e-01
+L1-PADM Iter 33: L1-PADM1=159478.3462 | L1-PADM2=159478.3462 | Gap=0.00% | PrimalDiff=0.0e+00
+L1-PADM achieved primal stability.
+Penalty term is acceptable (0.0000 <= 0.0001). L1-PADM converged.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  2 |  159478.3462 163096.7346 159478.3462 |   159478.35   159478.35       0.00% |   1205.0
+Quick mode convergence condition met.
+
+Convergence criteria met (gap (estimated) = 0.00% <= 0.10%).
+-----------------------------------------------------------------------------------------------
+Solution Summary:
+  Objective value: 159478.3462    
+  Best bound:      159478.3462    
+  Gap:             0.00% (estimated)
+  Iterations:      2
+  Time elapsed:    1205.00 seconds
+-----------------------------------------------------------------------------------------------
+
+Total Cost Reduction: 8.21%
+
+Statistical Metrics Comparison:
+       <strong>Metric</strong>       <strong>MSE_Pred</strong>    <strong>SPO_Pred</strong>
+    <strong>____________</strong>    <strong>________</strong>    <strong>________</strong>
+    {'MSE'     }     1.3588      15.326 
+    {'MAE'     }    0.92901      3.7027 
+    {'MOPE (%)'}     3.5302           0 
+    {'MUPE (%)'}     2.5714      24.419 
+所有结果已保存至文件夹: .\results\20260104_223609
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+数据载入完成。
+总 R&D 迭代次数: 2
+开始生成 PADM 迭代图 (从第 2 次 R&D 迭代开始)...
+  已保存图片: results\figures\RD_Iter_2_PADM_Convergence.png
+所有绘图任务完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图...
+  已保存: RD_Iter_2_PADM_Convergence.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图...
+  已保存: RD_Iter_2_PADM_Convergence.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图...
+  已保存: RD_Iter_2_PADM_Convergence.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (宽度减半，TeX字体)...
+  已保存: RD_Iter_2_PADM_Convergence_HalfWidth.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (宽度减半，TeX字体)...
+  已保存: RD_Iter_2_PADM_Convergence_HalfWidth.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (宽度减半，TeX字体)...
+  已保存: RD_Iter_2_PADM_Convergence_HalfWidth.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (宽度减半，TeX字体)...
+  已保存: RD_Iter_2_PADM_Convergence_HalfWidth.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (图例置顶不遮挡)...
+  已保存: RD_Iter_2_PADM_Convergence_NoOverlap.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (宽度减半，TeX字体)...
+  已保存: RD_Iter_2_PADM_Convergence_HalfWidth.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (宽度减半，TeX字体)...
+  已保存: RD_Iter_2_PADM_Convergence_HalfWidth.png
+绘图完成。
+plot_spo
+正在载入数据: E:\3. Toolbox\PowerBiMIP\results\20260104_223609\workspace_variables.mat ...
+开始生成优化后的 PADM 迭代图 (宽度减半，TeX字体)...
+  已保存: RD_Iter_2_PADM_Convergence_HalfWidth.png
+绘图完成。
+NetworkDesign_Zeng
+{Not enough input arguments.
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('NetworkDesign_Zeng', 'E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m', 13)" style="font-weight:bold">NetworkDesign_Zeng</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m',13,0)">line 13</a>)
+    fprintf('Building VSP Model with %d Nodes and %d Links...\n', num_nodes, num_links);
+                                                                  ^^^^^^^^^} 
+NetworkDesign_Zeng(10, 30)
+Building VSP Model with 10 Nodes and 30 Links...
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sdpvar/times', 'D:\YALMIP-R20230622\@sdpvar\times.m', 8)" style="font-weight:bold"> .* </a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\@sdpvar\times.m',8,0)">line 8</a>)
+Matrix dimensions must agree.
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('NetworkDesign_Zeng', 'E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m', 143)" style="font-weight:bold">NetworkDesign_Zeng</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m',143,0)">line 143</a>)
+    obj_travel = sum(sum(data.arc_costs .* model.var_lower.v));
+                                        ^} 
+<a href="matlab: opentoline('D:\YALMIP-R20230622\@sdpvar\times.m',8,1)">8   </a>        error('Matrix dimensions must agree.')
+NetworkDesign_Zeng
+未检测到输入参数，使用默认值：Nodes=10, Links=30
+Building VSP Model with 10 Nodes and 30 Links...
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('sdpvar/times', 'D:\YALMIP-R20230622\@sdpvar\times.m', 8)" style="font-weight:bold"> .* </a> (<a href="matlab: opentoline('D:\YALMIP-R20230622\@sdpvar\times.m',8,0)">line 8</a>)
+Matrix dimensions must agree.
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('NetworkDesign_Zeng', 'E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m', 150)" style="font-weight:bold">NetworkDesign_Zeng</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m',150,0)">line 150</a>)
+    obj_travel = sum(sum(data.arc_costs .* model.var_lower.v));
+                                        ^} 
+NetworkDesign_Zeng
+未检测到输入参数，使用默认值：Nodes=10, Links=30
+Building VSP Model with 10 Nodes and 30 Links...
+Solving BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is neededDisciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 51 (51 ineq, 0 eq), 100 non-zeros
+  Lower-Level Constraints: 157 (137 ineq, 20 eq), 374 non-zeros
+  Variables (Total): 80 continuous, 30 integer (10 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [1.4e-01, 5.9e+01]
+  Objective Coefficients: [5.5e-02, 9.6e+00]
+  RHS Values:          [1.7e+01, 2.0e+03]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+--- Optimal Solution Found ---
+Operator Revenue: 0.00
+User Travel Cost: 216.81
+Stations built at nodes: [1 2 3 4 5 6 8 9 10]
+  Node 1: Cap=20, Vehicles=0
+  Node 2: Cap=20, Vehicles=20
+  Node 3: Cap=0, Vehicles=0
+  Node 4: Cap=0, Vehicles=0
+  Node 5: Cap=20, Vehicles=0
+  Node 6: Cap=9, Vehicles=9
+  Node 8: Cap=19, Vehicles=19
+  Node 9: Cap=20, Vehicles=6
+  Node 10: Cap=20, Vehicles=0
+matlab.codetools.internal.edit.editRelativeNameOrOpen(['BimipModelTransformation'], ['E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m']);
+matlab.codetools.internal.edit.editRelativeNameOrOpen(['solver_algorithm'], ['E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m']);
+matlab.codetools.internal.edit.editRelativeNameOrOpen(['optimistic_solver'], ['E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solver_algorithm.m']);
+NetworkDesign_Zeng
+{Unrecognized function or variable 'cite_start'.
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('NetworkDesign_Zeng', 'E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m', 3)" style="font-weight:bold">NetworkDesign_Zeng</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m',3,0)">line 3</a>)
+[cite_start]%   Ref: Nair & Miller-Hooks (2014), Eq (1)-(16). [cite: 1087]
+ ^^^^^^^^^^} 
+<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m',3,1)">3   </a>[cite_start]%   Ref: Nair & Miller-Hooks (2014), Eq (1)-(16). [cite: 1087]
+NetworkDesign_Zeng
+Initializing VSP Model...
+  Nodes:  10
+  Links:  30
+  Budget: 2000.00
+Solving BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is needed.
+Disciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 51 (51 ineq, 0 eq), 100 non-zeros
+  Lower-Level Constraints: 157 (137 ineq, 20 eq), 374 non-zeros
+  Variables (Total): 80 continuous, 30 integer (10 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [1.4e-01, 5.9e+01]
+  Objective Coefficients: [5.5e-02, 9.6e+00]
+  RHS Values:          [1.7e+01, 2.0e+03]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+--- Optimal Solution Found ---
+Operator Revenue: 0.00
+User Travel Cost: 216.81
+Stations built at nodes: [1 2 3 4 5 6 8 9 10]
+  Node 1: Cap=20, Vehicles=0
+  Node 2: Cap=20, Vehicles=20
+  Node 3: Cap=0, Vehicles=0
+  Node 4: Cap=0, Vehicles=0
+  Node 5: Cap=20, Vehicles=0
+  Node 6: Cap=9, Vehicles=9
+  Node 8: Cap=19, Vehicles=19
+  Node 9: Cap=20, Vehicles=6
+  Node 10: Cap=20, Vehicles=0
+NetworkDesign_Zeng
+Initializing VSP Model...
+  Nodes:  10
+  Links:  30
+  Budget: 2000.00
+Solving BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is needed.
+Disciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 51 (51 ineq, 0 eq), 100 non-zeros
+  Lower-Level Constraints: 157 (137 ineq, 20 eq), 374 non-zeros
+  Variables (Total): 80 continuous, 30 integer (10 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [1.4e-01, 5.9e+01]
+  Objective Coefficients: [5.5e-02, 9.6e+00]
+  RHS Values:          [1.7e+01, 2.0e+03]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+--- Optimal Solution Found ---
+Operator Revenue: 0.00
+User Travel Cost: 216.81
+Stations built at nodes: [1 2 3 4 5 6 8 9 10]
+  Node 1: Cap=20, Vehicles=0
+  Node 2: Cap=20, Vehicles=20
+  Node 3: Cap=0, Vehicles=0
+  Node 4: Cap=0, Vehicles=0
+  Node 5: Cap=20, Vehicles=0
+  Node 6: Cap=9, Vehicles=9
+  Node 8: Cap=19, Vehicles=19
+  Node 9: Cap=20, Vehicles=6
+  Node 10: Cap=20, Vehicles=0
+NetworkDesign_Zeng
+Initializing VSP Model...
+  Nodes:  22
+  Links:  77
+  Budget: 200.00
+Solving BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is needed.
+Disciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 111 (111 ineq, 0 eq), 220 non-zeros
+  Lower-Level Constraints: 389 (345 ineq, 44 eq), 940 non-zeros
+  Variables (Total): 198 continuous, 66 integer (22 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [1.1e-01, 6.0e+01]
+  Objective Coefficients: [5.1e-02, 9.9e+00]
+  RHS Values:          [1.8e+01, 2.0e+02]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+
+--- Optimal Solution Found ---
+Operator Revenue: 20.72
+User Travel Cost: 650.20
+Stations built at nodes: [11 12]
+  Node 11: Cap=4, Vehicles=4
+  Node 12: Cap=4, Vehicles=0
+BimipModelTransformation
+{Not enough input arguments.
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('BimipModelTransformation', 'E:\3. Toolbox\PowerBiMIP\src\core\Disciplined_Bilevel_Programming\BimipModelTransformation.m', 2)" style="font-weight:bold">BimipModelTransformation</a> (<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\Disciplined_Bilevel_Programming\BimipModelTransformation.m',2,0)">line 2</a>)
+    if strcmpi(model.model_type, 'OBL') || strcmpi(model.model_type, 'PBL')
+               ^^^^^^^^^^^^^^^^} 
+NetworkDesign_Zeng
+Initializing VSP Model...
+  Nodes:  22
+  Links:  77
+  Budget: 200.00
+Solving BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is needed.
+Disciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 111 (111 ineq, 0 eq), 220 non-zeros
+  Lower-Level Constraints: 389 (345 ineq, 44 eq), 940 non-zeros
+  Variables (Total): 198 continuous, 66 integer (22 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [1.1e-01, 6.0e+01]
+  Objective Coefficients: [5.1e-02, 9.9e+00]
+  RHS Values:          [1.8e+01, 2.0e+02]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+-----------------------------------------------------------------------------------------------
+Solution Summary:
+  Objective value: -20.7188       
+  Best bound:      -20.7188       
+  Gap:             0.00%
+  Iterations:      1
+  Time elapsed:    4.49 seconds
+-----------------------------------------------------------------------------------------------
+
+--- Optimal Solution Found ---
+Operator Revenue: 20.72
+User Travel Cost: 650.20
+Stations built at nodes: [11 12]
+  Node 11: Cap=4, Vehicles=4
+  Node 12: Cap=4, Vehicles=0
+NetworkDesign_Zeng
+Initializing VSP Model...
+  Nodes:  22
+  Links:  77
+  Budget: 200.00
+Solving BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is needed.
+Disciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 111 (111 ineq, 0 eq), 220 non-zeros
+  Lower-Level Constraints: 389 (345 ineq, 44 eq), 940 non-zeros
+  Variables (Total): 198 continuous, 66 integer (22 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [1.1e-01, 6.0e+01]
+  Objective Coefficients: [5.1e-02, 9.9e+00]
+  RHS Values:          [1.8e+01, 2.0e+02]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+--------------------------------------------------------------------------
+Solution Summary:
+  Objective value: -20.7188       
+  Best bound:      -20.7188       
+  Gap:             0.00%
+  Iterations:      1
+  Time elapsed:    4.30 seconds
+--------------------------------------------------------------------------
+
+--- Optimal Solution Found ---
+Operator Revenue: 20.72
+User Travel Cost: 650.20
+Stations built at nodes: [11 12]
+  Node 11: Cap=4, Vehicles=4
+  Node 12: Cap=4, Vehicles=0
+matlab.codetools.internal.edit.editRelativeNameOrOpen(['solve_BiMIP'], ['E:\3. Toolbox\PowerBiMIP\examples\NetworkDesign\NetworkDesign_Zeng.m']);
+NetworkDesign_Zeng
+Initializing VSP Model...
+  Nodes:  22
+  Links:  77
+  Budget: 200.00
+Solving BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+<a href="matlab: opentoline('E:\3. Toolbox\PowerBiMIP\src\core\BiMIP_solver\solve_BiMIP.m',208,1)">208 </a>    [model_type, coupled_info] =  BiMIP_Model_Classifier(model, ops);
+NetworkDesign_Zeng
+=== 初始化 VSP 模型 (GRID 拓扑) ===
+  节点数: 22
+  路段数: 77
+  预  算: 200.00
+开始求解 BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is needed.
+Disciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 150 (111 ineq, 39 eq), 259 non-zeros
+  Lower-Level Constraints: 812 (702 ineq, 110 eq), 2097 non-zeros
+  Variables (Total): 495 continuous, 66 integer (22 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [2.0e-01, 8.4e+01]
+  Objective Coefficients: [1.0e+00, 1.5e+01]
+  RHS Values:          [1.2e+01, 2.0e+02]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...
+--------------------------------------------------------------------------
+Solution Summary:
+  Objective value: -87.0480       
+  Best bound:      -87.0480       
+  Gap:             0.00%
+  Iterations:      1
+  Time elapsed:    0.69 seconds
+--------------------------------------------------------------------------
+
+====== 求解结果 ======
+上层目标 (最大化收益): 87.05
+下层目标 (最小化成本): 3059.21
+建设站点列表 (共 2 个):
+  Node 02: 容量 = 7, 初始车辆 = 7
+  Node 06: 容量 = 7, 初始车辆 = 0
+NetworkDesign_Zeng
+=== 初始化 VSP 模型 (GRID 拓扑) ===
+  节点数: 220
+  路段数: 770
+  预  算: 2000.00
+开始求解 BiMIP...
+Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
+GitHub: https://github.com/GreatTM/PowerBiMIP
+Docs:   https://docs.powerbimip.com
+Bilevel optimization interface
+--------------------------------------------------------------------------
+User-specified options:
+  solver        = 'cplex'
+  verbose       = 2
+  optimal_gap   = 0.0001
+--------------------------------------------------------------------------
+Starting disciplined bilevel programming process...
+Original model type: OBL
+No preprocessing is needed.
+Disciplined bilevel programming process completed.
+Final Model type: OBL
+Problem Statistics:
+  Upper-Level Constraints: 1734 (1101 ineq, 633 eq), 2833 non-zeros
+  Lower-Level Constraints: 8353 (7288 ineq, 1065 eq), 21526 non-zeros
+  Variables (Total): 4950 continuous, 660 integer (220 binary)
+Coefficient Ranges:
+  Matrix Coefficients: [2.0e-01, 7.1e+01]
+  Objective Coefficients: [1.0e+00, 1.5e+01]
+  RHS Values:          [1.1e+01, 2.0e+03]
+--------------------------------------------------------------------------
+Solving with optimistic perspective...

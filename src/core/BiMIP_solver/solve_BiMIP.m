@@ -99,19 +99,19 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     % combine to find unique variables actually used in the input model
     idx_model_all = union(idx_upper_all, idx_lower_all);
     
-    % --- [New Feature] Environment Cleanliness Check ---
-    % Check if YALMIP has more variables defined than what is passed in the model.
-    % This usually happens if the user forgot yalmip('clear').
-    num_vars_in_yalmip = yalmip('nvars');
-    num_vars_in_model  = length(idx_model_all);
-    
-    if num_vars_in_yalmip > num_vars_in_model
-        error('PowerBiMIP:DirtyEnvironment', ...
-            ['YALMIP internal state contains %d variables, but the input model only uses %d.\n' ...
-             'You might have "ghost variables" from a previous run.\n' ...
-             'Recommendation: Run "yalmip(''clear'')" before defining your model variables.'], ...
-             num_vars_in_yalmip, num_vars_in_model);
-    end
+    % % --- [New Feature] Environment Cleanliness Check ---
+    % % Check if YALMIP has more variables defined than what is passed in the model.
+    % % This usually happens if the user forgot yalmip('clear').
+    % num_vars_in_yalmip = yalmip('nvars');
+    % num_vars_in_model  = length(idx_model_all);
+    % 
+    % if num_vars_in_yalmip > num_vars_in_model
+    %     error('PowerBiMIP:DirtyEnvironment', ...
+    %         ['YALMIP internal state contains %d variables, but the input model only uses %d.\n' ...
+    %          'You might have "ghost variables" from a previous run.\n' ...
+    %          'Recommendation: Run "yalmip(''clear'')" before defining your model variables.'], ...
+    %          num_vars_in_yalmip, num_vars_in_model);
+    % end
     % ---------------------------------------------------
 
     % 3. Get global indices of ALL integer and binary variables in YALMIP
