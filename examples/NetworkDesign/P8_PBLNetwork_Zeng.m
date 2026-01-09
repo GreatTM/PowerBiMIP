@@ -10,7 +10,7 @@ function P8_PBLNetwork_Zeng(num_nodes, num_links, budget, num_candidates)
 %   349.04s，-87.0480
 
     %% 1. 初始化与参数处理
-    if nargin < 4, num_candidates = 10; end
+    if nargin < 4, num_candidates = 9; end
     if nargin < 3, budget = 200; end
     if nargin < 2, num_links = 77; end
     if nargin < 1, num_nodes = 22; end
@@ -138,7 +138,7 @@ function P8_PBLNetwork_Zeng(num_nodes, num_links, budget, num_candidates)
     ops = BiMIPsettings('perspective', 'pessimistic', ... % 'optimistic' 'pessimistic'
         'method', 'exact_KKT', ...
         'solver', 'cplex', ...
-        'verbose', 2, ...
+        'verbose', 3, ...
         'optimal_gap', 1e-4);
 
     ops.ops_MP.cplex.preprocessing.reduce = 1;
