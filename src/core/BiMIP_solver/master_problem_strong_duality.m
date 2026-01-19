@@ -103,7 +103,7 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
         % --- Subsequent Iterations: Add strong duality optimality cuts ---
 
         %% Define Dual Variables for Strong Duality Cuts
-        bigM = 1e6;  % Big-M constant for dual variable bounds
+        bigM = inf;  % Big-M constant for dual variable bounds
         for i = 1 : iteration_record.iteration_num - 1
             % Create dual variables for the lower-level primal constraints.
             % Inequality dual variables: [-bigM, 0]

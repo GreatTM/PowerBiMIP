@@ -1,4 +1,4 @@
-function model_final = transform_coupled_to_uncoupled(model, kappa, ops)
+function model_final = transform_coupled_to_uncoupled(coupled_info, model, ops)
 %TRANSFORM_COUPLED_TO_UNCOUPLED Transforms a coupled model to an uncoupled one.
 %
 %   Description:
@@ -12,22 +12,17 @@ function model_final = transform_coupled_to_uncoupled(model, kappa, ops)
 %          penalized by a large coefficient 'kappa'.
 %
 %   Input:
+%       coupled_info
 %       model - struct: A standard PowerBiMIP model with coupled constraints.
-%       kappa - double: A large penalty coefficient for the slack variables.
+%       ops
 %
 %   Output:
 %       model_final - struct: An equivalent standard PowerBiMIP model that is
 %                     guaranteed to be uncoupled.
 
     % --- Step 1: Identify Coupled Constraints ---
-    [~, coupled_info] = has_coupled_constraints(model);
     m_ineq_c = coupled_info.num_ineq; 
     m_eq_c = coupled_info.num_eq;
-
-    if m_ineq_c == 0 && m_eq_c == 0
-        fprintf('Warning: No coupled constraints found to transform.\n');
-        return;
-    end
 
     if ops.verbose >= 1
         fprintf('Identified %d coupled inequalities and %d coupled equalities to transform.\n', m_ineq_c, m_eq_c);
@@ -44,7 +39,7 @@ function model_final = transform_coupled_to_uncoupled(model, kappa, ops)
     
     % --- Step 3: Reformulate the Model Components in YALMIP ---
     model_p.c3_vars = [model.c3_vars; new_slack_vars];
-    penalty_coeffs = kappa * ones(length(new_slack_vars), 1);
+    penalty_coeffs = ops.kappa * ones(length(new_slack_vars), 1);
     model_p.c3 = [model.c3; penalty_coeffs];
     
     % 3.2 Define New Constraint Sets 

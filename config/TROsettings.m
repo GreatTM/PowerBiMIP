@@ -28,7 +28,7 @@ function options = TROsettings(varargin)
     default_options.penalty_rho = 100;        % Initial penalty factor for the PADM algorithm
     default_options.penalty_term_gap = 1e-4; % Tolerance for the penalty term to be considered zero
     default_options.rho_tolerance = 1;       % Relative tolerance for penalty rho search (currently unused)
-    default_options.padm_tolerance = 1e-3;   % Convergence tolerance for the PADM algorithm
+    default_options.padm_tolerance = 1e-9;   % Convergence tolerance for the PADM algorithm
     default_options.padm_max_iter = 100;     % Max iterations for the PADM algorithm
 
     % Plot settings
@@ -89,6 +89,6 @@ function options = TROsettings(varargin)
     if options.verbose >= 3
         solverVerbose = 1; % Only expose solver logs in debug mode
     end
-    options.ops_MP = sdpsettings('solver', options.solver, 'verbose', solverVerbose, 'method', 4);
+    options.ops_MP = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
     options.ops_SP = sdpsettings('solver', options.solver, 'verbose', solverVerbose);
 end

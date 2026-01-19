@@ -55,8 +55,6 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
             end
             fprintf('--------------------------------------------------------------------------\n');
         end
-
-        fprintf('Starting disciplined bilevel programming process...\n');
     end
 
     % =========================================================================
@@ -101,7 +99,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     % combine to find unique variables actually used in the input model
     idx_model_all = union(idx_upper_all, idx_lower_all);
     
-    % --- [New Feature] Environment Cleanliness Check ---
+    % % --- [New Feature] Environment Cleanliness Check ---
     % % Check if YALMIP has more variables defined than what is passed in the model.
     % % This usually happens if the user forgot yalmip('clear').
     % num_vars_in_yalmip = yalmip('nvars');
@@ -114,7 +112,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     %          'Recommendation: Run "yalmip(''clear'')" before defining your model variables.'], ...
     %          num_vars_in_yalmip, num_vars_in_model);
     % end
-    % % ---------------------------------------------------
+    % ---------------------------------------------------
 
     % 3. Get global indices of ALL integer and binary variables in YALMIP
     all_int_idx = yalmip('intvariables');
@@ -150,6 +148,11 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
         warning('PowerBiMIP:Settings','plot.verbose>0 is ignored unless verbose>=2.');
     end
     
+    % --- Disciplined bilevel programming process ---
+    if ops.verbose >= 1
+        fprintf('Starting disciplined bilevel programming process...\n');
+    end
+    
     % --- Step 0.3: Linearity and Quadratic Check ---
     % Check Upper-Level Constraints
     if ~isempty(cons_upper)
@@ -171,11 +174,11 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     deg_u = degree(obj_upper);
     if deg_u ~= 1
         if deg_u == 2
-            error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in Upper Level: Feature coming soon!');
+                error('PowerBiMIP:QuadraticObjective', 'Quadratic objective in Upper Level: Feature coming soon!');
         elseif deg_u > 2
-            error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Upper Level detected (Degree: %d). Not supported.', deg_u);
+                error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Upper Level detected (Degree: %d). Not supported.', deg_u);
         else
-            error('The upper-level objective function is a constant. If the objective function must be a constant, modify the model by specifying min x, s.t. x=constant.');
+                warning('The upper-level objective function is a constant. Please verify if this is as expected.');
         end
     end
 
@@ -186,7 +189,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
         elseif deg_l > 2
             error('PowerBiMIP:NonlinearObjective', 'Nonlinear objective in Lower Level detected (Degree: %d). Not supported.', deg_l);
         else
-            error('The lower-level objective function is a constant. If the objective function must be a constant, modify the model by specifying min x, s.t. x=constant.');
+            warning('The lower-level objective function is a constant. Please verify if this is as expected.');
         end
     end
 
@@ -201,12 +204,22 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     model.var.var_upper = bimip_model.var_upper;
     model.var.var_lower = bimip_model.var_lower;
 
-    % --- Step 2: Classify and preprocess the Model ---
-    [model_processed, ops_processed] = preprocess_bilevel_model(model, ops);
+    % --- Step 2: Classifier ---
+    [model_type, coupled_info] =  BiMIP_Model_Classifier(model, ops);
+    
+    model.model_type = model_type;
+
+    if ops.verbose >= 1
+        fprintf('Original model type: %s\n', model.model_type);
+    end
+
+    % --- Step2.5: Preprocess the Model ---
+    model_processed = BimipModelTransformation(coupled_info, model, ops);
 
     % Only print detailed statistics if verbose >= 2
     if ops.verbose >= 1
         fprintf('Disciplined bilevel programming process completed.\n');
+        fprintf('Final Model type: %s\n', model_processed.model_type);
         % Coefficients Statistics
         fprintf('Problem Statistics:\n');
         fprintf('  Upper-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
@@ -214,7 +227,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
         fprintf('  Lower-Level Constraints: %d (%d ineq, %d eq), %d non-zeros\n', ...
             model_processed.lower_total_rows, model_processed.lower_ineq_rows, model_processed.lower_eq_rows, model_processed.lower_nonzeros);
         fprintf('  Variables (Total): %d continuous, %d integer (%d binary)\n', ...
-            model_processed.cont_vars, model_processed.int_vars + model_processed.bin_vars, model_processed.bin_vars);
+            model_processed.cont_vars, model_processed.int_vars, model_processed.bin_vars);
         fprintf('Coefficient Ranges:\n');
         fprintf('  Matrix Coefficients: [%.1e, %.1e]\n', model_processed.matrix_min, model_processed.matrix_max);
         fprintf('  Objective Coefficients: [%.1e, %.1e]\n', model_processed.obj_min, model_processed.obj_max);
@@ -224,7 +237,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
 
     % --- Step 3: Solve the Model ---
     % Invoke the solver dispatcher to select and run the appropriate algorithm.
-    BiMIP_record = solver_algorithm(model_processed, ops_processed);
+    BiMIP_record = solver_algorithm(model_processed, ops);
 
     % --- Step 4: Extract and Format the Final Solution ---
     Solution = myFun_GetValue(bimip_model);

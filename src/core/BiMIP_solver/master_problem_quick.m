@@ -71,41 +71,14 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         model.solution = optimize(model.constraints,model.objective,ops.ops_MP);
 
         %% Output
-        Solution.var = myFun_GetValue(model.var);
-        Solution.solution = model.solution;
-
-        Solution.A_u_vars = value(model.A_u_vars);
-        Solution.B_u_vars = value(model.B_u_vars);
-        Solution.C_u_vars = value(model.C_u_vars);
-        Solution.D_u_vars = value(model.D_u_vars);
-        Solution.E_u_vars = value(model.E_u_vars);
-        Solution.F_u_vars = value(model.F_u_vars);
-        Solution.G_u_vars = value(model.G_u_vars);
-        Solution.H_u_vars = value(model.H_u_vars);
-
-        Solution.A_l_vars = value(model.A_l_vars);
-        Solution.B_l_vars = value(model.B_l_vars);
-        Solution.C_l_vars = value(model.C_l_vars);
-        Solution.D_l_vars = value(model.D_l_vars);
-        Solution.E_l_vars = value(model.E_l_vars);
-        Solution.F_l_vars = value(model.F_l_vars);
-        Solution.G_l_vars = value(model.G_l_vars);
-        Solution.H_l_vars = value(model.H_l_vars);
-
-        Solution.c1_vars = value(model.c1_vars);
-        Solution.c2_vars = value(model.c2_vars);
-        Solution.c3_vars = value(model.c3_vars);
-        Solution.c4_vars = value(model.c4_vars);
-        Solution.c5_vars = value(model.c5_vars);
-        Solution.c6_vars = value(model.c6_vars);
-        Solution.objective = value(model.objective);
+        Solution = myFun_GetValue(model);
         Solution.padm_log_chars = 0;
 
     else
         %% --- Subsequent Iterations: Solve with L1-PADM ---
 
         %% Define New Variables for Cuts
-        bigM = 1e6;  % Big-M constant for dual variable bounds
+        bigM = inf;  % Big-M constant for dual variable bounds
         for i = 1 : iteration_record.iteration_num - 1
             % Create dual variables and penalty helper variable (Phi) for each cut.
             % Inequality dual variables: [-bigM, 0]
@@ -372,8 +345,8 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
             end
             prev_primal_vec = curr_primal_vec;
 
-            is_stable = primal_diff <= ops.padm_tolerance;
-
+            % is_stable = primal_diff <= ops.padm_tolerance;
+            is_stable = obj_gap <= ops.padm_tolerance;
             if ops.verbose >= 1
                 msgFmt = 'L1-PADM Iter %d: L1-PADM1=%.4f | L1-PADM2=%.4f | Gap=%.2f%% | PrimalDiff=%.1e\n';
                 if ops.verbose <= 2
@@ -449,36 +422,11 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
         model.solution.problem = 0; % Indicate successful solve.
         
         %% Output
+        Solution = myFun_GetValue(model);
         Solution.padm_iter = padm_iter;
-        Solution.var = myFun_GetValue(model.var);
-        Solution.new_var = myFun_GetValue(model.new_var);
-        Solution.solution = model.solution;
-
-        Solution.A_u_vars = value(model.A_u_vars);
-        Solution.B_u_vars = value(model.B_u_vars);
-        Solution.C_u_vars = value(model.C_u_vars);
-        Solution.D_u_vars = value(model.D_u_vars);
-        Solution.E_u_vars = value(model.E_u_vars);
-        Solution.F_u_vars = value(model.F_u_vars);
-        Solution.G_u_vars = value(model.G_u_vars);
-        Solution.H_u_vars = value(model.H_u_vars);
-
-        Solution.A_l_vars = value(model.A_l_vars);
-        Solution.B_l_vars = value(model.B_l_vars);
-        Solution.C_l_vars = value(model.C_l_vars);
-        Solution.D_l_vars = value(model.D_l_vars);
-        Solution.E_l_vars = value(model.E_l_vars);
-        Solution.F_l_vars = value(model.F_l_vars);
-        Solution.G_l_vars = value(model.G_l_vars);
-        Solution.H_l_vars = value(model.H_l_vars);
-
-        Solution.c1_vars = value(model.c1_vars);
-        Solution.c2_vars = value(model.c2_vars);
-        Solution.c3_vars = value(model.c3_vars);
-        Solution.c4_vars = value(model.c4_vars);
-        Solution.c5_vars = value(model.c5_vars);
-        Solution.c6_vars = value(model.c6_vars);
-
+        Solution.padm1_objectives = padm1_objectives;
+        Solution.padm2_objectives = padm2_objectives;
+        Solution.padm_gap = padm_gaps;
         Solution.objective = value(original_objective);
         Solution.padm_log_chars = padm_log_chars;
     end
