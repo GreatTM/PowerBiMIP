@@ -16,6 +16,10 @@
 %       Run this script to solve the TRO-IES problem using solve_TRO.
 %
 %   See also: solve_TRO, TROsettings
+%   reference:
+%   [1]	Lu S, Gu W, Zhou S, et al. Adaptive Robust Dispatch of Integrated 
+%       Energy System Considering Uncertainties of Electricity and Outdoor 
+%       Temperature [J]. IEEE Transactions on Industrial Informatics, 2020, 16(7): 4691-702.
 
 dbstop if error
 clc; clear all; close all;
@@ -143,7 +147,7 @@ ops = TROsettings('solver', 'cplex', ...
                         'verbose', 2, ...
                         'gap_tol', 1e-3, ...
                         'max_iterations', 200, ...
-                        'mode', 'exact_KKT', ...
+                        'mode', 'quick', ...
                         'plot.verbose', 1);
 
 %% ==================== Solve ====================

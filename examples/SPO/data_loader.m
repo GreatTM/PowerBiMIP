@@ -1,118 +1,73 @@
-function [system_data, training_data, test_data] = data_loader(params)
-    %% 选择系统类型
-    switch lower(params.system_kind)
-        case 'ies'
-            %% 电-热系统数据载入
-            switch lower(params.system_scale)
-                case 'small'
-                    system_data = IES_6bus;
-                case 'big'
-                    system_data = IES_118bus;
-                otherwise
-                    error('无效的系统规模选择。可用选项: small，big');
-            end
-            system_capacity = sum(system_data.plimit.upper) + sum(system_data.resplimit.upper) + sum(system_data.chpplimit.p4);
-        case 'eps'
-            %% 电力系统数据载入
-            switch lower(params.system_scale)
-                case 'small'
-                    system_data = case9_modified;
-                case 'big'
-                    system_data = case118_modified;
-                otherwise
-                    error('无效的系统规模选择。可用选项: small，big');
-            end
-            system_capacity = sum(system_data.plimit.upper) + sum(system_data.resplimit.upper);
-        case 'ies_simplified'
-            system_data = simplified_IES_118bus;
-            system_capacity = sum(system_data.plimit.upper) + sum(system_data.resplimit.upper) + sum(system_data.chpplimit.p4);
+function [system_data, training_data, test_data] = data_loader(~)
+%DATA_LOADER Loads system data and preprocessed training/test data for SPO example.
+%
+%   Description:
+%       Simplified data loader that loads the IEEE 118-bus system data from
+%       Excel file and preprocessed training/test datasets from mat files.
+%
+%   Input:
+%
+%   Output:
+%       system_data   - struct: IEEE 118-bus system parameters
+%       training_data - struct: Training dataset
+%       test_data     - struct: Test dataset
 
-        otherwise
-            error('无效的系统类型选择。可用选项：ies，eps，ies_simplified');
-    end
+    %% 从Excel加载118节点系统数据
+    excelFile = 'system_data_118bus.xlsx';
     
-    %% 训练集载入
-    [training_data.totalload_feature_data,...
-     training_data.totalload_realization_data,...
-     ~,...
-     ~,...
-     ~,...
-     ~,...
-     training_data.RES_feature_data,...  % wallonias_wind_feature_data
-     ~,...
-     ~,...
-     training_data.RES_realization_data,...  % wallonias_wind_realization_data
-     ~,...
-     ~,...
-     ~,...
-     ~,...
-     training_data.temperature_data] = Belgium_load_RES_dataload('2023-01-01 00:00:00',...
-                                                                '2023-12-31 23:45:00',...
-                                                                params.train_start_time,...
-                                                                params.train_end_time,...
-                                                                1,...
-                                                                '2023Belguim_load_data.xlsx',...
-                                                                '2023Belguim_wind_data.xlsx',...
-                                                                '2023Belguim_solar_data.xlsx',...
-                                                                '2023Belguim_temperature_data.xlsx');
+    % 读取基础系统参数
+    systemInfo = readtable(excelFile, 'Sheet', 'SystemInfo');
+    system_data.Sbase = systemInfo.Value(strcmp(systemInfo.Parameter, 'Sbase'));
+    system_data.Nbus = systemInfo.Value(strcmp(systemInfo.Parameter, 'Nbus'));
+    system_data.Ngen = systemInfo.Value(strcmp(systemInfo.Parameter, 'Ngen'));
+    system_data.Nrenewablegen = systemInfo.Value(strcmp(systemInfo.Parameter, 'Nrenewablegen'));
+    system_data.Nload = systemInfo.Value(strcmp(systemInfo.Parameter, 'Nload'));
     
-    %% 训练集：归一化-实际值  
-    training_data.totalload_feature_data = training_data.totalload_feature_data * (0.15 * system_capacity) + 0.45 * system_capacity;   % 负荷控制在0.25-0.5倍系统容量之间
-    training_data.totalload_realization_data = training_data.totalload_realization_data * (0.15* system_capacity) + 0.45 * system_capacity;   % 负荷控制在0.25-0.5倍系统容量之间
-    training_data.RES_feature_data = training_data.RES_feature_data * (2 * sum(system_data.resplimit.upper)) + 0.05 * sum(system_data.resplimit.upper);
-    training_data.RES_realization_data = training_data.RES_realization_data * (2 * sum(system_data.resplimit.upper)) + 0.05 * sum(system_data.resplimit.upper);
-    training_data.RES_realization_data = training_data.RES_realization_data * system_data.RES_weight';
-
-    % 计算训练集时间数
-    training_data.Ntime = size(training_data.totalload_realization_data,1);
-    if strcmp(params.system_kind, 'ies')
-        training_data.Ntime_heat = size(training_data.totalload_realization_data, 1) * (1 / system_data.heat_interval);
-    end
-    assert(mod(training_data.Ntime,24)==0, '时间维度必须是24的整数倍');
-    training_data.num_blocks = training_data.Ntime / 24; % 分块
-
-    % 计算每个负荷的负荷数据
-    training_data.pload_realization_data = training_data.totalload_realization_data * system_data.load_weight';
-    training_data.pres_realization_data = training_data.RES_realization_data;
-
-    %% 测试集载入
-    [test_data.totalload_feature_data,...
-     test_data.totalload_realization_data,...
-     ~,...
-     ~,...
-     ~,...
-     ~,...
-     test_data.RES_feature_data,...  % wallonias_wind_feature_data
-     ~,...
-     ~,...
-     test_data.RES_realization_data,...  % wallonias_wind_realization_data
-     ~,...
-     ~,...
-     ~,...
-     ~,...
-     test_data.temperature_data] = Belgium_load_RES_dataload('2023-01-01 00:00:00',...
-                                                            '2023-12-31 23:45:00',...
-                                                            params.test_start_time,...
-                                                            params.test_end_time,...
-                                                            1,...
-                                                            '2023Belguim_load_data.xlsx',...
-                                                            '2023Belguim_wind_data.xlsx',...
-                                                            '2023Belguim_solar_data.xlsx',...
-                                                            '2023Belguim_temperature_data.xlsx');
+    % 读取发电机数据 (MATPOWER格式 + 扩展列)
+    genData = readtable(excelFile, 'Sheet', 'Gen');
+    system_data.gen_bus = genData.bus;
+    system_data.plimit.upper = genData.Pmax / system_data.Sbase;
+    system_data.plimit.lower = genData.Pmin / system_data.Sbase;
+    % 爬坡限制基于出力上限计算
+    system_data.ramplimit.up = 0.2 * system_data.plimit.upper;
+    system_data.ramplimit.down = 0.2 * system_data.plimit.upper;
+    system_data.ramplimit.sup = 0.5 * (system_data.plimit.upper + system_data.plimit.lower);
+    system_data.ramplimit.sdown = 0.5 * (system_data.plimit.upper + system_data.plimit.lower);
+    system_data.mintime.on = genData.mintime_on;
+    system_data.mintime.off = genData.mintime_off;
     
-    %% 测试集：归一化-实际值
-    test_data.totalload_feature_data = test_data.totalload_feature_data * (0.15 * system_capacity) + 0.45 * system_capacity;   % 负荷控制在0.25-0.5倍系统容量之间
-    test_data.totalload_realization_data = test_data.totalload_realization_data * (0.15 * system_capacity) + 0.45 * system_capacity;   % 负荷控制在0.25-0.5倍系统容量之间
-    test_data.RES_feature_data = test_data.RES_feature_data * (2 * sum(system_data.resplimit.upper)) + 0.05 * sum(system_data.resplimit.upper);
-    test_data.RES_realization_data = test_data.RES_realization_data * (2 * sum(system_data.resplimit.upper)) + 0.05 * sum(system_data.resplimit.upper);
-    test_data.RES_realization_data = test_data.RES_realization_data * system_data.RES_weight';
-    % 计算测试集时间数
-    test_data.Ntime = size(test_data.totalload_realization_data,1);
-    if strcmp(params.system_kind, 'ies')
-        test_data.Ntime_heat = size(test_data.totalload_realization_data, 1) * (1 / system_data.heat_interval);
-    end
-
-    % 计算每个负荷的负荷数据
-    test_data.pload_realization_data = test_data.totalload_realization_data * system_data.load_weight';
-    test_data.pres_realization_data = test_data.RES_realization_data;
+    % 读取支路数据 (MATPOWER格式 + 扩展列)
+    branchData = readtable(excelFile, 'Sheet', 'Branch');
+    system_data.pbranchlimit.upper = branchData.pbranchlimit_upper;
+    system_data.pbranchlimit.lower = branchData.pbranchlimit_lower;
+    
+    % 读取发电机成本数据 (MATPOWER格式 + 扩展列)
+    gencostData = readtable(excelFile, 'Sheet', 'GenCost');
+    system_data.cost.c0 = gencostData.cost_c0 / system_data.Sbase;
+    system_data.cost.c1 = gencostData.cost_c1;
+    system_data.cost.c2 = gencostData.cost_c2;
+    system_data.cost.startup = gencostData.startup / system_data.Sbase;
+    system_data.cost.shutdown = gencostData.shutdown / system_data.Sbase;
+    system_data.cost.compensation_up = gencostData.compensation_up;
+    system_data.cost.compensation_down = gencostData.compensation_down;
+    
+    % 读取新能源机组参数
+    renewableData = readtable(excelFile, 'Sheet', 'RenewableGen');
+    system_data.renewablegen_bus = renewableData.renewablegen_bus;
+    system_data.RES_weight = renewableData.RES_weight;
+    system_data.resplimit.upper = renewableData.resplimit_upper;
+    
+    % 读取负荷参数
+    loadData = readtable(excelFile, 'Sheet', 'Load');
+    system_data.load_bus = loadData.load_bus;
+    system_data.load_weight = loadData.load_weight;
+    
+    % 读取PTDF矩阵
+    system_data.PTDF.gen = readmatrix(excelFile, 'Sheet', 'PTDF_Gen');
+    system_data.PTDF.renewablegen = readmatrix(excelFile, 'Sheet', 'PTDF_RenewableGen');
+    system_data.PTDF.load = readmatrix(excelFile, 'Sheet', 'PTDF_Load');
+    
+    %% 加载训练和测试数据
+    training_data = load('SPO_training_data.mat');
+    test_data = load('SPO_test_data.mat');
 end

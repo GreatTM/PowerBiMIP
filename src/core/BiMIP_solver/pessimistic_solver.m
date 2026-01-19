@@ -13,6 +13,13 @@ function BiMIP_record = pessimistic_solver(model, ops)
 
     % The output is declared to match the required function signature, but it
     % will not be assigned as the function will always throw an error.
+    
+    % Check for unsupported 'quick' method
+    if strcmp(ops.method, 'quick')
+        error('PowerBiMIP:NotYetImplemented', ...
+              'The ''quick'' method is currently under testing in pessimistic mode and is not yet supported.');
+    end
+    
     %% 1. 建模R-PBL问题
     model_RPBL = struct();
     model_RPBL.cons_upper = [];
@@ -168,7 +175,7 @@ function BiMIP_record = pessimistic_solver(model, ops)
     ops_temp = BiMIPsettings('perspective', 'optimistic', ...
                         'method', ops.method, ...
                         'solver', ops.solver, ...
-                        'verbose', 3, ...
+                        'verbose', 0, ...
                         'optimal_gap', 1e-4);
     ops_temp.ops_MP.cplex.preprocessing.reduce = 1;
     [Solution, BiMIP_record] = solve_BiMIP(model_RPBL, ops_temp);
