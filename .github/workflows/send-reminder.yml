@@ -22,8 +22,8 @@ jobs:
           server_address: smtp.163.com # 请替换为你的邮箱服务商地址
           server_port: 465 # 常用SSL端口
           # 2. 填写登录凭证（从仓库的Secrets中安全读取）
-          username: ${{ ymwu276@163.com }} # 你的邮箱地址
-          password: ${{ NLVdC35rcSpdBeFy }} # 你的邮箱授权码
+          username: ${{ secrets.MAIL_USERNAME }} # 你的邮箱地址
+          password: ${{ secrets.MAIL_PASSWORD }} # 你的邮箱授权码
           # 3. 设置邮件内容
           subject: '【温馨提醒】请更新项目微信群二维码'
           # 邮件正文，这里用纯文本示例。你也可以用 body: file://message.html 指定一个HTML文件。
