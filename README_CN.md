@@ -489,7 +489,7 @@ PowerBiMIP 正处于积极开发阶段。作为一个早期项目，可能存在
 
 ## 致谢 (Acknowledgements)
 
-本工作是在东南大学 **陆帅 副教授** ([@Shuai-Lu](https://github.com/Shuai-Lu)) 和 **顾伟教授** 的指导下完成的。
+本工作是在东南大学 **陆帅 副教授** ([@Shuai-Lu](https://github.com/Shuai-Lu)) 和 **顾伟 教授** 的指导下完成的。
 
 我们衷心感谢匹兹堡大学 **曾波 教授** 的大力支持。PowerBiMIP 中实现的算法基于他的开创性研究。
 
