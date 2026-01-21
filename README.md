@@ -7,10 +7,9 @@
 
 ## Fork us on Wechat
 
-| Official Account (公众号) | Community Group (交流群) |
-| :---: | :---: |
-| <img src="你的公众号二维码图片地址.png" width="200" /> | <img src="你的微信群二维码图片地址.png" width="200" /> |
-| 关注获取最新动态 | 扫码加入讨论 (7天有效) |
+| Community Group |
+| :---: |
+| <img src="WechatQRcode.jpg" width="400" /> |
 
 ## Overview
 
