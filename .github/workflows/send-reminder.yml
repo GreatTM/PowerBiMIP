@@ -1,0 +1,41 @@
+name: 发送二维码提醒邮件
+
+# 设置触发条件：定时触发
+on:
+  schedule:
+    # 关键：设置每6天运行一次
+    # 此处cron表达式意为：在UTC时间每月1日、7日、13日...的0点0分运行。
+    # 这是实现“每6天”的变通方法，因为cron语法不直接支持“每N天”[citation:3]。
+    - cron: '0 0 1,7,13,19,25,31 * *'
+  # 也允许手动触发，方便测试
+  workflow_dispatch:
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 发送邮件
+        # 使用一个现成的、受欢迎的发送邮件Action[citation:5]
+        uses: dawidd6/action-send-mail@v3
+        with:
+          # 1. 填写你的发件邮箱SMTP服务器地址和端口
+          server_address: smtp.163.com # 请替换为你的邮箱服务商地址
+          server_port: 465 # 常用SSL端口
+          # 2. 填写登录凭证（从仓库的Secrets中安全读取）
+          username: ${{ ymwu276@163.com }} # 你的邮箱地址
+          password: ${{ NLVdC35rcSpdBeFy }} # 你的邮箱授权码
+          # 3. 设置邮件内容
+          subject: '【温馨提醒】请更新项目微信群二维码'
+          # 邮件正文，这里用纯文本示例。你也可以用 body: file://message.html 指定一个HTML文件。
+          body: |
+            你好！
+
+            这是来自 PowerBiMIP 项目的自动提醒。
+            请记得检查并更新GitHub项目中的微信群聊二维码，确保它有效。
+
+            项目地址：https://github.com/GreatTM/PowerBiMIP
+          # 4. 设置收发件人
+          to: 'yemin.wu@seu.edu.cn' # 请替换为你要接收提醒的邮箱地址
+          from: '自动提醒助手' # 发件人名称，可自定义
+          # 使用HTML格式，如果正文是纯文本可改为 text/plain
+          content_type: 'text/html'
