@@ -118,6 +118,7 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     all_int_idx = yalmip('intvariables');
     all_bin_idx = yalmip('binvariables');
     all_discrete_idx = union(all_int_idx, all_bin_idx);
+    user_idx_z_l = ordered_discrete_var_ids(raw_var_lower, all_discrete_idx);
     
     % 4. Classify Upper-Level Variables
     % Intersect: Variables in Upper Level that are Discrete
@@ -203,6 +204,12 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     
     model.var.var_upper = bimip_model.var_upper;
     model.var.var_lower = bimip_model.var_lower;
+    model.user_var_z_l_ids = user_idx_z_l(:);
+    if isempty(user_idx_z_l)
+        model.user_var_z_l_order = [];
+    else
+        model.user_var_z_l_order = recover(user_idx_z_l);
+    end
 
     % --- Step 2: Classifier ---
     [model_type, coupled_info] =  BiMIP_Model_Classifier(model, ops);
@@ -215,6 +222,13 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
 
     % --- Step2.5: Preprocess the Model ---
     model_processed = BimipModelTransformation(coupled_info, model, ops);
+    % Keep the original upper-coupling status after preprocessing. Some
+    % transformations remove coupled constraints algebraically, but solver
+    % shortcuts should still know whether the user model had upper-level
+    % constraints involving lower-level variables.
+    model_processed.original_has_upper_coupled_constraints = logical(coupled_info.is_coupled);
+    model_processed.user_var_z_l_ids = model.user_var_z_l_ids;
+    model_processed.user_var_z_l_order = model.user_var_z_l_order;
 
     % Only print detailed statistics if verbose >= 2
     if ops.verbose >= 1
@@ -243,6 +257,24 @@ function [Solution, BiMIP_record] = solve_BiMIP(bimip_model, ops)
     Solution = myFun_GetValue(bimip_model);
 end
 
+
+% -------------------------------------------------------------------------
+% Helper Function: Preserve user order of lower-level integer variables
+% -------------------------------------------------------------------------
+function ids = ordered_discrete_var_ids(flat_vars, discrete_idx)
+    ids = [];
+    seen = [];
+    for i = 1:numel(flat_vars)
+        var_ids = getvariables(flat_vars(i));
+        for j = 1:numel(var_ids)
+            vid = var_ids(j);
+            if ismember(vid, discrete_idx) && ~ismember(vid, seen)
+                ids(end+1) = vid; %#ok<AGROW>
+                seen(end+1) = vid; %#ok<AGROW>
+            end
+        end
+    end
+end
 
 % -------------------------------------------------------------------------
 % Helper Function: Recursively extract sdpvars from structs/cells

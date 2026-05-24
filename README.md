@@ -130,6 +130,12 @@ We recommend using **GitHub Desktop** or `git` to install PowerBiMIP. This allow
 ### Updating
 To update to the latest version, simply `Fetch origin` in GitHub Desktop or run `git pull` in your terminal.
 
+
+## Power System Case Library
+
+- `examples/Vulnerability_Analysis`: RTS-96 transmission-line interdiction
+  benchmark. Use `main_Vulnerability_Analysis.m` for a compact demo.
+
 ## Quick Start Example: BiMIP
 
 Let's walk through a simple example. The following problem is defined in `examples/BiMIP_benchmarks/BiMIP_toy_example1.m`.
@@ -228,7 +234,7 @@ ops = BiMIPsettings( ...
 **Solver Output:**
 
 ```text
-Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Welcome to PowerBiMIP V0.1.0 | © 2026 Yemin Wu, Southeast University
 Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
 GitHub: https://github.com/GreatTM/PowerBiMIP
 Docs:   https://docs.powerbimip.com
@@ -240,7 +246,7 @@ User-specified options:
   plot__verbose   = 1
 --------------------------------------------------------------------------
 Starting disciplined bilevel programming process...
-Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Welcome to PowerBiMIP V0.1.0 | © 2026 Yemin Wu, Southeast University
 Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
 GitHub: https://github.com/GreatTM/PowerBiMIP
 Docs:   https://docs.powerbimip.com
@@ -417,7 +423,7 @@ end
 
 ```text
 Solving Robust Facility Location Problem...
-Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Welcome to PowerBiMIP V0.1.0 | © 2026 Yemin Wu, Southeast University
 Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
 GitHub: https://github.com/GreatTM/PowerBiMIP
 Docs:   https://docs.powerbimip.com
@@ -487,7 +493,7 @@ We also thank **Dr. Ruizhi Yu** ([@rzyu45](https://github.com/rzyu45)) for his t
 ## License and Citation
 
 ### License
-**Copyright © 2025 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
+**Copyright © 2026 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
 Licensed for academic and non-commercial research purposes only. See [LICENSE](LICENSE) for details.
 
 ### Citation
@@ -496,3 +502,4 @@ If you use PowerBiMIP in your research, please cite our GitHub repository:
 > Y. Wu, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2026. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
 
 **We will provide a specific citation format once our work is published in a peer-reviewed journal.**
+

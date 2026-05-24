@@ -89,28 +89,34 @@ function handleStruct = plotRDorCCG(dataStruct, opsPlot, callStage)
         yyaxis left;
         handleStruct.axLeft = gca;
         hold on;
-        handleStruct.lineUB = plot(NaN, NaN, 'rs-', 'LineWidth', 1, 'MarkerSize', 6, 'DisplayName', 'UB');
-        handleStruct.lineLB = plot(NaN, NaN, 'b^-', 'LineWidth', 1, 'MarkerSize', 6, 'DisplayName', 'LB');
-        ylabel('Objective', 'FontName', 'Times New Roman', 'FontSize', 12);
+        handleStruct.lineUB = plot(NaN, NaN, 'rs-', 'LineWidth', 1, 'MarkerSize', 6, ...
+            'DisplayName', '\fontname{Times New Roman}UB');
+        handleStruct.lineLB = plot(NaN, NaN, 'b^-', 'LineWidth', 1, 'MarkerSize', 6, ...
+            'DisplayName', '\fontname{Times New Roman}LB');
+        ylabel('\fontname{SimSun}目标函数值', 'Interpreter', 'tex', 'FontSize', 12);
         set(gca, 'YColor', 'k');
         
         % Create right y-axis for gap
         yyaxis right;
         handleStruct.axRight = gca;
-        handleStruct.lineGap = plot(NaN, NaN, 'ko--', 'LineWidth', 1, 'MarkerSize', 6, 'DisplayName', 'Gap (%)');
-        ylabel('Gap (%)', 'FontName', 'Times New Roman', 'FontSize', 12);
+        handleStruct.lineGap = plot(NaN, NaN, 'ko--', 'LineWidth', 1, 'MarkerSize', 6, ...
+            'DisplayName', '\fontname{Times New Roman}Gap (%)');
+        ylabel('\fontname{Times New Roman}Gap (%)', 'Interpreter', 'tex', 'FontSize', 12);
         set(gca, 'YColor', 'k');
         
         % Common settings
-        xlabel('Iteration', 'FontName', 'Times New Roman', 'FontSize', 12);
+        xlabel(local_mixed_iteration_label(dataStruct.algorithm), ...
+            'Interpreter', 'tex', 'FontSize', 12);
         set(gca, 'FontName', 'Times New Roman', 'FontSize', 12);
         grid on;
         box on;
         set(gca, 'LineWidth', 0.75);
         
-        % Legend without border, horizontal layout, positioned above the plot
+        % Legend with border, horizontal layout, positioned above the plot
         lgd = legend('Location', 'northoutside', 'Orientation', 'horizontal');
-        lgd.Box = 'off';
+        lgd.Box = 'on';
+        lgd.Interpreter = 'tex';
+        lgd.FontName = 'Times New Roman';
         
         % Store handles in figure's UserData for later access
         setappdata(figHandle, 'plotHandles', handleStruct);
@@ -240,14 +246,14 @@ function handleStruct = plotPADM(dataStruct, opsPlot, callStage)
         % Plot objective or residual
         if isfield(dataStruct, 'objective')
             plot(dataStruct.iteration, dataStruct.objective, 'b-o', 'LineWidth', 1, 'MarkerSize', 4);
-            ylabel('Objective', 'FontName', 'Times New Roman', 'FontSize', 12);
+            ylabel('\fontname{SimSun}目标函数值', 'Interpreter', 'tex', 'FontSize', 12);
         elseif isfield(dataStruct, 'residual')
             plot(dataStruct.iteration, dataStruct.residual, 'r-s', 'LineWidth', 1, 'MarkerSize', 4);
-            ylabel('Residual', 'FontName', 'Times New Roman', 'FontSize', 12);
+            ylabel('\fontname{Times New Roman}Residual', 'Interpreter', 'tex', 'FontSize', 12);
         end
         
-        xlabel('Iteration', 'FontName', 'Times New Roman', 'FontSize', 12);
-        title(sprintf('R&D Iteration %d', n), 'FontName', 'Times New Roman', 'FontSize', 12);
+        xlabel('\fontname{Times New Roman}PADM\fontname{SimSun}迭代次数', ...
+            'Interpreter', 'tex', 'FontSize', 12);
         set(gca, 'FontName', 'Times New Roman', 'FontSize', 12);
         grid on;
         box on;
@@ -299,5 +305,13 @@ function handleStruct = plotPADM(dataStruct, opsPlot, callStage)
             fprintf('PADM figure saved to: %s\n', opsPlot.saveDir);
         end
     end
+end
+
+function label = local_mixed_iteration_label(algorithm)
+if strcmp(algorithm, 'C&CG')
+    label = '\fontname{Times New Roman}C&CG\fontname{SimSun}迭代次数';
+else
+    label = '\fontname{Times New Roman}R&D\fontname{SimSun}迭代次数';
+end
 end
 

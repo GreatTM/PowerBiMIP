@@ -19,10 +19,31 @@ function options = BiMIPsettings(varargin)
     % Main algorithm parameters
     default_options.method = 'exact_KKT';          % Solution method ['exact_KKT'|'exact_strong_duality'|'quick']
     default_options.max_iterations = 10;     % Max iterations for the main algorithm
-    default_options.optimal_gap = 0.01;      % Optimality gap tolerance (e.g., 0.01 for 1%)
+    default_options.optimal_gap = 1e-4;      % Optimality gap tolerance
     default_options.kappa = 50;              % Penalty factor for transforming coupled constraints
     default_options.KKT_RCR_rho = 1e7;
-    default_options.KKT_bigM = 1e4;
+    default_options.KKT_bigM = 1e5;
+    default_options.interdiction_master = 'paper_ccg'; % ['paper_ccg'|'strong_duality']
+    default_options.interdiction_bigM = [];
+    default_options.interdiction_bigM_method = [];
+    default_options.interdiction_default_bigM = 1e5;
+    default_options.interdiction_time_trace = true;
+    default_options.force_standard_interdiction = false;
+    default_options.interdiction_fast_mode_profile = 'paper_ccg';
+    default_options.interdiction_quick_max_alternations = 20;
+    default_options.interdiction_quick_tolerance = 1e-4;
+    default_options.interdiction_quick_residual_tolerance = 1e-4;
+    default_options.interdiction_quick_penalty_rho = 50;
+    default_options.interdiction_quick_penalty_growth = 2;
+    default_options.interdiction_quick_penalty_max = 1e6;
+    default_options.interdiction_quick_initial_upper = 'previous_mp';
+    default_options.interdiction_quick_initial_upper_index = [];
+    default_options.interdiction_quick_num_starts = 1;
+    default_options.interdiction_quick_dual_starts = 1;
+    default_options.interdiction_quick_dual_tiebreak_weight = 0;
+    default_options.interdiction_quick_random_seed = 1;
+    default_options.interdiction_quick_neighbor_search = 'stagnation';
+    default_options.interdiction_quick_neighbor_search_max_candidates = inf;
 
     % Parameters for the 'quick' method (L1-PADM based)
     default_options.penalty_rho = 50;        % Initial penalty factor for the PADM algorithm

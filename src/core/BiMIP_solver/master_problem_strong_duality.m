@@ -20,7 +20,9 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
 %   Output:
 %       Solution - struct: A struct containing the solution of the master problem.
 
-    if iteration_record.iteration_num == 1
+    fixed_lower_integer_points = collect_fixed_lower_integer_points(iteration_record);
+
+    if iteration_record.iteration_num == 1 && isempty(fixed_lower_integer_points)
         %% Constraints building
         model.constraints = [];
         % upper level
@@ -103,8 +105,8 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
         % --- Subsequent Iterations: Add strong duality optimality cuts ---
 
         %% Define Dual Variables for Strong Duality Cuts
-        bigM = inf;  % Big-M constant for dual variable bounds
-        for i = 1 : iteration_record.iteration_num - 1
+        bigM = get_dual_bigM(ops);  % Big-M constant for dual variable bounds
+        for i = 1 : numel(fixed_lower_integer_points)
             % Create dual variables for the lower-level primal constraints.
             % Inequality dual variables: [-bigM, 0]
             model.new_var(i).dual_ineq = sdpvar(model.length_b_l, 1, 'full');
@@ -113,9 +115,9 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
             model.new_var(i).dual_eq = sdpvar(model.length_f_l, 1, 'full');
 
             % Use the fixed integer variables from the i-th subproblem solution.
-            model.new_var(i).c6_vars = iteration_record.optimal_solution_hat{i}.c6_vars;  % fixing lower level integer variables
-            model.new_var(i).D_l_vars = iteration_record.optimal_solution_hat{i}.D_l_vars;  % fixing lower level integer variables
-            model.new_var(i).H_l_vars = iteration_record.optimal_solution_hat{i}.H_l_vars;  % fixing lower level integer variables
+            model.new_var(i).c6_vars = fixed_lower_integer_points(i).c6_vars;  % fixing lower level integer variables
+            model.new_var(i).D_l_vars = fixed_lower_integer_points(i).D_l_vars;  % fixing lower level integer variables
+            model.new_var(i).H_l_vars = fixed_lower_integer_points(i).H_l_vars;  % fixing lower level integer variables
         end
 
         %% Constraints building
@@ -166,7 +168,7 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
         end
 
         % optimality condition(strong duality approach)
-        for i = 1 : iteration_record.iteration_num - 1
+        for i = 1 : numel(fixed_lower_integer_points)
             % cut
             model.constraints = model.constraints + ...
                 ([model.c5', model.c6'] * ...
@@ -235,4 +237,25 @@ function [Solution] = master_problem_strong_duality(model,ops,iteration_record)
 
         Solution.objective = value(model.objective);
     end
+end
+
+function bigM = get_dual_bigM(ops)
+if isfield(ops, 'KKT_bigM') && isfinite(ops.KKT_bigM) && ops.KKT_bigM > 0
+    bigM = ops.KKT_bigM;
+else
+    bigM = 1e5;
+end
+end
+
+function points = collect_fixed_lower_integer_points(iteration_record)
+points = struct('D_l_vars', {}, 'H_l_vars', {}, 'c6_vars', {});
+
+for i = 1 : iteration_record.iteration_num - 1
+    if numel(iteration_record.optimal_solution_hat) < i || isempty(iteration_record.optimal_solution_hat{i})
+        continue;
+    end
+    points(end+1).D_l_vars = iteration_record.optimal_solution_hat{i}.D_l_vars;
+    points(end).H_l_vars = iteration_record.optimal_solution_hat{i}.H_l_vars;
+    points(end).c6_vars = iteration_record.optimal_solution_hat{i}.c6_vars;
+end
 end

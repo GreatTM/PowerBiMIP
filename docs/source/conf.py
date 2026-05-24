@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'PowerBiMIP'
-copyright = '2025, Yemin Wu'
+copyright = '2026, Yemin Wu'
 author = 'Yemin Wu'
 
 # -- General configuration ---------------------------------------------------

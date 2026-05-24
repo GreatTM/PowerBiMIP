@@ -37,7 +37,7 @@ function install()
         % 4. Display Info Banner
         disp(' ');
         disp('   ==============================================================================');
-        fprintf('   Welcome to PowerBiMIP V0.1.0 | (c) 2025 Yemin Wu, Southeast University\n');
+        fprintf('   Welcome to PowerBiMIP V0.1.0 | (c) 2026 Yemin Wu, Southeast University\n');
         fprintf('   Open-source, efficient tools for power and energy system bilevel mixed-integer programming.\n');
         disp('   ------------------------------------------------------------------------------');
         fprintf('   GitHub: https://github.com/GreatTM/PowerBiMIP\n');

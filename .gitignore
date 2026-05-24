@@ -2,3 +2,7 @@
 /.cursor
 /docs/operates_log
 *.asv
+/examples/Vulnerability_Analysis/results/demo/
+/examples/Vulnerability_Analysis/results/scratch/
+/examples/Vulnerability_Analysis/mibs/*.log
+/examples/Vulnerability_Analysis/mibs/*.run.par

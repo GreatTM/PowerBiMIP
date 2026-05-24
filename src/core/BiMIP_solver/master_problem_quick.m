@@ -347,25 +347,17 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
 
             % is_stable = primal_diff <= ops.padm_tolerance;
             is_stable = obj_gap <= ops.padm_tolerance;
-            if ops.verbose >= 1
+            if ops.verbose == 2
                 msgFmt = 'L1-PADM Iter %d: L1-PADM1=%.4f | L1-PADM2=%.4f | Gap=%.2f%% | PrimalDiff=%.1e\n';
-                if ops.verbose <= 2
-                    padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, ...
-                        padm_iter, padm1_obj, padm2_obj, obj_gap, primal_diff);
-                else
-                    fprintf(msgFmt, padm_iter, padm1_obj, padm2_obj, obj_gap, primal_diff);
-                end
+                padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, ...
+                    padm_iter, padm1_obj, padm2_obj, obj_gap, primal_diff);
             end
 
             % check convergence
             if is_stable
-                if ops.verbose >= 1
+                if ops.verbose == 2
                     msgFmt = 'L1-PADM achieved primal stability.\n';
-                    if ops.verbose <= 2
-                        padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt);
-                    else
-                        fprintf('%s', msgFmt);
-                    end
+                    padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt);
                 end
                 % compute penalty_term
                 current_penalty = 0;
@@ -395,10 +387,8 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
                     
                     msg1 = sprintf('Penalty term is too high (%.4f > %.4f). Increasing rho.\n', current_penalty, ops.penalty_term_gap);
                     msg2 = sprintf('New rho = %.2e. Restarting L1-PADM.\n', ops.penalty_rho);
-                    if ops.verbose <= 2
+                    if ops.verbose == 2
                         padm_log_chars = padm_log_chars + log_utils('printf_count', '%s%s', msg1, msg2);
-                    else
-                        fprintf('%s%s', msg1, msg2);
                     end
                     
                     if ops.penalty_rho > 1e9 
@@ -407,10 +397,8 @@ function [Solution] = master_problem_quick(model,ops,iteration_record)
                 else
                     % Penalty term is acceptable, L1-PADM has converged.
                     msgFmt = 'Penalty term is acceptable (%.4f <= %.4f). L1-PADM converged.\n';
-                    if ops.verbose <= 2
+                    if ops.verbose == 2
                         padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, current_penalty, ops.penalty_term_gap);
-                    else
-                        fprintf(msgFmt, current_penalty, ops.penalty_term_gap);
                     end
                     break; % Success, exit the L1-PADM loop.
                 end

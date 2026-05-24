@@ -131,6 +131,12 @@ PowerBiMIP 为构建复杂的层级优化问题提供了一个用户友好的框
 ### 更新
 要更新到最新版本，只需在 GitHub Desktop 中点击 `Fetch origin` 或在终端运行 `git pull`。
 
+
+## 电力系统算例库
+
+- `examples/Vulnerability_Analysis`: RTS-96 输电线路攻击脆弱性分析算例。
+  `main_Vulnerability_Analysis.m` 可运行一个简洁演示。
+
 ## 快速入门示例：BiMIP
 
 让我们看一个简单的例子。以下问题定义在 `examples/BiMIP_benchmarks/BiMIP_toy_example1.m` 中。
@@ -230,7 +236,7 @@ ops = BiMIPsettings( ...
 **求解器输出:**
 
 ```text
-Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Welcome to PowerBiMIP V0.1.0 | © 2026 Yemin Wu, Southeast University
 Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
 GitHub: [https://github.com/GreatTM/PowerBiMIP](https://github.com/GreatTM/PowerBiMIP)
 Docs:   [https://docs.powerbimip.com](https://docs.powerbimip.com)
@@ -242,7 +248,7 @@ User-specified options:
   plot__verbose   = 1
 --------------------------------------------------------------------------
 Starting disciplined bilevel programming process...
-Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Welcome to PowerBiMIP V0.1.0 | © 2026 Yemin Wu, Southeast University
 Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
 GitHub: [https://github.com/GreatTM/PowerBiMIP](https://github.com/GreatTM/PowerBiMIP)
 Docs:   [https://docs.powerbimip.com](https://docs.powerbimip.com)
@@ -428,7 +434,7 @@ end
 
 ```text
 Solving Robust Facility Location Problem...
-Welcome to PowerBiMIP V0.1.0 | © 2025 Yemin Wu, Southeast University
+Welcome to PowerBiMIP V0.1.0 | © 2026 Yemin Wu, Southeast University
 Open-source, efficient tools for power and energy system bilevel mixed-integer programming.
 GitHub: [https://github.com/GreatTM/PowerBiMIP](https://github.com/GreatTM/PowerBiMIP)
 Docs:   [https://docs.powerbimip.com](https://docs.powerbimip.com)
@@ -501,7 +507,7 @@ PowerBiMIP 正处于积极开发阶段。作为一个早期项目，可能存在
 
 ### 许可证 (License)
 
-**Copyright © 2025 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
+**Copyright © 2026 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
 仅用于学术和非商业研究目的。详见 [LICENSE](https://www.google.com/search?q=LICENSE)。
 
 ### 引用 (Citation)
