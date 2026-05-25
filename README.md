@@ -499,7 +499,7 @@ Licensed for academic and non-commercial research purposes only. See [LICENSE](L
 ### Citation
 If you use PowerBiMIP in your research, please cite our GitHub repository:
 
-> Y. Wu, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2026. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
+> Yemin Wu, Shuai Lu, Wei Gu, Bo Zeng, Yijun Xu, Mingji Chen, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2026. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
 
 **We will provide a specific citation format once our work is published in a peer-reviewed journal.**
 

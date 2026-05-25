@@ -514,6 +514,6 @@ PowerBiMIP 正处于积极开发阶段。作为一个早期项目，可能存在
 
 如果您在研究中使用了 PowerBiMIP，请引用我们的 GitHub 仓库：
 
-> Y. Wu, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2026. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
+> Yemin Wu, Shuai Lu, Wei Gu, Bo Zeng, Yijun Xu, Mingji Chen, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2026. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
 
 **一旦我们的工作在同行评审期刊上发表，我们将提供具体的引用格式。**
