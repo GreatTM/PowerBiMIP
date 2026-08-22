@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/source/_static/PowerBiMIP_logo.svg" alt="PowerBiMIP Logo" width="600">
+</div>
+
 # PowerBiMIP: 面向电力能源系统的开源高效双层混合整数规划求解器
 
 <div align="center">

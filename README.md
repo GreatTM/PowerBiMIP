@@ -1,4 +1,9 @@
+<div align="center">
+  <img src="docs/source/_static/PowerBiMIP_logo.svg" alt="PowerBiMIP Logo" width="600">
+</div>
+
 # PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems
+
 <div align="center">
 
 [**English**](README.md) | [**简体中文**](README_CN.md)
