@@ -75,7 +75,13 @@ function charCount = local_print_banner(verbose, interfaceLabel)
     if nargin < 2 || isempty(interfaceLabel)
         interfaceLabel = '';
     end
-    header = sprintf('Welcome to PowerBiMIP V0.1.0 | © 2026 Yemin Wu, Southeast University\n');
+    % Resolve VERSION relative to this file, regardless of the working directory.
+    version = '(unknown version)';
+    versionFile = fullfile(fileparts(mfilename('fullpath')), '..', '..', 'VERSION');
+    if isfile(versionFile)
+        version = strtrim(fileread(versionFile));
+    end
+    header = sprintf('Welcome to PowerBiMIP %s | © 2026 Yemin Wu, Southeast University\n', version);
     tagline = sprintf('Open-source, efficient tools for power and energy system bilevel mixed-integer programming.\n');
     repo = sprintf('GitHub: https://github.com/GreatTM/PowerBiMIP\n');
     docs = sprintf('Docs:   https://docs.powerbimip.com\n');
@@ -88,4 +94,3 @@ function charCount = local_print_banner(verbose, interfaceLabel)
     fprintf('%s', allMsg);
     charCount = numel(allMsg);
 end
-
