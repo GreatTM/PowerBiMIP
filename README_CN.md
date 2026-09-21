@@ -15,6 +15,8 @@
 
 **PowerBiMIP** 是一个开源、高效的双层混合整数规划（BiMIP）求解器，特别专注于电力和能源系统的应用。
 
+> **预告：Python + Pyomo 即将推出。** 我们正在开发 PowerBiMIP 的 Python 版本，即将支持 Pyomo 建模。
+
 ## 关注我们
 
 | 技术交流群 |
@@ -89,7 +91,7 @@ PowerBiMIP 为构建复杂的层级优化问题提供了一个用户友好的框
     </tr>
     <tr>
       <td><strong>PowerBiMIP</strong></td>
-      <td align="center"><strong>MATLAB</strong></td>
+      <td align="center"><strong>MATLAB（Python<sup>2</sup>）</strong></td>
       <td align="center">✔</td>
       <td align="center">✔</td>
       <td align="center">✔</td>
@@ -98,14 +100,38 @@ PowerBiMIP 为构建复杂的层级优化问题提供了一个用户友好的框
 </table>
 <sup>1</sup> MibS目前仅支持连接变量（connecting variables）为纯整数变量的情况。
 
+<sup>2</sup> 支持 Pyomo 建模的 Python 版本正在开发中。表中的模型支持标记对应当前 MATLAB 版本。
+
+#### PowerBiMIP 与 MibS 的电力系统算例对比
+
+<div align="center">
+  <a href="docs/source/_static/figures/powerbimip-mibs-time-to-gap.png">
+    <img src="docs/source/_static/figures/powerbimip-mibs-time-to-gap.png" alt="IEEE one-area RTS-96 脆弱性分析算例中，K = 2、4、6、8、10、12 时 PowerBiMIP 精确模式、快速模式与 MibS 的 Time-to-gap 曲线对比" width="900">
+  </a>
+</div>
+
+**图：** IEEE one-area RTS-96 电网脆弱性分析算例在攻击预算 **K = 2、4、6、8、10、12** 下的 Time-to-gap 曲线。红色为 PowerBiMIP 精确模式，蓝色为 PowerBiMIP 快速模式，黑色虚线为 MibS。横轴为对数刻度的计算时间（秒），纵轴为报告的间隙（%）。实验设置及间隙定义详见[论文](https://doi.org/10.13334/j.0258-8013.pcsee.261230)。点击图片可查看原始分辨率。
+
 ## 安装 (Installation)
 
 ### 前置条件 (Prerequisites)
 在安装 PowerBiMIP 之前，请确保已安装以下依赖项：
 
 1.  **MATLAB**: R2018a 或更新版本。
-2.  **YALMIP**: 强烈推荐使用最新版本。您可以从 [YALMIP GitHub 仓库](https://github.com/yalmip/YALMIP) 下载。
-3.  **MILP 求解器**: 至少需要一个 MILP 求解器。我们强烈推荐 **Gurobi** 以获得最佳性能和稳健性。其他支持的求解器包括 CPLEX, COPT 和 MOSEK。
+2.  **YALMIP**: 请使用 [YALMIP GitHub 仓库](https://github.com/yalmip/YALMIP)中的较新版本。**使用 COPT 时，必须确认安装版本包含下述二次目标接口修复。**
+3.  **MILP 求解器**: 至少需要一个 MILP 求解器。YALMIP 提供 Gurobi、CPLEX、COPT 和 MOSEK 等接口，请根据模型要求及可获得的许可选择求解器。**对于中国用户，我们优先推荐 COPT 作为替代方案。**
+
+#### 中国用户的求解器选择
+
+根据 [Gurobi 官方说明](https://support.gurobi.com/hc/en-us/articles/33982552193937-As-a-student-at-a-university-in-China-how-do-I-request-a-Free-Academic-License)，Gurobi 已停止在中国内地、香港和澳门开展免费学术许可项目，不再受理这些地区的学术许可申请。该通知针对学术许可，商业许可仍可另行咨询。我们建议受影响的用户优先考虑[杉数求解器 COPT](https://www.shanshu.ai/copt)。
+
+#### 重要提醒：使用 COPT 前请更新 YALMIP
+
+受影响的 YALMIP 版本存在严重的 COPT 接口问题：当二次目标矩阵非零、但至少有一列全为零时，接口可能**静默丢弃整个二次目标项，同时仍报告求解成功**。只在线性目标中出现的变量，或锥模型转换引入的辅助变量，都可能产生这样的零列。因此，相关二次模型即使报告求解成功，结果也可能错误；这并不表示所有纯线性 MILP 都受到影响。
+
+请更新到包含 [`solvers/yalmip2copt.m` 修复](https://github.com/yalmip/YALMIP/blob/develop/solvers/yalmip2copt.m)的 YALMIP 版本。修复将 `any(interfacedata.Q)` 替换为返回标量的 `nnz(interfacedata.Q)`，同时覆盖**二次目标赋值**和**增加锥辅助变量后的矩阵维度扩展**两处判断。目前上游 `develop` 分支已包含该修复，较早的发布版本未必包含。**仅升级 COPT 本身无法修复 YALMIP 接口问题。**
+
+更新后，请在 MATLAB 中运行 `which yalmip2copt -all`，排查是否有旧版 YALMIP 抢占搜索路径；随后重启 MATLAB，并确认实际加载的接口包含上述修正。
 
 ### 安装步骤
 
@@ -119,12 +145,12 @@ PowerBiMIP 为构建复杂的层级优化问题提供了一个用户友好的框
         ```
 2.  **运行安装程序**:
     * 打开 MATLAB。
-    * 导航至 **PowerBiMIP 根目录** (您克隆仓库的位置)。
+    * 导航至仓库内的 **`matlab/` 文件夹**（例如 `cd PowerBiMIP/matlab`）。
     * 在 MATLAB 命令行窗口中运行安装脚本：
         ```matlab
         install
         ```
-    * 此脚本会自动将所有必要的文件夹添加到您的 MATLAB 路径中。
+    * 此脚本会自动将所有必要的文件夹添加到您的 MATLAB 路径中，并清理旧目录结构残留的路径条目，因此每次更新后都可以安全地重复运行。
 
 3.  **验证安装**:
     * 运行一个玩具示例以确保一切配置正确：
@@ -133,7 +159,7 @@ PowerBiMIP 为构建复杂的层级优化问题提供了一个用户友好的框
         ```
 
 ### 更新
-要更新到最新版本，只需在 GitHub Desktop 中点击 `Fetch origin` 或在终端运行 `git pull`。
+要更新到最新版本，只需在 GitHub Desktop 中点击 `Fetch origin` 或在终端运行 `git pull`。如果某次更新移动或重命名了文件夹（例如 monorepo 重构），请在 `matlab/` 文件夹中重新运行一次 `install` 以刷新 MATLAB 路径。
 
 
 ## 电力系统算例库
@@ -514,10 +540,8 @@ PowerBiMIP 正处于积极开发阶段。作为一个早期项目，可能存在
 **Copyright © 2026 Yemin Wu (yemin.wu@seu.edu.cn), Southeast University**
 仅用于学术和非商业研究目的。详见 [LICENSE](https://www.google.com/search?q=LICENSE)。
 
-### 引用 (Citation)
+### 引用我们 (Citation)
 
-如果您在研究中使用了 PowerBiMIP，请引用我们的 GitHub 仓库：
+如果您在研究中使用了 PowerBiMIP，请引用以下论文：
 
-> Yemin Wu, Shuai Lu, Wei Gu, Bo Zeng, Yijun Xu, Mingji Chen, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2026. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
-
-**一旦我们的工作在同行评审期刊上发表，我们将提供具体的引用格式。**
+> [1] 吴晔敏,陆帅,顾伟,等.PowerBiMIP：面向电力能源系统优化的规范化双层混合整数规划建模与求解器[J/OL].中国电机工程学报,1-18[2026-09-21].[https://doi.org/10.13334/j.0258-8013.pcsee.261230](https://doi.org/10.13334/j.0258-8013.pcsee.261230).

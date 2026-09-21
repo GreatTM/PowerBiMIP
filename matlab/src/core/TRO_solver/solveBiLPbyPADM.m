@@ -123,6 +123,7 @@ function Solution = solveBiLPbyPADM(model, ops)
     rho = ops.penalty_rho;
     padm_outer_iter = 0;
     padm_inner_iter = 0;
+    padm_total_inner_iter = 0; % Cumulative inner iterations across all outer iterations
     max_total_iter = ops.padm_max_iter;
     rho_max = 1e10;
     
@@ -159,9 +160,11 @@ function Solution = solveBiLPbyPADM(model, ops)
         % Inner loop variables
         inner_converged = false;
         consecutive_conv = 0; % Counter for new logic
+        padm_inner_iter = 0; % Reset inner budget for each rho
         
         while ~inner_converged && padm_inner_iter < max_total_iter
             padm_inner_iter = padm_inner_iter + 1;
+            padm_total_inner_iter = padm_total_inner_iter + 1;
             
             % --- Step 1: Subproblem 1 (Fix Primal, Optimize Dual) ---
             model.constraints_sp2 = [];
@@ -299,12 +302,12 @@ function Solution = solveBiLPbyPADM(model, ops)
             % Log Information
             if ops.verbose >= 1
                 % [修改] 增加目标函数值的打印精度到 .8e
-                msgFmt = 'PADM Inner Iter %d: Rho=%.1e | PrimalDiff=%.1e | ObjGap=%.1e | Obj1=%.8e | Obj2=%.8e\n';
+                msgFmt = 'PADM Outer %d Inner %d: Rho=%.1e | PrimalDiff=%.1e | ObjGap=%.1e | Obj1=%.8e | Obj2=%.8e\n';
                 if ops.verbose <= 2
                     padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt, ...
-                        padm_inner_iter, rho, primal_diff, obj_gap, obj_val_1, obj_val_2);
+                        padm_outer_iter, padm_inner_iter, rho, primal_diff, obj_gap, obj_val_1, obj_val_2);
                 else
-                    fprintf(msgFmt, padm_inner_iter, rho, primal_diff, obj_gap, obj_val_1, obj_val_2);
+                    fprintf(msgFmt, padm_outer_iter, padm_inner_iter, rho, primal_diff, obj_gap, obj_val_1, obj_val_2);
                 end
             end
         end % End Inner Loop
@@ -334,13 +337,20 @@ function Solution = solveBiLPbyPADM(model, ops)
             end
         end
         
+        if ~inner_converged
+            warning('PowerBiMIP:PADMInnerNotConverged', ...
+                'PADM inner loop reached the max iteration budget (%d) at rho = %.1e without converging. Terminating.', ...
+                max_total_iter, rho);
+            break;
+        end
+        
         if duality_gap <= ops.penalty_term_gap
             if ops.verbose >= 1
                 msgFmt = 'PADM Converged: Duality Gap satisfied.\n';
                 if ops.verbose <= 2
                     padm_log_chars = padm_log_chars + log_utils('printf_count', msgFmt);
                 else
-                    fprintf('%s', msgFmt);
+                    fprintf(msgFmt);
                 end
             end
             break; 
@@ -366,7 +376,7 @@ function Solution = solveBiLPbyPADM(model, ops)
     %% Output
     Solution = myFun_GetValue(model);
     Solution.solution = sol_sp1;
-    Solution.padm_inner_iter = padm_inner_iter;
+    Solution.padm_inner_iter = padm_total_inner_iter;
     Solution.padm_outer_iter = padm_outer_iter;
     Solution.padm1_objectives = padm1_objectives;
     Solution.padm2_objectives = padm2_objectives;

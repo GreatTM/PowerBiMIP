@@ -10,7 +10,7 @@ Before we begin, please make sure you have successfully installed PowerBiMIP and
 
 ## A Simple Bilevel Programming Example
 
-Let's start with a classic textbook example of a BiMIP problem. This will help us illustrate the core components of a PowerBiMIP model. The full script for this example can be found in `examples/BiMIP_benchmarks/BiMIP_toy_example1.m`.
+Let's start with a classic textbook example of a BiMIP problem. This will help us illustrate the core components of a PowerBiMIP model. The full script for this example can be found in `matlab/examples/BiMIP_benchmarks/BiMIP_toy_example1.m`.
 
 ### 1. Mathematical Formulation
 

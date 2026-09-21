@@ -33,12 +33,12 @@ Choose one of the following methods to download the source code:
 ### 2. Run the Installer
 
 1.  Open **MATLAB**.
-2.  Navigate to the **PowerBiMIP root directory** (the folder you just cloned).
+2.  Navigate to the **`matlab/` folder** inside the repository (e.g., `cd PowerBiMIP/matlab`).
 3.  In the MATLAB Command Window, type the following command and press Enter:
     ```matlab
     install
     ```
-4.  The script will automatically add all necessary folders (`src`, `config`, `examples`) to your MATLAB path.
+4.  The script adds all necessary folders (`src`, `config`, `examples`) to your MATLAB path and cleans up stale path entries left over from older layouts, so it is safe to re-run after every update.
 
 ### 3. Verify Installation
 
@@ -54,4 +54,5 @@ If the solver runs and produces an optimal solution, you are all set!
 
 To update PowerBiMIP to the latest version:
 1.  **Pull changes**: Click "Fetch origin" in GitHub Desktop or run `git pull` in your terminal.
-2.  **Restart MATLAB**: This ensures all changes are reloaded.
+2.  **Re-run `install`** if the update moved or renamed folders (such as the monorepo restructuring): run it once from the `matlab/` folder to refresh your MATLAB path.
+3.  **Restart MATLAB**: This ensures all changes are reloaded.

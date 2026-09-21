@@ -1,8 +1,28 @@
+# --- Repo-specific ---
 /docs/requirements_doc
 /.cursor
 /docs/operates_log
+/matlab/examples/Vulnerability_Analysis/results/demo/
+/matlab/examples/Vulnerability_Analysis/results/scratch/
+/matlab/examples/Vulnerability_Analysis/mibs/*.log
+/matlab/examples/Vulnerability_Analysis/mibs/*.run.par
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# --- MATLAB / 系统 / 运行产物 ---
 *.asv
-/examples/Vulnerability_Analysis/results/demo/
-/examples/Vulnerability_Analysis/results/scratch/
-/examples/Vulnerability_Analysis/mibs/*.log
-/examples/Vulnerability_Analysis/mibs/*.run.par
+*.m~
+results/
+.DS_Store
+.idea/
+.vscode/
+
+# --- 敏感文件（许可/密钥，永远不要入库） ---
+*.lic

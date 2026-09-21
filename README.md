@@ -15,6 +15,8 @@
 
 **PowerBiMIP** is an open-source, efficient solver for Bilevel Mixed-Integer Programming (BiMIP), with a special focus on applications in power and energy systems.
 
+> **Coming soon: Python + Pyomo.** We are developing a Python version of PowerBiMIP with support for Pyomo modeling.
+
 ## Fork us on Wechat
 
 | Community Group |
@@ -89,7 +91,7 @@ The toolbox currently supports:
     </tr>
     <tr>
       <td><strong>PowerBiMIP</strong></td>
-      <td align="center"><strong>MATLAB</strong></td>
+      <td align="center"><strong>MATLAB (Python<sup>2</sup>)</strong></td>
       <td align="center">✔</td>
       <td align="center">✔</td>
       <td align="center">✔</td>
@@ -98,14 +100,38 @@ The toolbox currently supports:
 </table>
 <sup>1</sup> MibS currently only supports cases where connecting variables are pure integer variables.
 
+<sup>2</sup> The Python version with Pyomo modeling support is under development. The model-support checkmarks above describe the current MATLAB version.
+
+#### PowerBiMIP vs. MibS: an energy-system benchmark
+
+<div align="center">
+  <a href="docs/source/_static/figures/powerbimip-mibs-time-to-gap.png">
+    <img src="docs/source/_static/figures/powerbimip-mibs-time-to-gap.png" alt="Time-to-gap comparison of PowerBiMIP exact mode, PowerBiMIP quick mode and MibS on the IEEE one-area RTS-96 vulnerability-analysis benchmark for K = 2, 4, 6, 8, 10 and 12" width="900">
+  </a>
+</div>
+
+**Figure.** Time-to-gap curves for the IEEE one-area RTS-96 vulnerability-analysis case at attack budgets **K = 2, 4, 6, 8, 10 and 12**. Red: PowerBiMIP exact mode; blue: PowerBiMIP quick mode; black dashed: MibS. The horizontal axis is time in seconds on a logarithmic scale; the vertical axis shows the reported gap (%). See [our paper](https://doi.org/10.13334/j.0258-8013.pcsee.261230) for the experimental setup and gap definitions. Click the figure to view the full-resolution image.
+
 ## Installation
 
 ### Prerequisites
 Before installing PowerBiMIP, ensure you have the following dependencies installed:
 
 1.  **MATLAB**: R2018a or newer.
-2.  **YALMIP**: The latest version is highly recommended. You can download it from the [YALMIP GitHub repository](https://github.com/yalmip/YALMIP).
-3.  **A MILP Solver**: At least one MILP solver is required. We strongly recommend **Gurobi** for its performance and robustness. Other supported solvers include CPLEX, COPT, and MOSEK.
+2.  **YALMIP**: Use an up-to-date version from the [YALMIP GitHub repository](https://github.com/yalmip/YALMIP). **COPT users must ensure their installed revision contains the quadratic-objective interface fix described below.**
+3.  **A MILP Solver**: At least one MILP solver is required. YALMIP provides interfaces to Gurobi, CPLEX, COPT and MOSEK; choose a backend compatible with your model and available license. **For users in China, we recommend COPT as the preferred alternative.**
+
+#### Solver choice for users in China
+
+According to [Gurobi's official notice](https://support.gurobi.com/hc/en-us/articles/33982552193937-As-a-student-at-a-university-in-China-how-do-I-request-a-Free-Academic-License), Gurobi has discontinued its free academic licensing program in mainland China, Hong Kong and Macau and no longer accepts academic license applications from these regions. This notice concerns academic licensing; commercial licensing remains a separate option. We recommend that affected users consider [COPT](https://www.shanshu.ai/copt).
+
+#### Important: update YALMIP before using COPT
+
+Affected YALMIP versions contain a serious COPT interface bug: when the quadratic-objective matrix is nonzero but has at least one all-zero column, the interface can **silently drop the entire quadratic objective while still reporting a successful solve**. This can occur when some variables enter the objective only linearly, or when conic reformulations introduce auxiliary variables. Results from such quadratic models can therefore be incorrect even if the solver reports success; the issue does not mean that every purely linear MILP is affected.
+
+Update YALMIP to a revision containing the fix in [`solvers/yalmip2copt.m`](https://github.com/yalmip/YALMIP/blob/develop/solvers/yalmip2copt.m). The corrected interface uses the scalar condition `nnz(interfacedata.Q)` instead of `any(interfacedata.Q)` at **both** the quadratic-objective assignment and the dimension-extension check after adding cone variables. The current upstream `develop` branch contains this fix; an older tagged release may not. **Updating COPT alone does not fix the YALMIP interface.**
+
+After updating, run `which yalmip2copt -all` in MATLAB to check that an older YALMIP copy is not taking precedence on the path, then restart MATLAB and verify that the active interface contains the corrected checks.
 
 ### Installation Steps
 
@@ -119,12 +145,12 @@ We recommend using **GitHub Desktop** or `git` to install PowerBiMIP. This allow
         ```
 2.  **Run Installer**:
     *   Open MATLAB.
-    *   Navigate to the **PowerBiMIP root directory** (where you cloned the repo).
+    *   Navigate to the **`matlab/` folder** inside the repository (e.g., `cd PowerBiMIP/matlab`).
     *   Run the installation script in the MATLAB Command Window:
         ```matlab
         install
         ```
-    *   This script will automatically add all necessary folders to your MATLAB path.
+    *   This script adds all necessary folders to your MATLAB path and cleans up stale path entries left over from older layouts, so it is safe to re-run after every update.
 
 3.  **Verify Installation**:
     *   Run one of the toy examples to ensure everything is configured correctly:
@@ -133,7 +159,7 @@ We recommend using **GitHub Desktop** or `git` to install PowerBiMIP. This allow
         ```
 
 ### Updating
-To update to the latest version, simply `Fetch origin` in GitHub Desktop or run `git pull` in your terminal.
+To update to the latest version, simply `Fetch origin` in GitHub Desktop or run `git pull` in your terminal. If an update moves or renames folders (such as the monorepo restructuring), re-run `install` from the `matlab/` folder once to refresh your MATLAB path.
 
 
 ## Power System Case Library
@@ -502,9 +528,6 @@ We also thank **Dr. Ruizhi Yu** ([@rzyu45](https://github.com/rzyu45)) for his t
 Licensed for academic and non-commercial research purposes only. See [LICENSE](LICENSE) for details.
 
 ### Citation
-If you use PowerBiMIP in your research, please cite our GitHub repository:
+If you use PowerBiMIP in your research, please cite the following paper (in Chinese):
 
-> Yemin Wu, Shuai Lu, Wei Gu, Bo Zeng, Yijun Xu, Mingji Chen, "PowerBiMIP: An Open-Source, Efficient Bilevel Mixed-Integer Programming Solver for Power and Energy Systems," GitHub repository, 2026. [Online]. Available: https://github.com/GreatTM/PowerBiMIP
-
-**We will provide a specific citation format once our work is published in a peer-reviewed journal.**
-
+> [1] 吴晔敏,陆帅,顾伟,等.PowerBiMIP：面向电力能源系统优化的规范化双层混合整数规划建模与求解器[J/OL].中国电机工程学报,1-18[2026-09-21].[https://doi.org/10.13334/j.0258-8013.pcsee.261230](https://doi.org/10.13334/j.0258-8013.pcsee.261230).
