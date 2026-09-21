@@ -58,43 +58,43 @@ PowerBiMIP 为构建复杂的层级优化问题提供了一个用户友好的框
       <td>YALMIP</td>
       <td align="center">MATLAB</td>
       <td align="center"></td>
-      <td align="center">✔</td>
+      <td align="center"><strong>✓</strong></td>
       <td align="center"></td>
     </tr>
     <tr>
       <td>Pyomo/PAO</td>
       <td align="center">Python</td>
       <td align="center"></td>
-      <td align="center">✔</td>
+      <td align="center"><strong>✓</strong></td>
       <td align="center"></td>
     </tr>
     <tr>
       <td>BilevelJuMP</td>
       <td align="center">Julia</td>
       <td align="center"></td>
-      <td align="center">✔</td>
+      <td align="center"><strong>✓</strong></td>
       <td align="center"></td>
     </tr>
     <tr>
       <td>GAMS/EMP</td>
       <td align="center">GAMS</td>
       <td align="center"></td>
-      <td align="center">✔</td>
+      <td align="center"><strong>✓</strong></td>
       <td align="center"></td>
     </tr>
     <tr>
       <td>MibS</td>
       <td align="center">C++</td>
-      <td align="center">✔</td>
-      <td align="center">✔<sup>1</sup></td>
+      <td align="center"><strong>✓</strong></td>
+      <td align="center"><strong>✓</strong><sup>1</sup></td>
       <td align="center"></td>
     </tr>
     <tr>
       <td><strong>PowerBiMIP</strong></td>
       <td align="center"><strong>MATLAB（Python<sup>2</sup>）</strong></td>
-      <td align="center">✔</td>
-      <td align="center">✔</td>
-      <td align="center">✔</td>
+      <td align="center"><strong>✓</strong></td>
+      <td align="center"><strong>✓</strong></td>
+      <td align="center"><strong>✓</strong></td>
     </tr>
   </tbody>
 </table>
