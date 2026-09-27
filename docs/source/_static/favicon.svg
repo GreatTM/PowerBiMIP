@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><g id="bilevel-o" transform="translate(36 36)"><defs>
+        <mask id="bilevel-cut" maskUnits="userSpaceOnUse" x="-32" y="-40" width="64" height="80">
+          <rect x="-32" y="-40" width="64" height="80" fill="white" />
+          <path d="M15 -40 -17 8 -2 8 -15 40 18 -9 3 -9Z" fill="black" />
+          <path d="M-32 0H32" stroke="black" stroke-width="5.5" />
+        </mask>
+      </defs>
+      <circle r="29" fill="#168A86" mask="url(#bilevel-cut)" /></g>
+</svg>

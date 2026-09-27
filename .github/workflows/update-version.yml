@@ -21,13 +21,13 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Update VERSION file
-        run: echo "${{ env.VERSION }}" > VERSION
+        run: echo "${{ env.VERSION }}" > matlab/VERSION
 
       - name: Commit and push changes
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add VERSION
+          git add matlab/VERSION
           # Check if there are changes to commit
           if ! git diff --staged --quiet; then
             git commit -m "Chore: Update VERSION to ${{ env.VERSION }}"
