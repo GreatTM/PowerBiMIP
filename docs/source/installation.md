@@ -1,58 +1,72 @@
 # Installation
 
-This guide will help you install PowerBiMIP and get it ready for use in MATLAB.
+PowerBiMIP runs in MATLAB on top of YALMIP and an external mixed-integer linear programming (MILP) solver.
 
-## Prerequisites
+## Requirements
 
-Before installing PowerBiMIP, ensure you have the following dependencies installed:
+- **MATLAB** R2019b or newer.
+- **YALMIP**, a current version from the [YALMIP GitHub repository](https://github.com/yalmip/YALMIP).
+- **A MILP solver** supported by YALMIP: Gurobi, CPLEX, COPT or MOSEK.
 
-1.  **MATLAB**: R2018a or newer.
-2.  **YALMIP**: The latest version is highly recommended. You can download it from the [YALMIP GitHub repository](https://github.com/yalmip/YALMIP).
-3.  **A MILP Solver**: At least one MILP solver is required. We strongly recommend **Gurobi** for its performance and robustness. Other supported solvers include CPLEX, COPT, and MOSEK.
+### Solver choice for academic users in China
 
-## Installation Steps
+Gurobi has discontinued free academic licensing in mainland China, Hong Kong and Macau. For commercial licensing, see the [Gurobi notice](https://support.gurobi.com/hc/en-us/articles/33982552193937-As-a-student-at-a-university-in-China-how-do-I-request-a-Free-Academic-License).
 
-We recommend using **GitHub Desktop** or `git` command line to install PowerBiMIP. This ensures you can easily receive the latest updates.
+We recommend [COPT](https://www.shanshu.ai/copt) for affected academic users.
 
-### 1. Clone the Repository
+````{warning}
+Update YALMIP before using COPT. Older versions of YALMIP's COPT interface can silently drop a quadratic objective while still reporting a successful solve. Updating COPT alone does not fix this; use the current YALMIP `develop` branch, where `solvers/yalmip2copt.m` contains the fix.
 
-Choose one of the following methods to download the source code:
+Restart MATLAB after updating. Then run this command to confirm that the updated interface is first on the path.
 
-*   **Option A: Using GitHub Desktop (Recommended)**
-    1.  Open GitHub Desktop.
-    2.  Go to `File` > `Clone repository`.
-    3.  Enter the repository URL: `https://github.com/GreatTM/PowerBiMIP`.
-    4.  Choose a local path and click **Clone**.
+```matlab
+which yalmip2copt -all
+```
+````
 
-*   **Option B: Using Git Command Line**
-    Run the following command in your terminal:
-    ```bash
-    git clone https://github.com/GreatTM/PowerBiMIP.git
-    ```
+Purely linear MILPs are not affected by this bug. The README describes the [technical details](https://github.com/GreatTM/PowerBiMIP#important-update-yalmip-before-using-copt).
 
-### 2. Run the Installer
+## Install PowerBiMIP
 
-1.  Open **MATLAB**.
-2.  Navigate to the **`matlab/` folder** inside the repository (e.g., `cd PowerBiMIP/matlab`).
-3.  In the MATLAB Command Window, type the following command and press Enter:
-    ```matlab
-    install
-    ```
-4.  The script adds all necessary folders (`src`, `config`, `examples`) to your MATLAB path and cleans up stale path entries left over from older layouts, so it is safe to re-run after every update.
+### 1. Clone the repository
 
-### 3. Verify Installation
+Clone with Git or [GitHub Desktop](https://desktop.github.com/).
 
-To confirm that PowerBiMIP is correctly installed and configured, run one of the included toy examples:
+```bash
+git clone https://github.com/GreatTM/PowerBiMIP.git
+```
+
+### 2. Add PowerBiMIP to the MATLAB path
+
+From the folder that contains the cloned `PowerBiMIP` directory, run these commands in MATLAB.
+
+```matlab
+cd PowerBiMIP/matlab
+install
+```
+
+The installer adds `config`, `examples` and `src` to the MATLAB path, removes stale entries from older repository layouts and saves the path.
+
+If MATLAB cannot save the path (for example, when it is installed under `C:\Program Files`), it warns that the path will be lost on restart. Make `pathdef.m` writable, or run MATLAB once as administrator, then run `install` again.
+
+### 3. Verify the installation
+
+From the `matlab` folder, run the first toy example:
 
 ```matlab
 run('examples/BiMIP_benchmarks/BiMIP_toy_example1.m');
 ```
 
-If the solver runs and produces an optimal solution, you are all set!
+The script uses Gurobi by default. If you use another solver, change `'solver', 'gurobi'` in the script to `'cplex'`, `'copt'` or `'mosek'`.
 
-## Keeping Up to Date
+With the default solver, the example converges in three iterations and prints the following summary.
 
-To update PowerBiMIP to the latest version:
-1.  **Pull changes**: Click "Fetch origin" in GitHub Desktop or run `git pull` in your terminal.
-2.  **Re-run `install`** if the update moved or renamed folders (such as the monorepo restructuring): run it once from the `matlab/` folder to refresh your MATLAB path.
-3.  **Restart MATLAB**: This ensures all changes are reloaded.
+```text
+Objective value: -22.0000
+Best bound:      -22.0000
+Gap:             0.00%
+```
+
+## Updating
+
+Run `git pull` from the repository root. In GitHub Desktop, select **Fetch origin**, then **Pull origin** if updates are available. If an update moves or renames folders, run `install` once more from the `matlab` folder and restart MATLAB.

@@ -1,83 +1,171 @@
 ---
 hide-toc: true
-description: PowerBiMIP is an open-source modeling and solving framework for bilevel mixed-integer programming in power and energy systems.
+myst:
+  html_meta:
+    description: MATLAB toolbox built on YALMIP for linear bilevel mixed-integer programming and two-stage robust optimization in power and energy systems.
 ---
 
-# PowerBiMIP
+(powerbimip)=
+# Bilevel mixed-integer programming for power and energy systems
 
-<div class="pb-home">
-  <section class="pb-hero" aria-labelledby="hero-heading">
-    <div class="pb-hero-copy">
-      <p class="pb-eyebrow"><span class="pb-status-dot" aria-hidden="true"></span> OPEN-SOURCE OPTIMIZATION</p>
-      <img class="pb-hero-logo" src="_static/PowerBiMIP_logo.svg" alt="PowerBiMIP" width="704" height="168">
-      <h2 id="hero-heading">Bilevel Mixed-Integer<br><span>Programming</span></h2>
-      <p class="pb-hero-subtitle">Built for power &amp; energy systems.</p>
-      <p class="pb-hero-description">PowerBiMIP is an open-source, efficient bilevel mixed-integer programming (BiMIP) solver, with a special focus on applications in power and energy systems.</p>
-      <div class="pb-actions">
-        <a class="pb-button pb-button-primary" href="installation.html">Get started <span aria-hidden="true">↗</span></a>
-        <a class="pb-button pb-button-secondary" href="https://github.com/GreatTM/PowerBiMIP">View on GitHub <span aria-hidden="true">↗</span></a>
-      </div>
-      <p class="pb-hero-footnote">MATLAB + YALMIP <span aria-hidden="true">/</span> Academic &amp; non-commercial research</p>
-    </div>
-    <div class="pb-model" role="img" aria-label="Bilevel optimization: upper-level decisions influence a lower-level optimization problem, whose optimal response feeds back into the upper level.">
-      <div class="pb-model-header"><span>THE BILEVEL STRUCTURE</span><span class="pb-model-symbol" aria-hidden="true">↗</span></div>
-      <div class="pb-model-level pb-model-upper">
-        <div class="pb-level-caption"><span>01 / UPPER LEVEL</span><span class="pb-level-variable">x</span></div>
-        <strong>Decide the strategy.</strong>
-        <p>Planning · investment · policy</p>
-        <div class="pb-equation">min<sub>x</sub> F(x, y)</div>
-      </div>
-      <div class="pb-model-connectors" aria-hidden="true"><span><b>↓</b> Decisions</span><span>Optimal response <b>↑</b></span></div>
-      <div class="pb-model-level pb-model-lower">
-        <div class="pb-level-caption"><span>02 / LOWER LEVEL</span><span class="pb-level-variable">y</span></div>
-        <strong>Optimize the response.</strong>
-        <p>Operation · dispatch · adaptation</p>
-        <div class="pb-equation">y ∈ arg min<sub>z</sub> f(x, z)</div>
-      </div>
-      <div class="pb-model-footer"><span class="pb-status-dot" aria-hidden="true"></span> Continuous &amp; integer variables at both levels</div>
-    </div>
-  </section>
+:::{container} pb-landing
 
-  <aside class="pb-announcement" aria-label="Python version announcement">
-    <span class="pb-announcement-label">COMING NEXT</span>
-    <p><strong>Python meets PowerBiMIP.</strong> Pyomo modeling support is in development.</p>
-    <a href="https://github.com/GreatTM/PowerBiMIP/releases">Follow releases <span aria-hidden="true">↗</span></a>
-  </aside>
+PowerBiMIP is a MATLAB toolbox built on YALMIP for linear bilevel mixed-integer programs (BiMIP) and two-stage robust optimization with linear recourse (<span class="pb-nowrap">TRO-LP</span>). Its bilevel solver supports continuous, binary, and integer variables at both levels under optimistic and pessimistic formulations.
 
-  <section class="pb-section" aria-labelledby="start-heading">
-    <div class="pb-section-heading"><div><p class="pb-eyebrow">START EXPLORING</p><h2 id="start-heading">From your first model to real systems.</h2></div></div>
-    <div class="pb-entry-grid">
-      <a class="pb-entry" href="installation.html"><span class="pb-entry-top"><span>01 / SET UP</span><b aria-hidden="true">↗</b></span><h3>Install PowerBiMIP</h3><p>Prepare MATLAB, YALMIP and your MILP solver. Run the installer and a first example.</p><span class="pb-entry-link">Installation guide <span aria-hidden="true">→</span></span></a>
-      <a class="pb-entry" href="getting_started.html"><span class="pb-entry-top"><span>02 / BUILD</span><b aria-hidden="true">↗</b></span><h3>Write your first model</h3><p>Define both levels, choose a solution method and understand the solver output.</p><span class="pb-entry-link">Step-by-step tutorial <span aria-hidden="true">→</span></span></a>
-      <a class="pb-entry" href="case_library.html"><span class="pb-entry-top"><span>03 / APPLY</span><b aria-hidden="true">↗</b></span><h3>Explore energy cases</h3><p>Investigate grid vulnerability, robust energy dispatch and prediction-informed decisions.</p><span class="pb-entry-link">Browse the case library <span aria-hidden="true">→</span></span></a>
-    </div>
-  </section>
-
-  <section class="pb-section" aria-labelledby="capabilities-heading">
-    <div class="pb-section-heading"><div><p class="pb-eyebrow">MODELING &amp; SOLVING</p><h2 id="capabilities-heading">Built around the problems you study.</h2></div><p>A structured interface for complex decisions.</p></div>
-    <div class="pb-feature-grid">
-      <div class="pb-feature"><span class="pb-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m4 10 12-6 12 6-12 6Zm0 7 12 6 12-6M4 24l12 6 12-6"/></svg></span><h3>Integer decisions. Both levels.</h3><p>Model continuous and integer variables at the upper and lower levels, with automatic standard-form conversion and coupling-constraint handling.</p></div>
-      <div class="pb-feature"><span class="pb-feature-icon pb-icon-orange" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7h20M6 25h20M10 7v18M22 7v18"/><circle cx="10" cy="14" r="3"/><circle cx="22" cy="20" r="3"/></svg></span><h3>Optimistic &amp; pessimistic.</h3><p>Represent different assumptions about the follower's response with support for both bilevel solution perspectives.</p></div>
-      <div class="pb-feature"><span class="pb-feature-icon pb-icon-orange" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m18 3-12 15h9l-2 11 13-17h-9Z"/></svg></span><h3>Choose how you solve.</h3><p>Use exact formulations based on KKT conditions or strong duality, or explore quick methods for your modeling workflow.</p></div>
-      <div class="pb-feature"><span class="pb-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 3 11 5v8c0 6-7 11-11 13C12 27 5 22 5 16V8Z"/><path d="m10 16 4 4 8-9"/></svg></span><h3>Plan under uncertainty.</h3><p>Solve two-stage robust optimization problems using C&amp;CG. The current interface supports LP recourse; MIP recourse is planned.</p></div>
-    </div>
-  </section>
-
-  <section class="pb-paper" aria-labelledby="paper-heading">
-    <div class="pb-paper-aside"><p class="pb-eyebrow">THE RESEARCH</p><span class="pb-paper-year">2026</span><span>Proceedings of the CSEE</span></div>
-    <div class="pb-paper-copy"><h2 id="paper-heading">Research you can build on.</h2><p>If PowerBiMIP supports your work, please cite our paper.</p><p class="pb-paper-title" lang="zh-CN">PowerBiMIP：面向电力能源系统优化的规范化双层混合整数规划建模与求解器</p><p class="pb-paper-authors" lang="zh-CN">吴晔敏 · 陆帅 · 顾伟 · 等</p><div class="pb-text-links"><a href="https://doi.org/10.13334/j.0258-8013.pcsee.261230">Read the paper <span aria-hidden="true">↗</span></a><a href="citation.html">Citation details <span aria-hidden="true">→</span></a></div></div>
-  </section>
-
-  <section class="pb-community" aria-labelledby="community-heading"><div><p class="pb-eyebrow">BUILT WITH THE COMMUNITY</p><h2 id="community-heading">Make your next model possible.</h2><p>Explore the code, share a case or help improve PowerBiMIP.</p></div><div class="pb-actions"><a class="pb-button pb-button-primary" href="https://github.com/GreatTM/PowerBiMIP/issues">Discuss on GitHub <span aria-hidden="true">↗</span></a><a class="pb-contact" href="mailto:yemin.wu@seu.edu.cn">Contact the team <span aria-hidden="true">→</span></a></div></section>
+<div class="pb-actions">
+  <a class="pb-button pb-button-primary" href="installation.html">Install PowerBiMIP</a>
+  <a href="getting_started.html">Read the tutorial</a>
+  <a class="pb-quiet-link" href="https://github.com/GreatTM/PowerBiMIP">GitHub</a>
 </div>
+
+<p class="pb-hero-meta"><code>v0.1.5</code> · MATLAB R2019b+ · YALMIP · Gurobi, CPLEX, COPT, MOSEK</p>
+
+:::
+
+(start-heading)=
+## Formulate and solve in YALMIP syntax
+
+::::{container} pb-example-layout
+
+:::{container} pb-example-code
+
+``` matlab
+yalmip('clear');
+
+model.var_upper.x = intvar(1, 1, 'full');   % Upper-level integer variable
+model.var_lower.z = intvar(1, 1, 'full');   % Lower-level integer variable
+model.var_lower.y = sdpvar(4, 1, 'full');   % Lower-level continuous variables
+
+A = [-25, 20; 1, 2; 2, -1; -2, -10];
+b = [30; 10; 15; -15];
+u = [model.var_upper.x; model.var_lower.z];
+
+model.cons_upper = (model.var_upper.x >= 0) + (A * u <= b);
+model.cons_lower = (A * u <= b + model.var_lower.y) + ...
+                   (model.var_lower.z >= 0) + (model.var_lower.y >= 0);
+model.obj_upper  = -model.var_upper.x - 10 * model.var_lower.z;
+model.obj_lower  = model.var_lower.z + 1e3 * sum(model.var_lower.y, 'all');
+
+ops = BiMIPsettings('perspective', 'optimistic', ...
+                    'method', 'exact_KKT', 'solver', 'gurobi');
+[Solution, BiMIP_record] = solve_BiMIP(model, ops);
+```
+
+:::
+
+:::{container} pb-example-companion
+
+$$
+\begin{aligned}
+\min_{x_u, z_u, x_l, z_l} \;& c_u^{\top} x_u + d_u^{\top} z_u + e_u^{\top} x_l + f_u^{\top} z_l \\
+\text{s.t.} \;& (x_u, z_u, x_l, z_l) \in \Omega_u, \quad (x_u, z_u) \in \mathbb{R}^{n_u} \times \mathbb{Z}^{p_u}, \\
+& (x_l, z_l) \in \arg\min_{\tilde{x}_l, \tilde{z}_l} \bigl\{ e_l^{\top} \tilde{x}_l + f_l^{\top} \tilde{z}_l : (\tilde{x}_l, \tilde{z}_l) \in \Omega_l(x_u, z_u) \cap (\mathbb{R}^{n_l} \times \mathbb{Z}^{p_l}) \bigr\}
+\end{aligned}
+$$
+
+Upper-level constraints $\Omega_u$ and lower-level constraints $\Omega_l(x_u, z_u)$ are polyhedral sets defined by linear inequalities and equalities.
+
+<p class="pb-example-result">With the default solver, the example converges in three iterations to <var>x</var> = 2 and <var>z</var> = 2, with an upper-level objective of −22. See <a href="getting_started.html">Getting started</a> for the solver output and a <code>solve_TRO</code> example.</p>
+
+:::
+
+::::
+
+(capabilities-heading)=
+## Supported models and methods
+
+<dl class="pb-capabilities simple">
+  <div>
+    <dt>Mixed-integer variables at both levels</dt>
+    <dd>Declare continuous (<code>sdpvar</code>), binary (<code>binvar</code>), and integer (<code>intvar</code>) variables in both upper and lower problems. Objectives and constraints must be linear.</dd>
+  </div>
+  <div>
+    <dt>Optimistic and pessimistic perspectives</dt>
+    <dd>Solve optimistic bilevel models (including coupled upper-level constraints) and pessimistic bilevel models. Pessimistic mode currently requires uncoupled upper-level constraints and exact methods.</dd>
+  </div>
+  <div>
+    <dt>Exact R&amp;D and the quick method</dt>
+    <dd>Choose reformulation and decomposition (R&amp;D) with KKT or strong-duality master problems, or an L1-penalty alternating direction method (<code>quick</code>). Quick mode applies to optimistic BiMIP and <span class="pb-nowrap">TRO-LP</span> models.</dd>
+  </div>
+  <div>
+    <dt>Two-stage robust optimization and MPS/AUX I/O</dt>
+    <dd>Use <code>solve_TRO</code> for two-stage robust optimization with linear programming (LP) recourse via column-and-constraint generation (C&amp;CG). Import or export MibS <code>.mps</code>/<code>.aux</code> files.</dd>
+  </div>
+</dl>
+
+### Comparison with existing toolboxes
+
+:::{container} pb-comparison
+
+<p class="pb-table-hint">Scroll to see all columns.</p>
+
+| Toolbox | Platform | Lower-level integers | Optimistic | Pessimistic |
+| :--- | :--- | :---: | :---: | :---: |
+| YALMIP | MATLAB | | **✓** | |
+| Pyomo/PAO | Python | | **✓** | |
+| BilevelJuMP | Julia | | **✓** | |
+| GAMS/EMP | GAMS | | **✓** | |
+| MibS | C++ | **✓** | **✓**<sup>1</sup> | |
+| **PowerBiMIP** | **MATLAB (Python<sup>2</sup>)** | **✓** | **✓** | **✓** |
+
+<sup>1</sup> MibS currently only supports cases where connecting variables are pure integer variables.<br>
+<sup>2</sup> The Python version with Pyomo modeling support is under development; checkmarks describe the current MATLAB version.
+
+:::
+
+## Power and energy system cases
+
+<ul class="pb-case-list" role="list">
+  <li>
+    <a class="pb-case-title" href="case_library.html#transmission-grid-vulnerability-analysis">Transmission grid vulnerability analysis</a>
+    <div><p>An attacker disconnects exactly <var>K</var> transmission lines while the operator minimizes load shedding through DC redispatch and corrective line switching.</p>
+    <p class="pb-case-scale"><em>Scale</em>: One-area IEEE RTS-96 (24-bus, 38-branch) · 38 lower-level switching binaries</p></div>
+  </li>
+  <li>
+    <a class="pb-case-title" href="case_library.html#decision-focused-forecasting-and-unit-commitment">Decision-focused forecasting and unit commitment</a>
+    <div><p>A closed-loop model tunes renewable forecast parameters jointly with day-ahead unit commitment and real-time redispatch to reduce operating cost.</p>
+    <p class="pb-case-scale"><em>Scale</em>: IEEE 118-bus · 22,680 lower-level binaries</p></div>
+  </li>
+  <li>
+    <a class="pb-case-title" href="case_library.html#adaptive-robust-dispatch-of-integrated-energy-systems">Adaptive robust dispatch of integrated energy systems</a>
+    <div><p>A two-stage robust model schedules power distribution, district heating, and storage while accounting for building thermal inertia and uncertainty in renewable generation, electric load, and temperatures.</p>
+    <p class="pb-case-scale"><em>Scale</em>: 33-bus electricity-heat network · 24-hour C&amp;CG dispatch</p></div>
+  </li>
+</ul>
+
+Eleven smaller BiMIP, robust, and MPS/AUX benchmark scripts are also included in `matlab/examples/BiMIP_benchmarks/` (<a href="case_library.html#standard-bimip-and-tro-benchmarks">Case library</a>).
+
+:::{container} pb-python-status
+
+A Python version of PowerBiMIP with Pyomo modeling support is in development; updates are posted on [GitHub](https://github.com/GreatTM/PowerBiMIP).
+
+:::
+
+(paper-heading)=
+## Citation and license
+
+<p>[1] Y. Wu, S. Lu, W. Gu, B. Zeng, Y. Xu and M. Chen, "PowerBiMIP: A Standardized Modeling Framework and Solver for Bilevel Mixed-Integer Programming in Power and Energy Systems," Proceedings of the CSEE, 2026, pp. 1-18, doi: <a href="https://doi.org/10.13334/j.0258-8013.pcsee.261230">10.13334/j.0258-8013.pcsee.261230</a>.</p>
+
+<p lang="zh-CN">[1] 吴晔敏,陆帅,顾伟,等.PowerBiMIP：面向电力能源系统优化的规范化双层混合整数规划建模与求解器[J/OL].中国电机工程学报,1-18[2026-09-21].DOI:10.13334/j.0258-8013.pcsee.261230.</p>
+
+[BibTeX and citation details](citation.md)
+
+PowerBiMIP is licensed for academic and non-commercial research only ([LICENSE](https://github.com/GreatTM/PowerBiMIP/blob/main/LICENSE)).
+
+(community-heading)=
+## Contact
+
+<p class="pb-contact-links">
+  <a href="https://github.com/GreatTM/PowerBiMIP/issues">GitHub Issues</a>
+  <a href="mailto:yemin.wu@seu.edu.cn">yemin.wu@seu.edu.cn</a>
+</p>
 
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: Documentation
 
-installation
-getting_started
-case_library
-citation
+Installation <installation>
+Getting started <getting_started>
+Case library <case_library>
+Citation and license <citation>
 ```
