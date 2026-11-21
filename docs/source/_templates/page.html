@@ -1,0 +1,42 @@
+{% extends "!page.html" %}
+{% from "partials/pb-brand.html" import wordmark with context %}
+
+{% block extrahead %}
+{{ super() }}
+<link rel="expect" href="#furo-main-content" blocking="render">
+{% endblock %}
+
+{% block body %}
+{% if pagename == master_doc %}
+<a class="skip-to-content pb-home-skip" href="#furo-main-content">Skip to content</a>
+<header class="pb-home-page">
+  <div class="pb-navbar">
+    <label class="nav-overlay-icon pb-navbar-menu" for="__navigation">
+      <svg aria-hidden="true"><use href="#svg-menu"></use></svg>
+    </label>
+    <a class="pb-navbar-brand" href="{{ pathto(master_doc) }}" aria-label="PowerBiMIP home" aria-current="page">
+      {{ wordmark() }}
+    </a>
+    <nav class="pb-navbar-links" aria-label="Primary">
+      <a href="{{ pathto('installation') }}">Installation</a>
+      <a href="{{ pathto('getting_started') }}">Getting started</a>
+      <a href="{{ pathto('case_library') }}">Case library</a>
+      <a href="{{ pathto('citation') }}">Citation &amp; license</a>
+    </nav>
+    <div class="pb-navbar-tools">
+      <a class="pb-navbar-search" href="{{ pathto('search') }}">Search</a>
+      <a class="pb-navbar-repository" href="https://github.com/GreatTM/PowerBiMIP">GitHub</a>
+      <button class="theme-toggle" type="button" aria-label="Toggle Light / Dark / Auto color theme">
+        <svg aria-hidden="true" class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+        <svg aria-hidden="true" class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+        <svg aria-hidden="true" class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+        <svg aria-hidden="true" class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+      </button>
+    </div>
+  </div>
+</header>
+{% else %}
+<div class="pb-reading-progress" aria-hidden="true"></div>
+{% endif %}
+{{ super() }}
+{% endblock %}

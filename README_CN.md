@@ -6,7 +6,7 @@
   </picture>
 </div>
 
-<h1 align="center">PowerBiMIP：面向电力与能源系统的双层混合整数规划求解器</h1>
+<h1 align="center">PowerBiMIP：专用于双层混合整数规划、面向电力与能源系统定制的优化求解器</h1>
 
 <p align="center">
   <a href="README.md" lang="en">English</a> | <strong>简体中文</strong>
@@ -26,7 +26,7 @@
   <a href="https://doi.org/10.13334/j.0258-8013.pcsee.261230"><img src="https://img.shields.io/badge/DOI-10.13334%2Fj.0258--8013.pcsee.261230-09645d" alt="DOI: 10.13334/j.0258-8013.pcsee.261230"></a>
 </p>
 
-**PowerBiMIP** 是基于 MATLAB 与 YALMIP 构建的优化建模与求解工具箱，面向线性双层混合整数规划（BiMIP）以及具有线性规划补偿阶段的两阶段鲁棒优化（TRO-LP）。其双层求解器支持在上下层同时引入连续、二元与整数决策变量，涵盖乐观与悲观两类双层建模视角，并配套电力与能源系统典型基准算例。
+**PowerBiMIP** 是专用于求解线性双层混合整数规划（BiMIP）与两阶段线性补偿鲁棒优化（TRO-LP）的 MATLAB 求解器（基于 YALMIP 构建），特别面向电力与能源系统优化场景定制打造。其双层求解器支持在上下层同时引入连续、二元与整数决策变量，涵盖乐观与悲观两类双层建模视角。
 
 > [!NOTE]
 > **Python 与 Pyomo 支持（开发中）：** 当前发布的 PowerBiMIP v0.1.5 运行于 MATLAB 环境；支持 Pyomo 建模的 Python 版本正在开发中。

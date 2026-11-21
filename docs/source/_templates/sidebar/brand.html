@@ -1,3 +1,4 @@
+{% from "partials/pb-brand.html" import wordmark with context %}
 <a class="sidebar-brand pb-brand" href="{{ pathto(master_doc) }}" aria-label="PowerBiMIP home"{% if pagename == master_doc %} aria-current="page"{% endif %}>
-  <img class="sidebar-logo" src="{{ pathto('_static/PowerBiMIP_logo.svg', 1) }}" alt="PowerBiMIP" width="2085" height="351">
+  {{ wordmark("sidebar-logo") }}
 </a>

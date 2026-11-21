@@ -6,7 +6,7 @@
   </picture>
 </div>
 
-<h1 align="center">PowerBiMIP: Bilevel Mixed-Integer Programming for Power and Energy Systems</h1>
+<h1 align="center">PowerBiMIP: A Dedicated Bilevel Mixed-Integer Programming Solver, Tailored to Power and Energy Systems</h1>
 
 <p align="center">
   <strong>English</strong> | <a href="README_CN.md" lang="zh-CN">简体中文</a>
@@ -26,7 +26,7 @@
   <a href="https://doi.org/10.13334/j.0258-8013.pcsee.261230"><img src="https://img.shields.io/badge/DOI-10.13334%2Fj.0258--8013.pcsee.261230-09645d" alt="DOI: 10.13334/j.0258-8013.pcsee.261230"></a>
 </p>
 
-**PowerBiMIP** is a MATLAB toolbox built on YALMIP for modeling and solving linear bilevel mixed-integer programs (BiMIP) and two-stage robust optimization problems with linear programming recourse (TRO-LP). Its bilevel solver supports continuous, binary, and integer variables at both levels under optimistic and pessimistic formulations, with benchmark applications in power and energy systems.
+**PowerBiMIP** is a dedicated MATLAB solver (built on YALMIP) for linear bilevel mixed-integer programming (BiMIP) and two-stage robust optimization with linear programming recourse (TRO-LP), tailored specifically to power and energy systems. Its bilevel solver handles continuous, binary, and integer variables at both levels under optimistic and pessimistic formulations.
 
 > [!NOTE]
 > **Python and Pyomo support (in development):** PowerBiMIP v0.1.5 runs in MATLAB. A Python implementation with Pyomo modeling support is under active development.

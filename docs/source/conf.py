@@ -17,7 +17,7 @@ html_theme = "furo"
 html_title = "PowerBiMIP"
 html_favicon = "_static/favicon.svg"
 html_static_path = ["_static"]
-html_css_files = ["custom.css"]
+html_css_files = ["custom.css", "home.css"]
 html_js_files = [("site.js", {"defer": "defer"})]
 html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "https://docs.powerbimip.com/en/latest/")
 html_sidebars = {
@@ -36,7 +36,7 @@ html_sidebars = {
 theme_variables = {
     "font-stack": '"Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif',
     "font-stack--headings": "var(--font-stack)",
-    "font-stack--monospace": 'ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace',
+    "font-stack--monospace": '"JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace',
     "color-background-primary": "var(--pb-canvas)",
     "color-background-secondary": "var(--pb-surface)",
     "color-background-border": "var(--pb-border)",

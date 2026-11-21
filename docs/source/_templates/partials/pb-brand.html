@@ -1,0 +1,6 @@
+{% macro wordmark(image_class="") -%}
+<picture class="pb-brand-picture">
+  <source media="(prefers-color-scheme: dark)" srcset="{{ pathto('_static/PowerBiMIP_logo-dark.svg', 1) }}">
+  <img{% if image_class %} class="{{ image_class }}"{% endif %} src="{{ pathto('_static/PowerBiMIP_logo.svg', 1) }}" alt="PowerBiMIP" width="2085" height="351">
+</picture>
+{%- endmacro %}
